@@ -10,19 +10,8 @@ function Login() {
     const [password, setPassword] = useState("");
     const [error, setError] = useState("");
     const [dbOffline, setDbOffline] = useState(false);
-    
-    // Google AI Slideshow
-    const [bgIndex, setBgIndex] = useState(0);
-    const bgImages = ["/slideshow_1.png", "/slideshow_2.png", "/slideshow_3.png"];
 
     const navigate = useNavigate();
-
-    useEffect(() => {
-        const interval = setInterval(() => {
-            setBgIndex((prev) => (prev + 1) % bgImages.length);
-        }, 5000);
-        return () => clearInterval(interval);
-    }, []);
 
     useEffect(() => {
         const checkDb = async () => {
@@ -76,21 +65,23 @@ function Login() {
                 transition={{ duration: 0.55, ease: "easeOut" }}
             >
 
-                <div 
-                    className="auth-visual"
-                    style={{
-                        backgroundImage: `linear-gradient(145deg, rgba(15, 76, 129, 0.82), rgba(20, 36, 56, 0.95)), url(${bgImages[bgIndex]})`,
-                        backgroundPosition: "center",
-                        backgroundSize: "cover",
-                        transition: "background-image 1.2s ease-in-out"
-                    }}
-                >
+                <div className="auth-visual">
+                    <video 
+                        autoPlay 
+                        loop 
+                        muted 
+                        playsInline
+                        className="absolute inset-0 w-full h-full object-cover z-0 pointer-events-none"
+                    >
+                        <source src="/login_video.mp4" type="video/mp4" />
+                    </video>
+                    <div className="absolute inset-0 bg-gradient-to-br from-slate-950/85 via-sky-950/75 to-slate-950/85 z-10 pointer-events-none" />
 
-                    <div>
+                    <div className="z-20 relative">
                         <div className="brand-mark">CP</div>
                     </div>
 
-                    <div>
+                    <div className="z-20 relative">
                         <p className="text-sm uppercase tracking-[0.18em] text-sky-100 font-bold">
                             Shop print console
                         </p>
