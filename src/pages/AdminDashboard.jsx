@@ -41,6 +41,15 @@ function AdminDashboard() {
         adText: ""
     });
 
+    // Rewards & Voucher creator states
+    const [rewards, setRewards] = useState([]);
+    const [rewardTitle, setRewardTitle] = useState("");
+    const [rewardDesc, setRewardDesc] = useState("");
+    const [rewardAmt, setRewardAmt] = useState("");
+    const [rewardCode, setRewardCode] = useState("");
+    const [rewardMaxClaims, setRewardMaxClaims] = useState(100);
+    const [creatingReward, setCreatingReward] = useState(false);
+
     // SQL Console states
     const [sqlQuery, setSqlQuery] = useState("SELECT * FROM users;");
     const [sqlResult, setSqlResult] = useState(null);
@@ -118,11 +127,15 @@ function AdminDashboard() {
             fetchPrices(selectedPricingBlock);
             fetchCoupons();
             fetchBlocks();
+        } else if (activeTab === "frontend") {
+            fetchSystemSettings();
+            fetchSections();
         } else if (activeTab === "system") {
             fetchSystemSettings();
             fetchBlocks();
             fetchPrinters();
-            fetchSections();
+        } else if (activeTab === "rewards") {
+            fetchRewards();
         }
     }, [activeTab]);
 
@@ -264,6 +277,34 @@ function AdminDashboard() {
         }
     };
 
+    const resolveSupportTicket = async (id) => {
+        try {
+            await api.post("/support/resolve", null, {
+                params: { id }
+            });
+            showAlert("Success", "Ticket marked as resolved", "success");
+            fetchSupportTickets();
+        } catch (err) {
+            console.error("Error resolving ticket:", err);
+            showAlert("Error", "Failed to resolve support ticket", "error");
+        }
+    };
+
+    const deleteSupportTicket = async (id) => {
+        showConfirm("Confirm Delete", "Are you sure you want to delete this support ticket permanently?", async () => {
+            try {
+                await api.delete("/support/delete", {
+                    params: { id }
+                });
+                showAlert("Success", "Support ticket deleted successfully", "success");
+                fetchSupportTickets();
+            } catch (err) {
+                console.error("Error deleting ticket:", err);
+                showAlert("Error", "Failed to delete support ticket", "error");
+            }
+        });
+    };
+
     const resetStats = async () => {
         showConfirm(
             "CRITICAL WARNING",
@@ -283,6 +324,10 @@ function AdminDashboard() {
     };
 
     const createCoupon = async () => {
+        if (Number(discountPercentage) > 95) {
+            showAlert("Discount Constraint", "Maximum allowed coupon discount limit is 95%.", "error");
+            return;
+        }
         try {
             await api.post("/coupon/create", {
                 couponCode,
@@ -299,8 +344,79 @@ function AdminDashboard() {
             setMaxUses("");
         } catch (error) {
             console.error(error);
-            showAlert("Error", "Unable To Create Coupon", "error");
+            showAlert("Error", error.response?.data?.message || "Unable To Create Coupon", "error");
         }
+    };
+
+    // Rewards & Voucher API calls
+    const fetchRewards = async () => {
+        try {
+            const response = await api.get("/rewards/all");
+            setRewards(response.data || []);
+        } catch (err) {
+            console.error("Failed to fetch rewards", err);
+        }
+    };
+
+    const createReward = async (e) => {
+        e.preventDefault();
+        if (!rewardTitle.trim() || !rewardDesc.trim() || !rewardAmt || !rewardCode.trim()) {
+            showAlert("Required Fields", "Please fill in all reward voucher details.", "warning");
+            return;
+        }
+
+        setCreatingReward(true);
+        try {
+            await api.post("/rewards/create", {
+                title: rewardTitle.trim(),
+                description: rewardDesc.trim(),
+                rewardAmount: Number(rewardAmt),
+                claimCode: rewardCode.trim().toUpperCase(),
+                maxClaims: Number(rewardMaxClaims),
+                claimedCount: 0,
+                active: true
+            });
+
+            showAlert("Success", "Reward voucher created successfully!", "success");
+            setRewardTitle("");
+            setRewardDesc("");
+            setRewardAmt("");
+            setRewardCode("");
+            setRewardMaxClaims(100);
+            fetchRewards();
+        } catch (err) {
+            console.error(err);
+            showAlert("Creation Failed", err.response?.data || "Could not create reward voucher.", "error");
+        } finally {
+            setCreatingReward(false);
+        }
+    };
+
+    const toggleRewardActive = async (id, currentActive) => {
+        try {
+            await api.post("/rewards/update-status", null, {
+                params: { id, active: !currentActive }
+            });
+            fetchRewards();
+        } catch (err) {
+            console.error(err);
+            showAlert("Error", "Failed to update reward status", "error");
+        }
+    };
+
+    const deleteReward = async (id) => {
+        showConfirm("Confirm Delete", "Are you sure you want to delete this reward voucher permanently?", async () => {
+            try {
+                await api.delete("/rewards/delete", {
+                    params: { id }
+                });
+                showAlert("Success", "Reward voucher deleted successfully", "success");
+                fetchRewards();
+            } catch (err) {
+                console.error(err);
+                showAlert("Error", "Failed to delete reward voucher", "error");
+            }
+        });
     };
 
     const updateStatus = async (id, status) => {
@@ -583,7 +699,7 @@ function AdminDashboard() {
                         onClick={() => setActiveTab("queue")}
                         className={`px-4 py-2 font-bold text-sm rounded-lg transition-all ${
                             activeTab === "queue"
-                                ? "bg-slate-900 text-white shadow-md shadow-slate-955/20"
+                                ? "bg-slate-900 text-white shadow-md"
                                 : "text-slate-600 hover:bg-slate-100/60"
                         }`}
                     >
@@ -598,7 +714,7 @@ function AdminDashboard() {
                         }}
                         className={`px-4 py-2 font-bold text-sm rounded-lg transition-all ${
                             activeTab === "settings"
-                                ? "bg-slate-900 text-white shadow-md shadow-slate-955/20"
+                                ? "bg-slate-900 text-white shadow-md"
                                 : "text-slate-600 hover:bg-slate-100/60"
                         }`}
                     >
@@ -611,7 +727,7 @@ function AdminDashboard() {
                         }}
                         className={`px-4 py-2 font-bold text-sm rounded-lg transition-all ${
                             activeTab === "users"
-                                ? "bg-slate-900 text-white shadow-md shadow-slate-955/20"
+                                ? "bg-slate-900 text-white shadow-md"
                                 : "text-slate-600 hover:bg-slate-100/60"
                         }`}
                     >
@@ -624,7 +740,7 @@ function AdminDashboard() {
                         }}
                         className={`px-4 py-2 font-bold text-sm rounded-lg transition-all ${
                             activeTab === "support"
-                                ? "bg-slate-900 text-white shadow-md shadow-slate-955/20"
+                                ? "bg-slate-900 text-white shadow-md"
                                 : "text-slate-600 hover:bg-slate-100/60"
                         }`}
                     >
@@ -632,19 +748,45 @@ function AdminDashboard() {
                     </button>
                     <button
                         onClick={() => {
+                            setActiveTab("frontend");
+                            fetchSystemSettings();
+                            fetchSections();
+                        }}
+                        className={`px-4 py-2 font-bold text-sm rounded-lg transition-all ${
+                            activeTab === "frontend"
+                                ? "bg-slate-900 text-white shadow-md"
+                                : "text-slate-600 hover:bg-slate-100/60"
+                        }`}
+                    >
+                        Frontend Manager
+                    </button>
+                    <button
+                        onClick={() => {
                             setActiveTab("system");
                             fetchSystemSettings();
                             fetchBlocks();
                             fetchPrinters();
-                            fetchSections();
                         }}
                         className={`px-4 py-2 font-bold text-sm rounded-lg transition-all ${
                             activeTab === "system"
-                                ? "bg-slate-900 text-white shadow-md shadow-slate-955/20"
+                                ? "bg-slate-900 text-white shadow-md"
                                 : "text-slate-600 hover:bg-slate-100/60"
                         }`}
                     >
                         System Config
+                    </button>
+                    <button
+                        onClick={() => {
+                            setActiveTab("rewards");
+                            fetchRewards();
+                        }}
+                        className={`px-4 py-2 font-bold text-sm rounded-lg transition-all ${
+                            activeTab === "rewards"
+                                ? "bg-slate-900 text-white shadow-md"
+                                : "text-slate-600 hover:bg-slate-100/60"
+                        }`}
+                    >
+                        Rewards Panel
                     </button>
                     <button
                         onClick={() => {
@@ -654,7 +796,7 @@ function AdminDashboard() {
                         }}
                         className={`px-4 py-2 font-bold text-sm rounded-lg transition-all ${
                             activeTab === "sql"
-                                ? "bg-slate-900 text-white shadow-md shadow-slate-955/20"
+                                ? "bg-slate-900 text-white shadow-md"
                                 : "text-slate-600 hover:bg-slate-100/60"
                         }`}
                     >
@@ -748,70 +890,55 @@ function AdminDashboard() {
                         </section>
 
                         <motion.section
-                            className="panel mt-6 overflow-x-auto"
+                            className="panel mt-6 overflow-x-auto p-6"
                             initial={{ opacity: 0, y: 18 }}
                             animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: 0.1 }}
+                            transition={{ delay: 0.12 }}
                         >
-                            <div className="section-header p-6 pb-0">
+                            <div className="section-header pb-4">
                                 <div>
-                                    <p className="eyebrow">Live Queue</p>
+                                    <p className="eyebrow">Print queue</p>
                                     <h2 className="text-2xl font-black text-slate-900">
-                                        Orders
+                                        Active Orders
                                     </h2>
                                 </div>
                             </div>
 
-                            <table className="data-table mt-4">
+                            <table className="data-table">
                                 <thead>
                                     <tr>
                                         <th>Order ID</th>
-                                        <th>Name</th>
                                         <th>Location</th>
-                                        <th>User ID</th>
-                                        <th>File</th>
+                                        <th>Customer</th>
                                         <th>Pages</th>
                                         <th>Copies</th>
-                                        <th>Type</th>
                                         <th>Price</th>
                                         <th>Payment</th>
                                         <th>Status</th>
-                                        <th>PDF</th>
+                                        <th>Action</th>
                                     </tr>
                                 </thead>
+
                                 <tbody>
                                     {orders.map((order, index) => (
                                         <motion.tr
                                             key={order.id}
                                             initial={{ opacity: 0, y: 8 }}
                                             animate={{ opacity: 1, y: 0 }}
-                                            transition={{ delay: index * 0.025 }}
+                                            transition={{ delay: index * 0.03 }}
                                         >
                                             <td className="font-black">
                                                 {order.orderId}
                                             </td>
                                             <td className="font-bold">
-                                                {order.customerName || "Customer"}
-                                            </td>
-                                            <td className="font-semibold text-slate-700">
                                                 {order.blockLocation || "C Block"}
                                             </td>
-                                            <td>
-                                                {order.userId}
+                                            <td className="font-bold text-slate-900">
+                                                {order.customerName || "Customer"}
                                             </td>
-                                            <td className="max-w-[220px] truncate font-bold">
-                                                {order.fileName}
-                                            </td>
-                                            <td>
-                                                {order.selectedPages}
-                                            </td>
-                                            <td>
-                                                {order.copies}
-                                            </td>
-                                            <td>
-                                                {order.printType}
-                                            </td>
-                                            <td className="font-black">
+                                            <td>{order.selectedPages}</td>
+                                            <td>{order.copies}</td>
+                                            <td className="font-black text-slate-900">
                                                 Rs. {order.price}
                                             </td>
                                             <td>
@@ -820,44 +947,34 @@ function AdminDashboard() {
                                                 </span>
                                             </td>
                                             <td>
-                                                <div className="flex flex-col items-start gap-2">
-                                                    <span className={statusClass(order.status)}>
-                                                        {order.status}
-                                                    </span>
-
-                                                    {order.status === "QUEUE" && (
-                                                        <button
-                                                            onClick={() => updateStatus(order.id, "PRINTING")}
-                                                            className="btn warning min-h-0 px-3 py-2 text-sm"
-                                                        >
-                                                            Printing
-                                                        </button>
-                                                    )}
-
-                                                    {order.status === "PRINTING" && (
-                                                        <button
-                                                            onClick={() => updateStatus(order.id, "COMPLETED")}
-                                                            className="btn success min-h-0 px-3 py-2 text-sm"
-                                                        >
-                                                            Completed
-                                                        </button>
-                                                    )}
-                                                </div>
+                                                <select
+                                                    value={order.status}
+                                                    onChange={(e) => updateStatus(order.id, e.target.value)}
+                                                    className="field py-1 px-2 text-xs font-bold"
+                                                    style={{ width: "auto", minHeight: "30px" }}
+                                                >
+                                                    <option value="CANCEL_WINDOW">CANCEL WINDOW</option>
+                                                    <option value="QUEUE">QUEUE</option>
+                                                    <option value="PRINTING">PRINTING</option>
+                                                    <option value="COMPLETED">COMPLETED</option>
+                                                    <option value="CANCELLED">CANCELLED</option>
+                                                </select>
                                             </td>
                                             <td>
                                                 <button
                                                     onClick={() => downloadPdf(order.id)}
-                                                    className="btn secondary min-h-0 px-3 py-2 text-sm"
+                                                    className="btn secondary min-h-0 px-3 py-1.5 text-xs font-black"
                                                 >
                                                     Download
                                                 </button>
                                             </td>
                                         </motion.tr>
                                     ))}
+
                                     {orders.length === 0 && (
                                         <tr>
-                                            <td colSpan="12" className="text-center font-bold text-slate-500">
-                                                No orders found
+                                            <td colSpan="9" className="text-center font-bold text-slate-500 py-6">
+                                                No print orders in queue
                                             </td>
                                         </tr>
                                     )}
@@ -867,10 +984,10 @@ function AdminDashboard() {
                     </>
                 )}
 
-                {/* Settings Tab */}
+                {/* Pricing & Coupons Tab */}
                 {activeTab === "settings" && (
                     <>
-                        <div className="mt-6 grid gap-6 lg:grid-cols-[0.8fr_1.2fr]">
+                        <div className="grid gap-6 md:grid-cols-2">
                             <motion.section
                                 className="panel p-6"
                                 initial={{ opacity: 0, y: 18 }}
@@ -878,70 +995,55 @@ function AdminDashboard() {
                             >
                                 <div className="section-header">
                                     <div>
-                                        <p className="eyebrow">Pricing</p>
+                                        <p className="eyebrow">Price Settings</p>
                                         <h2 className="text-2xl font-black text-slate-900">
-                                            Price Management
+                                            Rate Configuration
                                         </h2>
-                                        <p className="subtitle">
-                                            Manage custom rates per block location.
-                                        </p>
                                     </div>
                                 </div>
 
-                                <div className="mb-4">
-                                    <label className="mb-2 block text-sm font-black text-slate-700">
-                                        Select Block Location
-                                    </label>
-                                    <select
-                                        value={selectedPricingBlock}
-                                        onChange={(e) => {
-                                            const val = e.target.value;
-                                            setSelectedPricingBlock(val);
-                                            fetchPrices(val);
-                                        }}
-                                        className="field"
-                                    >
-                                        {blocks.map((block) => (
-                                            <option key={block.id} value={block.name}>
-                                                {block.name}
-                                            </option>
-                                        ))}
-                                        {blocks.length === 0 && (
-                                            <>
-                                                <option value="C Block">C Block</option>
-                                                <option value="R Block">R Block</option>
-                                                <option value="L Block">L Block</option>
-                                            </>
-                                        )}
-                                    </select>
-                                </div>
-
-                                <div className="grid gap-4 sm:grid-cols-2">
-                                    <label>
+                                <div className="space-y-4">
+                                    <label className="block">
                                         <span className="mb-2 block text-sm font-black text-slate-700">
-                                            BW Price (per page)
+                                            Select Block for Pricing
+                                        </span>
+                                        <select
+                                            value={selectedPricingBlock}
+                                            onChange={(e) => {
+                                                setSelectedPricingBlock(e.target.value);
+                                                fetchPrices(e.target.value);
+                                            }}
+                                            className="field"
+                                        >
+                                            {blocks.map(b => (
+                                                <option key={b.id} value={b.name}>{b.name}</option>
+                                            ))}
+                                        </select>
+                                    </label>
+
+                                    <label className="block">
+                                        <span className="mb-2 block text-sm font-black text-slate-700">
+                                            Black & White rate (Rs./page)
                                         </span>
                                         <input
                                             type="number"
                                             value={bwPrice}
                                             onChange={(e) => setBwPrice(e.target.value)}
                                             className="field"
-                                            step="0.1"
-                                            min="0"
+                                            step="0.5"
                                         />
                                     </label>
 
-                                    <label>
+                                    <label className="block">
                                         <span className="mb-2 block text-sm font-black text-slate-700">
-                                            Color Price (per page)
+                                            Color rate (Rs./page)
                                         </span>
                                         <input
                                             type="number"
                                             value={colorPrice}
                                             onChange={(e) => setColorPrice(e.target.value)}
                                             className="field"
-                                            step="0.1"
-                                            min="0"
+                                            step="0.5"
                                         />
                                     </label>
                                 </div>
@@ -969,7 +1071,7 @@ function AdminDashboard() {
                                     </div>
                                 </div>
 
-                                <div className="grid gap-3 md:grid-cols-5">
+                                <div className="space-y-3">
                                     <input
                                         type="text"
                                         placeholder="Coupon Code"
@@ -980,10 +1082,11 @@ function AdminDashboard() {
 
                                     <input
                                         type="number"
-                                        placeholder="Discount %"
+                                        placeholder="Discount % (Max 95%)"
                                         value={discountPercentage}
                                         onChange={(e) => setDiscountPercentage(e.target.value)}
                                         className="field"
+                                        max="95"
                                     />
 
                                     <input
@@ -1003,9 +1106,9 @@ function AdminDashboard() {
 
                                     <button
                                         onClick={createCoupon}
-                                        className="btn"
+                                        className="btn w-full mt-2"
                                     >
-                                        Create
+                                        Create Coupon
                                     </button>
                                 </div>
                             </motion.section>
@@ -1047,7 +1150,7 @@ function AdminDashboard() {
                                             <td className="font-black">
                                                 {coupon.couponCode}
                                             </td>
-                                            <td>
+                                            <td className="font-bold text-green-600">
                                                 {coupon.discountPercentage}%
                                             </td>
                                             <td>
@@ -1068,7 +1171,7 @@ function AdminDashboard() {
                                     ))}
                                     {coupons.length === 0 && (
                                         <tr>
-                                            <td colSpan="5" className="text-center font-bold text-slate-500">
+                                            <td colSpan="5" className="text-center font-bold text-slate-500 py-6">
                                                 No coupons found
                                             </td>
                                         </tr>
@@ -1116,7 +1219,7 @@ function AdminDashboard() {
                                     >
                                         <td className="font-black">#{user.id}</td>
                                         <td className="font-bold text-slate-900">{user.name}</td>
-                                        <td className="font-semibold text-slate-600">{user.username}</td>
+                                        <td className="font-semibold text-slate-600">{user.email}</td>
                                         <td className="font-mono text-cyan-600 font-bold">{user.referralCode || "N/A"}</td>
                                         <td className="font-bold text-green-600">Rs. {user.walletBalance != null ? user.walletBalance.toFixed(2) : "0.00"}</td>
                                         <td>
@@ -1165,7 +1268,7 @@ function AdminDashboard() {
                             <div>
                                 <p className="eyebrow">Support Desk</p>
                                 <h2 className="text-2xl font-black text-slate-900">Customer Support Tickets</h2>
-                                <p className="subtitle">View customer issues and requests.</p>
+                                <p className="subtitle">View customer issues, resolve tickets, or remove them.</p>
                             </div>
                         </div>
 
@@ -1178,6 +1281,7 @@ function AdminDashboard() {
                                     <th>Message</th>
                                     <th>Created At</th>
                                     <th>Status</th>
+                                    <th>Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -1202,11 +1306,29 @@ function AdminDashboard() {
                                                 {ticket.status}
                                             </span>
                                         </td>
+                                        <td>
+                                            <div className="flex gap-2">
+                                                {ticket.status === "PENDING" && (
+                                                    <button
+                                                        onClick={() => resolveSupportTicket(ticket.id)}
+                                                        className="btn success min-h-0 px-3 py-1.5 text-xs font-bold"
+                                                    >
+                                                        Mark as Done
+                                                    </button>
+                                                )}
+                                                <button
+                                                    onClick={() => deleteSupportTicket(ticket.id)}
+                                                    className="btn danger min-h-0 px-3 py-1.5 text-xs font-bold"
+                                                >
+                                                    Remove
+                                                </button>
+                                            </div>
+                                        </td>
                                     </motion.tr>
                                 ))}
                                 {supportTickets.length === 0 && (
                                     <tr>
-                                        <td colSpan="6" className="text-center font-bold text-slate-500 py-6">
+                                        <td colSpan="7" className="text-center font-bold text-slate-500 py-6">
                                             No support tickets found
                                         </td>
                                     </tr>
@@ -1216,11 +1338,11 @@ function AdminDashboard() {
                     </motion.section>
                 )}
 
-                {/* System Config Tab */}
-                {activeTab === "system" && (
+                {/* Frontend Manager Tab */}
+                {activeTab === "frontend" && (
                     <div className="mt-6 space-y-6">
                         <div className="grid gap-6 lg:grid-cols-2">
-                            {/* General System Settings */}
+                            {/* Popup and Scrolling configurations */}
                             <motion.section
                                 className="panel p-6"
                                 initial={{ opacity: 0, y: 12 }}
@@ -1228,8 +1350,174 @@ function AdminDashboard() {
                             >
                                 <div className="section-header mb-4">
                                     <div>
-                                        <p className="eyebrow">Settings</p>
-                                        <h2 className="text-2xl font-black text-slate-900">General Configuration</h2>
+                                        <p className="eyebrow">Marketing Config</p>
+                                        <h2 className="text-2xl font-black text-slate-900">Popups & Scrolling Marquees</h2>
+                                    </div>
+                                </div>
+                                <form onSubmit={saveSystemSettings} className="space-y-4">
+                                    <div className="flex items-center gap-2 pt-2 pb-2">
+                                        <input 
+                                            type="checkbox" 
+                                            id="popupEnabled" 
+                                            checked={systemSettings.popupEnabled}
+                                            onChange={(e) => setSystemSettings({...systemSettings, popupEnabled: e.target.checked})}
+                                            className="w-4 h-4 accent-slate-900"
+                                        />
+                                        <label htmlFor="popupEnabled" className="text-sm font-bold text-slate-700">Welcome Referral Popup Enabled</label>
+                                    </div>
+                                    <label className="block">
+                                        <span className="block text-xs font-bold text-slate-500 mb-1">Welcome Popup Message</span>
+                                        <textarea 
+                                            className="field min-h-[80px]" 
+                                            value={systemSettings.popupMessage}
+                                            onChange={(e) => setSystemSettings({...systemSettings, popupMessage: e.target.value})}
+                                        />
+                                    </label>
+                                    <div className="flex items-center gap-2 pt-4 pb-2">
+                                        <input 
+                                            type="checkbox" 
+                                            id="adEnabled" 
+                                            checked={systemSettings.adEnabled}
+                                            onChange={(e) => setSystemSettings({...systemSettings, adEnabled: e.target.checked})}
+                                            className="w-4 h-4 accent-slate-900"
+                                        />
+                                        <label htmlFor="adEnabled" className="text-sm font-bold text-slate-700">Scrolling Announcement Active</label>
+                                    </div>
+                                    <label className="block">
+                                        <span className="block text-xs font-bold text-slate-500 mb-1">Scrolling Announcement Text</span>
+                                        <textarea 
+                                            className="field min-h-[80px]" 
+                                            value={systemSettings.adText}
+                                            onChange={(e) => setSystemSettings({...systemSettings, adText: e.target.value})}
+                                        />
+                                    </label>
+                                    <button type="submit" className="btn success w-full mt-2">Save Marketing Config</button>
+                                </form>
+                            </motion.section>
+
+                            {/* Section Creator panel */}
+                            <motion.section 
+                                className="panel p-6"
+                                initial={{ opacity: 0, y: 12 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: 0.05 }}
+                            >
+                                <div className="section-header mb-4">
+                                    <div>
+                                        <p className="eyebrow">Layout Sections</p>
+                                        <h2 className="text-2xl font-black text-slate-900">Add Frontend Section</h2>
+                                    </div>
+                                </div>
+                                <form onSubmit={addSection} className="space-y-4">
+                                    <div className="grid gap-3 sm:grid-cols-2">
+                                        <label className="block">
+                                            <span className="block text-xs font-bold text-slate-500 mb-1">Title</span>
+                                            <input type="text" className="field" placeholder="Section title" value={secTitle} onChange={(e) => setSecTitle(e.target.value)} required />
+                                        </label>
+                                        <label className="block">
+                                            <span className="block text-xs font-bold text-slate-500 mb-1">Section Type</span>
+                                            <select className="field" value={secType} onChange={(e) => setSecType(e.target.value)}>
+                                                <option value="ADVERTISING">Advertising</option>
+                                                <option value="NEW_BLOCK">New Block Info</option>
+                                                <option value="FEATURE">Feature Announcement</option>
+                                            </select>
+                                        </label>
+                                    </div>
+                                    <div className="grid gap-3 sm:grid-cols-2">
+                                        <label className="block">
+                                            <span className="block text-xs font-bold text-slate-500 mb-1">Display Order (weight)</span>
+                                            <input type="number" className="field" value={secOrder} onChange={(e) => setSecOrder(e.target.value)} />
+                                        </label>
+                                        <label className="block">
+                                            <span className="block text-xs font-bold text-slate-500 mb-1">Redirect Link (optional)</span>
+                                            <input type="text" className="field" placeholder="https://google.com or path" value={secRedirect} onChange={(e) => setSecRedirect(e.target.value)} />
+                                        </label>
+                                    </div>
+                                    <label className="block">
+                                        <span className="block text-xs font-bold text-slate-500 mb-1">Content / Announcement Message</span>
+                                        <textarea className="field min-h-[90px]" placeholder="Write description or announcement content details..." value={secContent} onChange={(e) => setSecContent(e.target.value)} required />
+                                    </label>
+                                    <button type="submit" className="btn w-full">Add Frontend Section</button>
+                                </form>
+                            </motion.section>
+                        </div>
+
+                        {/* Layout Sections table */}
+                        <motion.section 
+                            className="panel p-6 overflow-x-auto"
+                            initial={{ opacity: 0, y: 12 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.1 }}
+                        >
+                            <div className="section-header mb-4">
+                                <div>
+                                    <p className="eyebrow">Layout Banners</p>
+                                    <h2 className="text-2xl font-black text-slate-900">Custom Frontend Sections</h2>
+                                </div>
+                            </div>
+                            <table className="data-table w-full">
+                                <thead>
+                                    <tr>
+                                        <th>Title</th>
+                                        <th>Type</th>
+                                        <th>Content</th>
+                                        <th>Order</th>
+                                        <th>Status</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {sections.map(sec => (
+                                        <tr key={sec.id}>
+                                            <td className="font-black text-slate-900">{sec.title}</td>
+                                            <td>
+                                                <span className={`status-pill ${
+                                                    sec.sectionType === 'ADVERTISING' ? 'status-paid' : sec.sectionType === 'NEW_BLOCK' ? 'status-completed' : 'status-created'
+                                                }`} style={{ fontSize: '10px', minHeight: '22px' }}>
+                                                    {sec.sectionType}
+                                                </span>
+                                            </td>
+                                            <td className="max-w-xs truncate text-xs font-semibold text-slate-500">{sec.content}</td>
+                                            <td className="font-bold">{sec.displayOrder}</td>
+                                            <td>
+                                                <button 
+                                                    onClick={() => toggleSectionStatus(sec.id, sec.active)}
+                                                    className={`status-pill ${sec.active ? 'status-paid' : 'status-unpaid'}`}
+                                                    style={{ fontSize: '10px', minHeight: '22px' }}
+                                                >
+                                                    {sec.active ? "ACTIVE" : "INACTIVE"}
+                                                </button>
+                                            </td>
+                                            <td>
+                                                <button onClick={() => deleteSection(sec.id)} className="btn danger min-h-0 px-3 py-1.5 text-xs font-bold">Delete</button>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                    {sections.length === 0 && (
+                                        <tr>
+                                            <td colSpan="6" className="text-center font-bold text-slate-500 py-6">No custom sections defined. Create one above.</td>
+                                        </tr>
+                                    )}
+                                </tbody>
+                            </table>
+                        </motion.section>
+                    </div>
+                )}
+
+                {/* System Config Tab */}
+                {activeTab === "system" && (
+                    <div className="mt-6 space-y-6">
+                        <div className="grid gap-6 lg:grid-cols-2">
+                            {/* Referral configuration */}
+                            <motion.section
+                                className="panel p-6"
+                                initial={{ opacity: 0, y: 12 }}
+                                animate={{ opacity: 1, y: 0 }}
+                            >
+                                <div className="section-header mb-4">
+                                    <div>
+                                        <p className="eyebrow">Referrals</p>
+                                        <h2 className="text-2xl font-black text-slate-900">Refer & Earn Program</h2>
                                     </div>
                                 </div>
                                 <form onSubmit={saveSystemSettings} className="space-y-4">
@@ -1265,47 +1553,10 @@ function AdminDashboard() {
                                             />
                                         </label>
                                     </div>
-                                    <div className="flex items-center gap-2 pt-2 pb-2">
-                                        <input 
-                                            type="checkbox" 
-                                            id="popupEnabled" 
-                                            checked={systemSettings.popupEnabled}
-                                            onChange={(e) => setSystemSettings({...systemSettings, popupEnabled: e.target.checked})}
-                                            className="w-4 h-4 accent-slate-900"
-                                        />
-                                        <label htmlFor="popupEnabled" className="text-sm font-bold text-slate-700">Welcome Referral Popup Enabled</label>
-                                    </div>
-                                    <label className="block">
-                                        <span className="block text-xs font-bold text-slate-500 mb-1">Welcome Popup Message</span>
-                                        <textarea 
-                                            className="field min-h-[70px]" 
-                                            value={systemSettings.popupMessage}
-                                            onChange={(e) => setSystemSettings({...systemSettings, popupMessage: e.target.value})}
-                                        />
-                                    </label>
-                                    <div className="flex items-center gap-2 pt-2 pb-2">
-                                        <input 
-                                            type="checkbox" 
-                                            id="adEnabled" 
-                                            checked={systemSettings.adEnabled}
-                                            onChange={(e) => setSystemSettings({...systemSettings, adEnabled: e.target.checked})}
-                                            className="w-4 h-4 accent-slate-900"
-                                        />
-                                        <label htmlFor="adEnabled" className="text-sm font-bold text-slate-700">Scrolling Announcement Active</label>
-                                    </div>
-                                    <label className="block">
-                                        <span className="block text-xs font-bold text-slate-500 mb-1">Scrolling Announcement Text</span>
-                                        <textarea 
-                                            className="field min-h-[70px]" 
-                                            value={systemSettings.adText}
-                                            onChange={(e) => setSystemSettings({...systemSettings, adText: e.target.value})}
-                                        />
-                                    </label>
-                                    <button type="submit" className="btn success w-full">Save Configuration</button>
+                                    <button type="submit" className="btn success w-full mt-4">Save Referral Settings</button>
                                 </form>
                             </motion.section>
 
-                            {/* Blocks & Printers Panel */}
                             <div className="space-y-6">
                                 {/* Dynamic Block Creator */}
                                 <motion.section 
@@ -1316,7 +1567,7 @@ function AdminDashboard() {
                                 >
                                     <div className="section-header mb-4">
                                         <div>
-                                            <p className="eyebrow">Blocks</p>
+                                            <p className="eyebrow">Campus Blocks</p>
                                             <h2 className="text-2xl font-black text-slate-900">Add Printing Block</h2>
                                         </div>
                                     </div>
@@ -1381,100 +1632,105 @@ function AdminDashboard() {
                                 </motion.section>
                             </div>
                         </div>
+                    </div>
+                )}
 
-                        {/* Frontend Section Management */}
-                        <motion.section 
-                            className="panel p-6 overflow-x-auto"
-                            initial={{ opacity: 0, y: 12 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: 0.15 }}
-                        >
-                            <div className="section-header mb-4">
-                                <div>
-                                    <p className="eyebrow">Announcements</p>
-                                    <h2 className="text-2xl font-black text-slate-900">Frontend Section Manager</h2>
-                                    <p className="subtitle">Manage custom advertisement panels, block descriptions, or feature update cards displayed to customers.</p>
+                {/* Rewards Panel Tab */}
+                {activeTab === "rewards" && (
+                    <div className="mt-6 space-y-6">
+                        <div className="grid gap-6 md:grid-cols-[1fr_1.3fr]">
+                            {/* Create Reward Voucher Form */}
+                            <motion.section
+                                className="panel p-6"
+                                initial={{ opacity: 0, x: -18 }}
+                                animate={{ opacity: 1, x: 0 }}
+                            >
+                                <div className="section-header mb-4">
+                                    <div>
+                                        <p className="eyebrow">Rewards Program</p>
+                                        <h2 className="text-2xl font-black text-slate-900">Voucher Generator</h2>
+                                    </div>
                                 </div>
-                            </div>
-                            
-                            {/* Create Section Form */}
-                            <form onSubmit={addSection} className="grid gap-4 md:grid-cols-3 bg-slate-50 p-4 rounded-xl border border-slate-100 mb-6">
-                                <label className="block">
-                                    <span className="block text-xs font-bold text-slate-500 mb-1">Title</span>
-                                    <input type="text" className="field" placeholder="Section title" value={secTitle} onChange={(e) => setSecTitle(e.target.value)} />
-                                </label>
-                                <label className="block">
-                                    <span className="block text-xs font-bold text-slate-500 mb-1">Section Type</span>
-                                    <select className="field" value={secType} onChange={(e) => setSecType(e.target.value)}>
-                                        <option value="ADVERTISING">Advertising</option>
-                                        <option value="NEW_BLOCK">New Block Info</option>
-                                        <option value="FEATURE">Feature Announcement</option>
-                                    </select>
-                                </label>
-                                <label className="block">
-                                    <span className="block text-xs font-bold text-slate-500 mb-1">Display Order (weight)</span>
-                                    <input type="number" className="field" value={secOrder} onChange={(e) => setSecOrder(e.target.value)} />
-                                </label>
-                                <label className="block md:col-span-3">
-                                    <span className="block text-xs font-bold text-slate-500 mb-1">Content / Announcement Message</span>
-                                    <textarea className="field min-h-[80px]" placeholder="Write description or announcement content details..." value={secContent} onChange={(e) => setSecContent(e.target.value)} />
-                                </label>
-                                <label className="block md:col-span-2">
-                                    <span className="block text-xs font-bold text-slate-500 mb-1">Redirect Link (optional)</span>
-                                    <input type="text" className="field" placeholder="https://google.com or route link" value={secRedirect} onChange={(e) => setSecRedirect(e.target.value)} />
-                                </label>
-                                <div className="flex items-end">
-                                    <button type="submit" className="btn w-full">Add Frontend Section</button>
-                                </div>
-                            </form>
+                                <form onSubmit={createReward} className="space-y-4">
+                                    <label className="block">
+                                        <span className="block text-xs font-bold text-slate-500 mb-1">Voucher Title</span>
+                                        <input type="text" className="field" placeholder="e.g. Free Sign-up Bonus" value={rewardTitle} onChange={(e) => setRewardTitle(e.target.value)} required />
+                                    </label>
+                                    <label className="block">
+                                        <span className="block text-xs font-bold text-slate-500 mb-1">Voucher Description</span>
+                                        <input type="text" className="field" placeholder="e.g. Earn Rs. 50 wallet credits instantly" value={rewardDesc} onChange={(e) => setRewardDesc(e.target.value)} required />
+                                    </label>
+                                    <div className="grid gap-3 sm:grid-cols-2">
+                                        <label className="block">
+                                            <span className="block text-xs font-bold text-slate-500 mb-1">Reward Value (Rs.)</span>
+                                            <input type="number" className="field" placeholder="e.g. 50" value={rewardAmt} onChange={(e) => setRewardAmt(e.target.value)} required />
+                                        </label>
+                                        <label className="block">
+                                            <span className="block text-xs font-bold text-slate-500 mb-1">Voucher Code (uppercase)</span>
+                                            <input type="text" className="field uppercase tracking-wider font-mono" placeholder="e.g. BONUS50" value={rewardCode} onChange={(e) => setRewardCode(e.target.value)} required />
+                                        </label>
+                                    </div>
+                                    <label className="block">
+                                        <span className="block text-xs font-bold text-slate-500 mb-1">Max Claims allowed</span>
+                                        <input type="number" className="field" value={rewardMaxClaims} onChange={(e) => setRewardMaxClaims(e.target.value)} required />
+                                    </label>
+                                    <button type="submit" className="btn success w-full mt-2" disabled={creatingReward}>
+                                        {creatingReward ? "Creating Voucher..." : "Generate Reward Code"}
+                                    </button>
+                                </form>
+                            </motion.section>
 
-                            {/* Section list table */}
-                            <table className="data-table w-full">
-                                <thead>
-                                    <tr>
-                                        <th>Title</th>
-                                        <th>Type</th>
-                                        <th>Content</th>
-                                        <th>Order</th>
-                                        <th>Status</th>
-                                        <th>Action</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {sections.map(sec => (
-                                        <tr key={sec.id}>
-                                            <td className="font-black text-slate-900">{sec.title}</td>
-                                            <td>
-                                                <span className={`status-pill ${
-                                                    sec.sectionType === 'ADVERTISING' ? 'status-paid' : sec.sectionType === 'NEW_BLOCK' ? 'status-completed' : 'status-created'
-                                                }`} style={{ fontSize: '10px', minHeight: '22px' }}>
-                                                    {sec.sectionType}
-                                                </span>
-                                            </td>
-                                            <td className="max-w-xs truncate text-xs font-semibold text-slate-500">{sec.content}</td>
-                                            <td className="font-bold">{sec.displayOrder}</td>
-                                            <td>
-                                                <button 
-                                                    onClick={() => toggleSectionStatus(sec.id, sec.active)}
-                                                    className={`status-pill ${sec.active ? 'status-paid' : 'status-unpaid'}`}
-                                                    style={{ fontSize: '10px', minHeight: '22px' }}
-                                                >
-                                                    {sec.active ? "ACTIVE" : "INACTIVE"}
-                                                </button>
-                                            </td>
-                                            <td>
-                                                <button onClick={() => deleteSection(sec.id)} className="btn danger min-h-0 px-3 py-1.5 text-xs font-bold">Delete</button>
-                                            </td>
-                                        </tr>
-                                    ))}
-                                    {sections.length === 0 && (
+                            {/* Active Vouchers List */}
+                            <motion.section
+                                className="panel p-6 overflow-x-auto"
+                                initial={{ opacity: 0, x: 18 }}
+                                animate={{ opacity: 1, x: 0 }}
+                            >
+                                <div className="section-header mb-4">
+                                    <div>
+                                        <p className="eyebrow">Active Vouchers</p>
+                                        <h2 className="text-2xl font-black text-slate-900">Vouchers List</h2>
+                                    </div>
+                                </div>
+                                <table className="data-table w-full">
+                                    <thead>
                                         <tr>
-                                            <td colSpan="6" className="text-center font-bold text-slate-500 py-6">No custom sections defined. Create one above.</td>
+                                            <th>Code</th>
+                                            <th>Value</th>
+                                            <th>Claims</th>
+                                            <th>Status</th>
+                                            <th>Action</th>
                                         </tr>
-                                    )}
-                                </tbody>
-                            </table>
-                        </motion.section>
+                                    </thead>
+                                    <tbody>
+                                        {rewards.map(rew => (
+                                            <tr key={rew.id}>
+                                                <td className="font-mono font-black text-slate-900 tracking-wide uppercase">{rew.claimCode}</td>
+                                                <td className="font-bold text-emerald-600">Rs. {rew.rewardAmount.toFixed(2)}</td>
+                                                <td className="text-xs font-bold text-slate-500">{rew.claimedCount} / {rew.maxClaims}</td>
+                                                <td>
+                                                    <button 
+                                                        onClick={() => toggleRewardActive(rew.id, rew.active)}
+                                                        className={`status-pill ${rew.active ? 'status-paid' : 'status-unpaid'}`}
+                                                        style={{ fontSize: '10px', minHeight: '22px' }}
+                                                    >
+                                                        {rew.active ? "ACTIVE" : "INACTIVE"}
+                                                    </button>
+                                                </td>
+                                                <td>
+                                                    <button onClick={() => deleteReward(rew.id)} className="btn danger min-h-0 px-3 py-1.5 text-xs font-bold">Delete</button>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                        {rewards.length === 0 && (
+                                            <tr>
+                                                <td colSpan="5" className="text-center font-bold text-slate-500 py-6">No reward vouchers created yet.</td>
+                                            </tr>
+                                        )}
+                                    </tbody>
+                                </table>
+                            </motion.section>
+                        </div>
                     </div>
                 )}
 

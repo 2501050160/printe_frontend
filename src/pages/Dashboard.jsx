@@ -4,7 +4,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import axios from "axios";
 import api from "../services/api";
 import Navbar from "../components/Navbar";
-import { getWalletBalance } from "../services/auth";
+import { getWalletBalance, clearUserSession } from "../services/auth";
 import CustomModal from "../components/CustomModal";
 
 function Dashboard() {
@@ -18,7 +18,9 @@ function Dashboard() {
 
     const [printType, setPrintType] = useState("BW");
     const blockLocation = localStorage.getItem("selectedBlock");
-    const [file, setFile] = useState(null);
+    
+    // Multiple files support
+    const [selectedFiles, setSelectedFiles] = useState([]);
 
     const [totalPages, setTotalPages] = useState(0);
     const [orderId, setOrderId] = useState("");
@@ -28,18 +30,27 @@ function Dashboard() {
     const [startPage, setStartPage] = useState("");
     const [endPage, setEndPage] = useState("");
 
+    // Active Navigation Tab
+    const [activeTab, setActiveTab] = useState("print");
+
     // Additional States
     const [uploading, setUploading] = useState(false);
     const [walletBalance, setWalletBalance] = useState(0);
-    const [showSupportModal, setShowSupportModal] = useState(false);
+    
+    // Support Desk
     const [supportName, setSupportName] = useState(userName || "");
     const [supportEmail, setSupportEmail] = useState(userEmail || "");
     const [supportMessage, setSupportMessage] = useState("");
     const [supportSubmitting, setSupportSubmitting] = useState(false);
 
+    // Rewards & Claim Codes
+    const [rewardCode, setRewardCode] = useState("");
+    const [claimingReward, setClaimingReward] = useState(false);
+
     // Dynamic state
     const [paperCount, setPaperCount] = useState(0);
     const [sections, setSections] = useState([]);
+    const [orders, setOrders] = useState([]);
     const [settings, setSettings] = useState({
         referralEnabled: true,
         referrerAmount: 10.0,
@@ -49,6 +60,10 @@ function Dashboard() {
         adEnabled: true,
         adText: ""
     });
+
+    // Welcome Privacy Modal States
+    const [showPrivacyNotice, setShowPrivacyNotice] = useState(false);
+    const [dontShowAgain, setDontShowAgain] = useState(false);
 
     // Custom Modal config
     const [modalConfig, setModalConfig] = useState({
@@ -75,6 +90,14 @@ function Dashboard() {
         printerConfigured: true
     });
 
+    // Check Privacy Notice on mount
+    useEffect(() => {
+        const dontShow = localStorage.getItem("dontShowPrivacyNotice") === "true";
+        if (!dontShow) {
+            setShowPrivacyNotice(true);
+        }
+    }, []);
+
     useEffect(() => {
         if (userId) {
             getWalletBalance(userId).then(setWalletBalance);
@@ -85,6 +108,27 @@ function Dashboard() {
         fetchPrices();
         fetchActiveSections();
     }, []);
+
+    // Orders Polling (Every 3 seconds)
+    const fetchOrders = async () => {
+        if (!userId) return;
+        try {
+            const response = await api.get("/pdf/userOrders", {
+                params: { userId }
+            });
+            setOrders(response.data || []);
+        } catch (error) {
+            console.error("Error fetching orders:", error);
+        }
+    };
+
+    useEffect(() => {
+        if (userId) {
+            fetchOrders();
+            const interval = setInterval(fetchOrders, 3000);
+            return () => clearInterval(interval);
+        }
+    }, [userId]);
 
     const fetchActiveSections = async () => {
         try {
@@ -162,14 +206,26 @@ function Dashboard() {
         checkReferralPopup();
     }, [userId, referralCode]);
 
+    const handleFileSelect = (e) => {
+        const files = Array.from(e.target.files);
+        setSelectedFiles(files);
+        setUploaded(false); // Reset if new files selected
+    };
+
     const uploadPdf = async () => {
-        if (!file) {
-            showAlert("No File Selected", "Please select a PDF file to upload.", "warning");
+        if (selectedFiles.length === 0) {
+            showAlert("No Files Selected", "Please select PDF or image files to upload.", "warning");
             return;
         }
 
         const formData = new FormData();
-        formData.append("file", file);
+        if (selectedFiles.length === 1) {
+            formData.append("file", selectedFiles[0]);
+        } else {
+            selectedFiles.forEach((file) => {
+                formData.append("files", file);
+            });
+        }
         formData.append("userId", userId);
         formData.append("customerName", userName || "Customer");
         formData.append("blockLocation", blockLocation);
@@ -189,10 +245,10 @@ function Dashboard() {
             setTotalPages(response.data.totalPages);
             setOrderId(response.data.orderId);
             setUploaded(true);
-            showAlert("Success", "PDF Uploaded Successfully", "success");
+            showAlert("Success", "Files processed and uploaded successfully!", "success");
         } catch (error) {
             console.error(error);
-            showAlert("Upload Failed", "Could not upload the PDF file.", "error");
+            showAlert("Upload Failed", "Could not upload and process the files.", "error");
         } finally {
             setUploading(false);
         }
@@ -219,7 +275,7 @@ function Dashboard() {
 
     const proceedToOrder = async () => {
         if (!uploaded) {
-            showAlert("PDF Not Uploaded", "Please upload a PDF first.", "warning");
+            showAlert("Files Not Uploaded", "Please upload selected files first.", "warning");
             return;
         }
 
@@ -231,6 +287,11 @@ function Dashboard() {
                 showAlert("Invalid Pages", `Pages must be between 1 and ${totalPages}`, "error");
                 return;
             }
+        }
+
+        if (isLowPaper) {
+            showAlert("Low Paper Level", "Print cannot be done due to low paper levels in this block.", "error");
+            return;
         }
 
         try {
@@ -304,7 +365,6 @@ function Dashboard() {
 
             showAlert("Ticket Created", "Support request submitted successfully! We will get back to you via email.", "success");
             setSupportMessage("");
-            setShowSupportModal(false);
         } catch (err) {
             console.error(err);
             showAlert("Error", "Failed to submit support request. Please try again.", "error");
@@ -313,12 +373,79 @@ function Dashboard() {
         }
     };
 
+    const handleClaimReward = async (e) => {
+        e.preventDefault();
+        if (!rewardCode.trim()) {
+            showAlert("Required Code", "Please enter a reward claim code.", "warning");
+            return;
+        }
+
+        setClaimingReward(true);
+        try {
+            const response = await api.post("/rewards/claim", null, {
+                params: {
+                    userId,
+                    claimCode: rewardCode.trim()
+                }
+            });
+
+            if (response.data.success) {
+                showAlert("Claim Successful 🎉", response.data.message || "Wallet balance credited successfully!", "success");
+                setRewardCode("");
+                getWalletBalance(userId).then(setWalletBalance);
+            } else {
+                showAlert("Failed", response.data.message || "Invalid claim code", "error");
+            }
+        } catch (error) {
+            console.error(error);
+            showAlert("Claim Failed", error.response?.data?.message || "Invalid or already claimed reward code.", "error");
+        } finally {
+            setClaimingReward(false);
+        }
+    };
+
+    const handleCancelOrder = async (orderId) => {
+        try {
+            await api.post("/pdf/cancelOrder", null, {
+                params: { orderId, userId }
+            });
+            showAlert("Order Cancelled", "Your order has been cancelled successfully. Refund has been credited to your wallet.", "success");
+            fetchOrders();
+            getWalletBalance(userId).then(setWalletBalance);
+        } catch (err) {
+            console.error(err);
+            showAlert("Cancellation Failed", err.response?.data?.message || "Could not cancel the order.", "error");
+        }
+    };
+
+    const handleLogout = () => {
+        clearUserSession();
+        navigate("/");
+    };
+
     const rate = printType === "COLOR" ? Number(colorPrice) : Number(bwPrice);
     const selectedPageCount = pageOption === "ALL" ? totalPages : (startPage && endPage ? Math.max(0, Number(endPage) - Number(startPage) + 1) : 0);
+    const estimatedTotalPages = selectedPageCount * Number(copies || 1);
+    const isLowPaper = uploaded && estimatedTotalPages > paperCount;
     const estimatedTotal = selectedPageCount * Number(copies || 1) * rate;
-    const isPrintingDisabled = !systemStatus.databaseConnected || !systemStatus.agentOnline || !systemStatus.printerConfigured;
+    const isPrintingDisabled = !systemStatus.databaseConnected || !systemStatus.agentOnline || !systemStatus.printerConfigured || isLowPaper;
 
-    const displayAdText = settings.adText ? settings.adText.replace("{referralCode}", referralCode) : "";
+    const displayAdText = settings.adEnabled && settings.adText ? settings.adText.replace("{referralCode}", referralCode) : "";
+
+    const tabs = [
+        { id: "print", label: "Print Dashboard", icon: "🖨️" },
+        { id: "orders", label: "My Orders", icon: "📄" },
+        { id: "coupons", label: "Coupons & Rewards", icon: "🎁" },
+        { id: "support", label: "Support Desk", icon: "📞" }
+    ];
+
+    const orderStatusClass = (status) => {
+        if (status === "CANCELLED") return "status-pill status-unpaid";
+        if (status === "CANCEL_WINDOW" || status === "QUEUE") return "status-pill status-created";
+        if (status === "COMPLETED") return "status-pill status-completed";
+        if (status === "PRINTING") return "status-pill status-printing";
+        return "status-pill status-created";
+    };
 
     return (
         <main className="page-shell page-shell-decorated">
@@ -327,16 +454,18 @@ function Dashboard() {
                     title="Cloud Print Dashboard"
                     subtitle="Customer Workspace"
                     badge={blockLocation || "No block"}
+                    tabs={tabs}
+                    activeTab={activeTab}
+                    onTabChange={setActiveTab}
                     actions={[
                         { label: `Wallet: ₹${walletBalance}`, path: "#", className: "btn success cursor-default !border-emerald-500 !bg-emerald-600/20 !text-emerald-400" },
-                        { label: "📞 Support", onClick: () => setShowSupportModal(true), className: "btn info !border-cyan-500 !bg-cyan-600/20 !text-cyan-400" },
-                        { label: "My Orders", path: "/my-orders" },
-                        { label: "Change Block", path: "/blocks", className: "btn secondary" }
+                        { label: "Change Location", path: "/blocks", className: "btn secondary" },
+                        { label: "Sign Out", onClick: handleLogout, className: "btn danger" }
                     ]}
                 />
 
                 {/* Non-intrusive Referral Advertisement Banner */}
-                {settings.adEnabled && displayAdText && (
+                {displayAdText && (
                     <div style={{
                         background: "linear-gradient(90deg, #1e293b, #0f172a)",
                         border: "1px solid #0284c7",
@@ -345,6 +474,7 @@ function Dashboard() {
                         borderRadius: "10px",
                         fontSize: "13px",
                         fontWeight: "bold",
+                        marginTop: "16px",
                         marginBottom: "16px",
                         display: "flex",
                         alignItems: "center",
@@ -358,7 +488,7 @@ function Dashboard() {
                 )}
 
                 {/* Connectivity guards marquee alert */}
-                {isPrintingDisabled && (
+                {(!systemStatus.databaseConnected || !systemStatus.agentOnline || !systemStatus.printerConfigured) && (
                     <div style={{
                         background: "#ef4444",
                         color: "#ffffff",
@@ -378,417 +508,655 @@ function Dashboard() {
                 )}
 
                 <motion.p
-                    className="subtitle mb-6 -mt-4"
+                    className="subtitle mb-6 mt-2"
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                 >
                     {userName ? `Signed in as ${userName}` : `User ID: ${userId}`}
                 </motion.p>
 
-                <div className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
-                    <motion.section
-                        className="panel p-6"
-                        initial={{ opacity: 0, y: 18 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.08, duration: 0.45 }}
-                    >
-                        <div className="section-header">
-                            <div>
-                                <p className="eyebrow">Step 1</p>
-                                <h2 className="text-2xl font-black text-slate-900">
-                                    Upload PDF
-                                </h2>
-                            </div>
-
-                            <span className={uploaded ? "status-pill status-created" : "status-pill status-unpaid"}>
-                                {uploaded ? "Uploaded" : "Waiting"}
-                            </span>
-                        </div>
-
-                        <label 
-                            className="upload-zone block" 
-                            style={isPrintingDisabled ? { opacity: 0.5, cursor: "not-allowed" } : {}}
-                        >
-                            <div className="mb-5 text-left">
-                                <span className="mb-2 block text-sm font-black text-slate-700">
-                                    Printing Location
-                                </span>
-                                <div className="field">
-                                    {blockLocation}
-                                </div>
-                            </div>
-                            <input
-                                type="file"
-                                accept=".pdf"
-                                onChange={(e) => !isPrintingDisabled && setFile(e.target.files[0])}
-                                className="hidden"
-                                disabled={isPrintingDisabled || uploading}
-                            />
-
-                            <div className="flex flex-col gap-2 text-center">
-                                <span className="text-lg font-black text-slate-900">
-                                    {file ? file.name : "Choose a PDF file"}
-                                </span>
-                                <span className="text-sm font-semibold text-slate-500">
-                                    Click this area to select the document.
-                                </span>
-                            </div>
-                        </label>
-
-                        <button
-                            onClick={uploadPdf}
-                            className="btn mt-5 w-full"
-                            disabled={isPrintingDisabled || uploading || !file}
-                            style={(isPrintingDisabled || uploading || !file) ? { opacity: 0.5, cursor: "not-allowed", background: "#64748b" } : {}}
-                        >
-                            {uploading ? "Uploading document, please wait..." : "Upload PDF"}
-                        </button>
-
-                        <AnimatePresence>
-                            {uploaded && (
-                                <motion.div
-                                    className="mt-6 grid gap-4 rounded-lg border border-green-200 bg-green-50 p-4 sm:grid-cols-2"
-                                    initial={{ opacity: 0, height: 0 }}
-                                    animate={{ opacity: 1, height: "auto" }}
-                                    exit={{ opacity: 0, height: 0 }}
-                                >
-                                    <div>
-                                        <p className="text-xs font-black uppercase tracking-widest text-green-700">
-                                            Order ID
-                                        </p>
-                                        <p className="mt-1 text-xl font-black text-green-950">
-                                            {orderId}
-                                        </p>
-                                    </div>
-
-                                    <div>
-                                        <p className="text-xs font-black uppercase tracking-widest text-green-700">
-                                            Customer
-                                        </p>
-                                        <p className="mt-1 text-xl font-black text-green-950">
-                                            {userName || "Customer"}
-                                        </p>
-                                    </div>
-
-                                    <div>
-                                        <p className="text-xs font-black uppercase tracking-widest text-green-700">
-                                            Total Pages
-                                        </p>
-                                        <p className="mt-1 text-xl font-black text-green-950">
-                                            {totalPages}
-                                        </p>
-                                    </div>
-
-                                    <div>
-                                        <p className="text-xs font-black uppercase tracking-widest text-green-700">
-                                            Location
-                                        </p>
-                                        <p className="mt-1 text-xl font-black text-green-950">
-                                            {blockLocation}
-                                        </p>
-                                    </div>
-                                </motion.div>
-                            )}
-                        </AnimatePresence>
-                    </motion.section>
-
-                    <motion.aside
-                        className="panel p-6"
-                        initial={{ opacity: 0, y: 18 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.16, duration: 0.45 }}
-                    >
-                        <p className="eyebrow">Live Pricing</p>
-                        <h2 className="mt-2 text-2xl font-black text-slate-900">
-                            Estimate
-                        </h2>
-
-                        <div className="mt-5 grid grid-cols-2 gap-3">
-                            <div className="rounded-lg bg-slate-100 p-4">
-                                <p className="text-sm font-bold text-slate-500">BW</p>
-                                <p className="mt-1 text-2xl font-black text-slate-900">Rs. {bwPrice}</p>
-                            </div>
-
-                            <div className="rounded-lg bg-slate-100 p-4">
-                                <p className="text-sm font-bold text-slate-500">Color</p>
-                                <p className="mt-1 text-2xl font-black text-slate-900">Rs. {colorPrice}</p>
-                            </div>
-                        </div>
-
-                        <div className="mt-5 rounded-lg bg-slate-900 p-5 text-white">
-                            <p className="text-sm font-bold text-slate-300">Estimated Total</p>
-                            <motion.p
-                                key={estimatedTotal}
-                                className="mt-2 text-4xl font-black"
-                                initial={{ scale: 0.96, opacity: 0.5 }}
-                                animate={{ scale: 1, opacity: 1 }}
-                            >
-                                Rs. {estimatedTotal || 0}
-                            </motion.p>
-                        </div>
-
-                        {/* Printer Info Panel */}
-                        <div className="mt-6 rounded-xl border border-slate-100 bg-slate-50 p-4">
-                            <p className="eyebrow">Printer Details</p>
-                            <h3 className="mt-1 text-sm font-black text-slate-900">
-                                {blockLocation} Status
-                            </h3>
-                            
-                            <div className="mt-3 space-y-2">
-                                <div className="flex items-center justify-between text-xs">
-                                    <span className="font-bold text-slate-500">Connection</span>
-                                    <span className={`status-pill ${systemStatus.agentOnline ? 'status-completed' : 'status-unpaid'}`} style={{ minHeight: '20px', fontSize: '9px', padding: '2px 8px' }}>
-                                        {systemStatus.agentOnline ? 'ONLINE' : 'OFFLINE'}
-                                    </span>
-                                </div>
-                                <div className="flex items-center justify-between text-xs">
-                                    <span className="font-bold text-slate-500">Configured</span>
-                                    <span className={`status-pill ${systemStatus.printerConfigured ? 'status-completed' : 'status-unpaid'}`} style={{ minHeight: '20px', fontSize: '9px', padding: '2px 8px' }}>
-                                        {systemStatus.printerConfigured ? 'YES' : 'NO'}
-                                    </span>
-                                </div>
-                                <div className="flex items-center justify-between text-xs border-t border-slate-200/60 pt-2 mt-2">
-                                    <span className="font-bold text-slate-500">Paper Remaining</span>
-                                    <span className={`font-black ${paperCount < 50 ? 'text-rose-500' : 'text-emerald-600'}`}>
-                                        {paperCount} sheets
-                                    </span>
-                                </div>
-                            </div>
-                        </div>
-                    </motion.aside>
-                </div>
-
-                <AnimatePresence>
-                    {uploaded && (
+                {/* TAB CONTENT: PRINT DASHBOARD */}
+                {activeTab === "print" && (
+                    <div className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
                         <motion.section
-                            className="panel mt-6 p-6"
+                            className="panel p-6"
                             initial={{ opacity: 0, y: 18 }}
                             animate={{ opacity: 1, y: 0 }}
-                            exit={{ opacity: 0, y: 18 }}
+                            transition={{ duration: 0.4 }}
                         >
                             <div className="section-header">
                                 <div>
-                                    <p className="eyebrow">Step 2</p>
+                                    <p className="eyebrow">Step 1</p>
                                     <h2 className="text-2xl font-black text-slate-900">
-                                        Print Settings
+                                        Upload PDFs / Images
                                     </h2>
                                 </div>
+
+                                <span className={uploaded ? "status-pill status-created" : "status-pill status-unpaid"}>
+                                    {uploaded ? "Uploaded" : "Waiting"}
+                                </span>
                             </div>
 
-                            <div className="grid gap-4 md:grid-cols-4">
-                                <label className="block">
+                            <label 
+                                className="upload-zone block" 
+                                style={(!systemStatus.databaseConnected || !systemStatus.agentOnline || !systemStatus.printerConfigured) ? { opacity: 0.5, cursor: "not-allowed" } : {}}
+                            >
+                                <div className="mb-5 text-left">
                                     <span className="mb-2 block text-sm font-black text-slate-700">
-                                        Copies
+                                        Printing Location
                                     </span>
-                                    <input
-                                        type="number"
-                                        min="1"
-                                        value={copies}
-                                        onChange={(e) => setCopies(e.target.value)}
-                                        className="field"
-                                    />
-                                </label>
-
-                                <label className="block">
-                                    <span className="mb-2 block text-sm font-black text-slate-700">
-                                        Print Type
-                                    </span>
-                                    <select
-                                        value={printType}
-                                        onChange={(e) => setPrintType(e.target.value)}
-                                        className="field"
-                                    >
-                                        <option value="BW">Black & White</option>
-                                        <option value="COLOR">Color</option>
-                                    </select>
-                                </label>
-
-                                <label className="block">
-                                    <span className="mb-2 block text-sm font-black text-slate-700">
-                                        Pages
-                                    </span>
-                                    <select
-                                        value={pageOption}
-                                        onChange={(e) => setPageOption(e.target.value)}
-                                        className="field"
-                                    >
-                                        <option value="ALL">All Pages</option>
-                                        <option value="CUSTOM">Custom Range</option>
-                                    </select>
-                                </label>
-
-                                <div className="flex items-end">
-                                    <button
-                                        onClick={proceedToOrder}
-                                        className="btn success w-full"
-                                        disabled={isPrintingDisabled}
-                                        style={isPrintingDisabled ? { opacity: 0.5, cursor: "not-allowed", background: "#64748b" } : {}}
-                                    >
-                                        Proceed To Order
-                                    </button>
+                                    <div className="field">
+                                        {blockLocation}
+                                    </div>
                                 </div>
-                            </div>
+                                <input
+                                    type="file"
+                                    accept=".pdf,.jpg,.jpeg,.png"
+                                    multiple
+                                    onChange={handleFileSelect}
+                                    className="hidden"
+                                    disabled={(!systemStatus.databaseConnected || !systemStatus.agentOnline || !systemStatus.printerConfigured) || uploading}
+                                />
+
+                                <div className="flex flex-col gap-2 text-center">
+                                    <span className="text-lg font-black text-slate-900">
+                                        {selectedFiles.length > 0 
+                                            ? `${selectedFiles.length} file(s) selected: ${selectedFiles.map(f => f.name).join(", ").substring(0, 60)}...`
+                                            : "Choose files (PDF, PNG, JPG)"
+                                        }
+                                    </span>
+                                    <span className="text-sm font-semibold text-slate-500">
+                                        Click here to select multiple PDF/Image files. They will be merged automatically.
+                                    </span>
+                                </div>
+                            </label>
+
+                            <button
+                                onClick={uploadPdf}
+                                className="btn mt-5 w-full"
+                                disabled={(!systemStatus.databaseConnected || !systemStatus.agentOnline || !systemStatus.printerConfigured) || uploading || selectedFiles.length === 0}
+                                style={((!systemStatus.databaseConnected || !systemStatus.agentOnline || !systemStatus.printerConfigured) || uploading || selectedFiles.length === 0) ? { opacity: 0.5, cursor: "not-allowed", background: "#64748b" } : {}}
+                            >
+                                {uploading ? "Processing and merging files, please wait..." : "Upload & Merge Files"}
+                            </button>
 
                             <AnimatePresence>
-                                {pageOption === "CUSTOM" && (
+                                {uploaded && (
                                     <motion.div
-                                        className="mt-4 grid gap-4 md:grid-cols-2"
-                                        initial={{ opacity: 0, y: -8 }}
-                                        animate={{ opacity: 1, y: 0 }}
-                                        exit={{ opacity: 0, y: -8 }}
+                                        className="mt-6 grid gap-4 rounded-lg border border-green-200 bg-green-50 p-4 sm:grid-cols-2"
+                                        initial={{ opacity: 0, height: 0 }}
+                                        animate={{ opacity: 1, height: "auto" }}
+                                        exit={{ opacity: 0, height: 0 }}
                                     >
-                                        <input
-                                            type="number"
-                                            min="1"
-                                            max={totalPages}
-                                            placeholder="Start Page"
-                                            value={startPage}
-                                            onChange={(e) => setStartPage(e.target.value)}
-                                            className="field"
-                                        />
+                                        <div>
+                                            <p className="text-xs font-black uppercase tracking-widest text-green-700">
+                                                Order ID
+                                            </p>
+                                            <p className="mt-1 text-xl font-black text-green-950">
+                                                {orderId}
+                                            </p>
+                                        </div>
 
-                                        <input
-                                            type="number"
-                                            min="1"
-                                            max={totalPages}
-                                            placeholder="End Page"
-                                            value={endPage}
-                                            onChange={(e) => setEndPage(e.target.value)}
-                                            className="field"
-                                        />
+                                        <div>
+                                            <p className="text-xs font-black uppercase tracking-widest text-green-700">
+                                                Customer
+                                            </p>
+                                            <p className="mt-1 text-xl font-black text-green-950">
+                                                {userName || "Customer"}
+                                            </p>
+                                        </div>
+
+                                        <div>
+                                            <p className="text-xs font-black uppercase tracking-widest text-green-700">
+                                                Total Pages
+                                            </p>
+                                            <p className="mt-1 text-xl font-black text-green-950">
+                                                {totalPages}
+                                            </p>
+                                        </div>
+
+                                        <div>
+                                            <p className="text-xs font-black uppercase tracking-widest text-green-700">
+                                                Location
+                                            </p>
+                                            <p className="mt-1 text-xl font-black text-green-950">
+                                                {blockLocation}
+                                            </p>
+                                        </div>
                                     </motion.div>
                                 )}
                             </AnimatePresence>
                         </motion.section>
-                    )}
-                </AnimatePresence>
 
-                {/* Dynamic Announcements & Banners */}
-                {sections.length > 0 && (
-                    <motion.section 
-                        className="panel mt-6 p-6"
+                        <motion.aside
+                            className="panel p-6"
+                            initial={{ opacity: 0, y: 18 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.1, duration: 0.4 }}
+                        >
+                            <p className="eyebrow">Live Pricing</p>
+                            <h2 className="mt-2 text-2xl font-black text-slate-900">
+                                Estimate
+                            </h2>
+
+                            <div className="mt-5 grid grid-cols-2 gap-3">
+                                <div className="rounded-lg bg-slate-100 p-4">
+                                    <p className="text-sm font-bold text-slate-500">BW</p>
+                                    <p className="mt-1 text-2xl font-black text-slate-900">Rs. {bwPrice}</p>
+                                </div>
+
+                                <div className="rounded-lg bg-slate-100 p-4">
+                                    <p className="text-sm font-bold text-slate-500">Color</p>
+                                    <p className="mt-1 text-2xl font-black text-slate-900">Rs. {colorPrice}</p>
+                                </div>
+                            </div>
+
+                            <div className="mt-5 rounded-lg bg-slate-900 p-5 text-white">
+                                <p className="text-sm font-bold text-slate-300">Estimated Total</p>
+                                <motion.p
+                                    key={estimatedTotal}
+                                    className="mt-2 text-4xl font-black"
+                                    initial={{ scale: 0.96, opacity: 0.5 }}
+                                    animate={{ scale: 1, opacity: 1 }}
+                                >
+                                    Rs. {estimatedTotal || 0}
+                                </motion.p>
+                            </div>
+
+                            {/* Printer Info Panel */}
+                            <div className="mt-6 rounded-xl border border-slate-100 bg-slate-50 p-4">
+                                <p className="eyebrow">Printer Details</p>
+                                <h3 className="mt-1 text-sm font-black text-slate-900">
+                                    {blockLocation} Status
+                                </h3>
+                                
+                                <div className="mt-3 space-y-2">
+                                    <div className="flex items-center justify-between text-xs">
+                                        <span className="font-bold text-slate-500">Connection</span>
+                                        <span className={`status-pill ${systemStatus.agentOnline ? 'status-completed' : 'status-unpaid'}`} style={{ minHeight: '20px', fontSize: '9px', padding: '2px 8px' }}>
+                                            {systemStatus.agentOnline ? 'ONLINE' : 'OFFLINE'}
+                                        </span>
+                                    </div>
+                                    <div className="flex items-center justify-between text-xs">
+                                        <span className="font-bold text-slate-500">Configured</span>
+                                        <span className={`status-pill ${systemStatus.printerConfigured ? 'status-completed' : 'status-unpaid'}`} style={{ minHeight: '20px', fontSize: '9px', padding: '2px 8px' }}>
+                                            {systemStatus.printerConfigured ? 'YES' : 'NO'}
+                                        </span>
+                                    </div>
+                                    <div className="flex items-center justify-between text-xs border-t border-slate-200/60 pt-2 mt-2">
+                                        <span className="font-bold text-slate-500">Paper Remaining</span>
+                                        <span className={`font-black ${paperCount < 50 ? 'text-rose-500' : 'text-emerald-600'}`}>
+                                            {paperCount} sheets
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </motion.aside>
+
+                        <AnimatePresence>
+                            {uploaded && (
+                                <motion.section
+                                    className="panel mt-6 p-6 lg:col-span-2"
+                                    initial={{ opacity: 0, y: 18 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    exit={{ opacity: 0, y: 18 }}
+                                >
+                                    <div className="section-header">
+                                        <div>
+                                            <p className="eyebrow">Step 2</p>
+                                            <h2 className="text-2xl font-black text-slate-900">
+                                                Print Settings
+                                            </h2>
+                                        </div>
+                                    </div>
+
+                                    {/* Low paper notification banner on dashboard */}
+                                    {isLowPaper && (
+                                        <div style={{
+                                            background: "#ef4444",
+                                            color: "#ffffff",
+                                            padding: "10px 16px",
+                                            borderRadius: "10px",
+                                            fontSize: "13px",
+                                            fontWeight: "bold",
+                                            marginBottom: "16px",
+                                            boxShadow: "0 0 15px rgba(239, 68, 68, 0.3)"
+                                        }}>
+                                            <marquee scrollamount="4">⚠️ Print cannot be done due to low paper levels. Selected pages ({estimatedTotalPages}) exceed printer sheets ({paperCount}).</marquee>
+                                        </div>
+                                    )}
+
+                                    <div className="grid gap-4 md:grid-cols-4">
+                                        <label className="block">
+                                            <span className="mb-2 block text-sm font-black text-slate-700">
+                                                Copies
+                                            </span>
+                                            <input
+                                                type="number"
+                                                min="1"
+                                                value={copies}
+                                                onChange={(e) => setCopies(e.target.value)}
+                                                className="field"
+                                            />
+                                        </label>
+
+                                        <label className="block">
+                                            <span className="mb-2 block text-sm font-black text-slate-700">
+                                                Print Type
+                                            </span>
+                                            <select
+                                                value={printType}
+                                                onChange={(e) => setPrintType(e.target.value)}
+                                                className="field"
+                                            >
+                                                <option value="BW">Black & White</option>
+                                                <option value="COLOR">Color</option>
+                                            </select>
+                                        </label>
+
+                                        <label className="block">
+                                            <span className="mb-2 block text-sm font-black text-slate-700">
+                                                Pages
+                                            </span>
+                                            <select
+                                                value={pageOption}
+                                                onChange={(e) => setPageOption(e.target.value)}
+                                                className="field"
+                                            >
+                                                <option value="ALL">All Pages</option>
+                                                <option value="CUSTOM">Custom Range</option>
+                                            </select>
+                                        </label>
+
+                                        <div className="flex items-end">
+                                            <button
+                                                onClick={proceedToOrder}
+                                                className="btn success w-full"
+                                                disabled={isPrintingDisabled}
+                                                style={isPrintingDisabled ? { opacity: 0.5, cursor: "not-allowed", background: "#64748b" } : {}}
+                                            >
+                                                Proceed To Order
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <AnimatePresence>
+                                        {pageOption === "CUSTOM" && (
+                                            <motion.div
+                                                className="mt-4 grid gap-4 md:grid-cols-2"
+                                                initial={{ opacity: 0, y: -8 }}
+                                                animate={{ opacity: 1, y: 0 }}
+                                                exit={{ opacity: 0, y: -8 }}
+                                            >
+                                                <input
+                                                    type="number"
+                                                    min="1"
+                                                    max={totalPages}
+                                                    placeholder="Start Page"
+                                                    value={startPage}
+                                                    onChange={(e) => setStartPage(e.target.value)}
+                                                    className="field"
+                                                />
+
+                                                <input
+                                                    type="number"
+                                                    min="1"
+                                                    max={totalPages}
+                                                    placeholder="End Page"
+                                                    value={endPage}
+                                                    onChange={(e) => setEndPage(e.target.value)}
+                                                    className="field"
+                                                />
+                                            </motion.div>
+                                        )}
+                                    </AnimatePresence>
+                                </motion.section>
+                            )}
+                        </AnimatePresence>
+
+                        {/* Dynamic Announcements & Banners */}
+                        {sections.length > 0 && (
+                            <motion.section 
+                                className="panel mt-6 p-6 lg:col-span-2"
+                                initial={{ opacity: 0, y: 18 }}
+                                animate={{ opacity: 1, y: 0 }}
+                            >
+                                <div className="section-header">
+                                    <div>
+                                        <p className="eyebrow">Announcements & Services</p>
+                                        <h2 className="text-2xl font-black text-slate-900">Featured Updates & Promotions</h2>
+                                    </div>
+                                </div>
+                                <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 mt-4">
+                                    {sections.map((sec, idx) => (
+                                        <motion.div
+                                            key={sec.id}
+                                            className="block-card flex flex-col justify-between"
+                                            initial={{ opacity: 0, y: 10 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            transition={{ delay: idx * 0.05 }}
+                                            style={{
+                                                borderColor: sec.sectionType === 'ADVERTISING' ? '#0ea5e9' : sec.sectionType === 'NEW_BLOCK' ? '#10b981' : '#8b5cf6',
+                                                '--block-accent': sec.sectionType === 'ADVERTISING' ? '#0ea5e9' : sec.sectionType === 'NEW_BLOCK' ? '#10b981' : '#8b5cf6'
+                                            }}
+                                        >
+                                            <div>
+                                                <span className="status-pill mb-3" style={{
+                                                    color: sec.sectionType === 'ADVERTISING' ? '#0284c7' : sec.sectionType === 'NEW_BLOCK' ? '#047857' : '#6d28d9',
+                                                    background: sec.sectionType === 'ADVERTISING' ? '#e0f2fe' : sec.sectionType === 'NEW_BLOCK' ? '#d1fae5' : '#f3e8ff',
+                                                    fontSize: '10px',
+                                                    minHeight: '20px',
+                                                    padding: '2px 8px'
+                                                }}>
+                                                    {sec.sectionType}
+                                                </span>
+                                                <h3 className="block-card-title mt-2 text-xl font-bold text-slate-900">{sec.title}</h3>
+                                                <p className="block-card-text text-sm text-slate-600 mt-2 whitespace-pre-wrap leading-relaxed">{sec.content}</p>
+                                            </div>
+                                            {sec.redirectUrl && (
+                                                <a href={sec.redirectUrl} target="_blank" rel="noopener noreferrer" className="block-card-cta mt-4 inline-block hover:underline">
+                                                    Learn More →
+                                                </a>
+                                            )}
+                                        </motion.div>
+                                    ))}
+                                </div>
+                            </motion.section>
+                        )}
+                    </div>
+                )}
+
+                {/* TAB CONTENT: MY ORDERS */}
+                {activeTab === "orders" && (
+                    <motion.section
+                        className="panel p-6 overflow-x-auto"
                         initial={{ opacity: 0, y: 18 }}
                         animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.4 }}
                     >
-                        <div className="section-header">
+                        <div className="section-header mb-6">
                             <div>
-                                <p className="eyebrow">Announcements & Services</p>
-                                <h2 className="text-2xl font-black text-slate-900">Featured Updates & Promotions</h2>
+                                <p className="eyebrow">Track Status</p>
+                                <h2 className="text-2xl font-black text-slate-900">Order History</h2>
                             </div>
+                            <span className="text-xs font-bold text-slate-400 bg-slate-100 px-3 py-1.5 rounded-lg border border-slate-200">
+                                Auto-refreshing every 3s
+                            </span>
                         </div>
-                        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 mt-4">
-                            {sections.map((sec, idx) => (
-                                <motion.div
-                                    key={sec.id}
-                                    className="block-card flex flex-col justify-between"
-                                    initial={{ opacity: 0, y: 10 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    transition={{ delay: idx * 0.05 }}
-                                    style={{
-                                        borderColor: sec.sectionType === 'ADVERTISING' ? '#0ea5e9' : sec.sectionType === 'NEW_BLOCK' ? '#10b981' : '#8b5cf6',
-                                        '--block-accent': sec.sectionType === 'ADVERTISING' ? '#0ea5e9' : sec.sectionType === 'NEW_BLOCK' ? '#10b981' : '#8b5cf6'
-                                    }}
-                                >
-                                    <div>
-                                        <span className="status-pill mb-3" style={{
-                                            color: sec.sectionType === 'ADVERTISING' ? '#0284c7' : sec.sectionType === 'NEW_BLOCK' ? '#047857' : '#6d28d9',
-                                            background: sec.sectionType === 'ADVERTISING' ? '#e0f2fe' : sec.sectionType === 'NEW_BLOCK' ? '#d1fae5' : '#f3e8ff',
-                                            fontSize: '10px',
-                                            minHeight: '20px',
-                                            padding: '2px 8px'
-                                        }}>
-                                            {sec.sectionType}
-                                        </span>
-                                        <h3 className="block-card-title mt-2 text-xl font-bold text-slate-900">{sec.title}</h3>
-                                        <p className="block-card-text text-sm text-slate-600 mt-2 whitespace-pre-wrap leading-relaxed">{sec.content}</p>
+
+                        <table className="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Order ID</th>
+                                    <th>Location</th>
+                                    <th>Pages</th>
+                                    <th>Copies</th>
+                                    <th>Price</th>
+                                    <th>Status</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {orders.map((order, index) => (
+                                    <motion.tr
+                                        key={order.id}
+                                        initial={{ opacity: 0, y: 10 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        transition={{ delay: index * 0.03 }}
+                                    >
+                                        <td className="font-black">{order.orderId}</td>
+                                        <td>{order.blockLocation || "C Block"}</td>
+                                        <td>{order.selectedPages}</td>
+                                        <td>{order.copies}</td>
+                                        <td className="font-black">Rs. {order.price}</td>
+                                        <td>
+                                            <span className={orderOrderStatusClass(order.status)}>
+                                                {order.status}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            {order.status === "CANCEL_WINDOW" && (
+                                                <button
+                                                    onClick={() => handleCancelOrder(order.orderId)}
+                                                    className="btn danger"
+                                                    style={{ padding: "4px 8px", fontSize: "12px", minHeight: "28px" }}
+                                                >
+                                                    Cancel Print
+                                                </button>
+                                            )}
+                                        </td>
+                                    </motion.tr>
+                                ))}
+
+                                {orders.length === 0 && (
+                                    <tr>
+                                        <td colSpan="7">
+                                            <div className="empty-state">
+                                                <div className="empty-state-icon">📄</div>
+                                                <p>No orders yet</p>
+                                                <button
+                                                    onClick={() => setActiveTab("print")}
+                                                    className="btn mt-4"
+                                                >
+                                                    Start Printing
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                )}
+                            </tbody>
+                        </table>
+                    </motion.section>
+                )}
+
+                {/* TAB CONTENT: COUPONS & REWARDS */}
+                {activeTab === "coupons" && (
+                    <div className="grid gap-6 md:grid-cols-2">
+                        {/* Referral Stats Panel */}
+                        <motion.section
+                            className="panel p-6 flex flex-col justify-between"
+                            initial={{ opacity: 0, x: -18 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ duration: 0.4 }}
+                        >
+                            <div>
+                                <p className="eyebrow">Refer & Earn</p>
+                                <h2 className="text-2xl font-black text-slate-900 mt-1 mb-4">Share the Service</h2>
+                                
+                                <p className="text-sm font-semibold text-slate-600 mb-6 leading-relaxed">
+                                    Invite your friends to try Cloud Print! When they register using your custom link or enter your referral customer ID on their first checkout, you earn <span className="text-emerald-500 font-bold">Rs. 10</span> and they get <span className="text-cyan-500 font-bold">Rs. 5</span> in wallet balance credits.
+                                </p>
+
+                                <div className="bg-slate-50 border border-slate-100 rounded-xl p-4 mb-6">
+                                    <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">Your Referral ID / Code</span>
+                                    <div className="flex items-center justify-between mt-2 gap-3">
+                                        <code className="text-2xl font-black text-slate-900 select-all tracking-wider">
+                                            {referralCode || userId || "N/A"}
+                                        </code>
+                                        {referralCode && (
+                                            <button 
+                                                onClick={() => {
+                                                    navigator.clipboard.writeText(referralCode);
+                                                    showAlert("Copied!", "Referral code copied to clipboard", "success");
+                                                }}
+                                                className="btn secondary"
+                                                style={{ minHeight: "36px", padding: "6px 12px" }}
+                                            >
+                                                Copy
+                                            </button>
+                                        )}
                                     </div>
-                                    {sec.redirectUrl && (
-                                        <a href={sec.redirectUrl} target="_blank" rel="noopener noreferrer" className="block-card-cta mt-4 inline-block hover:underline">
-                                            Learn More →
-                                        </a>
-                                    )}
-                                </motion.div>
-                            ))}
-                        </div>
+                                </div>
+                            </div>
+
+                            <div className="text-xs font-bold text-slate-400 bg-slate-100 border border-slate-200/60 p-3 rounded-lg">
+                                ℹ️ Note: Credits are added instantly after the referred customer places their first paid print order.
+                            </div>
+                        </motion.section>
+
+                        {/* Claim Promo Code Panel */}
+                        <motion.section
+                            className="panel p-6"
+                            initial={{ opacity: 0, x: 18 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ duration: 0.4 }}
+                        >
+                            <p className="eyebrow">Claim Credit</p>
+                            <h2 className="text-2xl font-black text-slate-900 mt-1 mb-4">Redeem Rewards</h2>
+                            
+                            <p className="text-sm font-semibold text-slate-600 mb-6 leading-relaxed">
+                                Received a promo card, code, or special administrator voucher? Enter the claim code below to deposit reward balance directly into your wallet.
+                            </p>
+
+                            <form onSubmit={handleClaimReward} className="space-y-4">
+                                <label className="block">
+                                    <span className="block text-sm font-bold text-slate-700 mb-2">Claim Code / Voucher Code</span>
+                                    <input 
+                                        type="text" 
+                                        placeholder="e.g. SAVE100, FREE50, ADMINREWARD" 
+                                        className="field uppercase tracking-wider font-mono font-black"
+                                        value={rewardCode}
+                                        onChange={(e) => setRewardCode(e.target.value)}
+                                        required
+                                    />
+                                </label>
+
+                                <button 
+                                    type="submit" 
+                                    className="btn success w-full mt-2" 
+                                    disabled={claimingReward}
+                                >
+                                    {claimingReward ? "Verifying code..." : "Redeem Code"}
+                                </button>
+                            </form>
+                        </motion.section>
+                    </div>
+                )}
+
+                {/* TAB CONTENT: SUPPORT DESK */}
+                {activeTab === "support" && (
+                    <motion.section
+                        className="panel p-6 max-w-2xl mx-auto"
+                        initial={{ opacity: 0, y: 18 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.4 }}
+                    >
+                        <p className="eyebrow">Help & Feedback</p>
+                        <h2 className="text-2xl font-black text-slate-900 mt-1 mb-2">📞 Support Desk</h2>
+                        <p className="text-sm text-slate-500 mb-6 leading-relaxed">
+                            Submit your request below. Tickets will be processed by our administration. Once solved, work related mails are dispatched to <span className="font-bold text-sky-600">saipraveendasari2@gmail.com</span>, and we will contact you back immediately.
+                        </p>
+
+                        <form onSubmit={handleSupportSubmit} className="space-y-4">
+                            <label className="block">
+                                <span className="block text-sm font-bold text-slate-700 mb-1">Your Name</span>
+                                <input 
+                                    type="text" 
+                                    className="field w-full font-bold" 
+                                    value={supportName} 
+                                    onChange={(e) => setSupportName(e.target.value)}
+                                    required
+                                />
+                            </label>
+
+                            <label className="block">
+                                <span className="block text-sm font-bold text-slate-700 mb-1">Email Address</span>
+                                <input 
+                                    type="email" 
+                                    className="field w-full font-bold" 
+                                    value={supportEmail} 
+                                    onChange={(e) => setSupportEmail(e.target.value)}
+                                    required
+                                />
+                            </label>
+
+                            <label className="block">
+                                <span className="block text-sm font-bold text-slate-700 mb-1">Inquiry / Message</span>
+                                <textarea 
+                                    className="field w-full min-h-[120px]" 
+                                    placeholder="Explain your problem, request refunds, or query order details..."
+                                    value={supportMessage} 
+                                    onChange={(e) => setSupportMessage(e.target.value)}
+                                    required
+                                />
+                            </label>
+
+                            <button 
+                                type="submit" 
+                                className="btn success w-full mt-4" 
+                                disabled={supportSubmitting}
+                            >
+                                {supportSubmitting ? "Submitting request, please wait..." : "Submit Support Request"}
+                            </button>
+                        </form>
                     </motion.section>
                 )}
             </div>
 
-            {/* Support Modal */}
+            {/* Privacy Policy Modal */}
             <AnimatePresence>
-                {showSupportModal && (
-                    <motion.div 
-                        className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 backdrop-blur-sm"
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                    >
-                        <motion.div 
-                            className="panel w-full max-w-lg p-6 mx-4 relative"
-                            initial={{ scale: 0.95, y: 16 }}
-                            animate={{ scale: 1, y: 0 }}
-                            exit={{ scale: 0.95, y: 16 }}
-                            style={{ background: "#ffffff", border: "1px solid #e2e8f0" }}
+                {showPrivacyNotice && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/65 backdrop-blur-sm">
+                        <motion.div
+                            className="relative w-full max-w-md overflow-hidden rounded-2xl bg-white p-6 shadow-2xl border border-slate-100 z-10 cursor-grab active:cursor-grabbing touch-none"
+                            drag
+                            dragConstraints={{ left: 0, right: 0, top: 0, bottom: 0 }}
+                            dragElastic={0.6}
+                            onDragEnd={(event, info) => {
+                                if (Math.abs(info.offset.y) > 140 || Math.abs(info.offset.x) > 140) {
+                                    if (dontShowAgain) {
+                                        localStorage.setItem("dontShowPrivacyNotice", "true");
+                                    }
+                                    setShowPrivacyNotice(false);
+                                }
+                            }}
+                            initial={{ scale: 0.93, opacity: 0, y: 15 }}
+                            animate={{ scale: 1, opacity: 1, y: 0 }}
+                            exit={{ scale: 0.93, opacity: 0, y: 15 }}
+                            transition={{ type: "spring", damping: 25, stiffness: 350 }}
                         >
-                            <h3 className="text-2xl font-black text-slate-900 mb-2">📞 Customer Support</h3>
-                            <p className="text-sm text-slate-500 mb-6">
-                                Submit a request to the administrator. We will receive your message and respond directly via email.
-                            </p>
+                            <div className="w-12 h-1.5 bg-slate-200 hover:bg-slate-300 transition-colors rounded-full mx-auto mb-4 cursor-grab" />
+                            <div className="text-[10px] text-center font-bold tracking-wider uppercase text-slate-400 mb-2 select-none">
+                                Swipe or drag away to dismiss
+                            </div>
 
-                            <form onSubmit={handleSupportSubmit} className="space-y-4">
-                                <label className="block">
-                                    <span className="block text-sm font-bold text-slate-700 mb-1">Your Name</span>
-                                    <input 
-                                        type="text" 
-                                        className="field w-full" 
-                                        value={supportName} 
-                                        onChange={(e) => setSupportName(e.target.value)}
-                                        required
-                                    />
-                                </label>
-
-                                <label className="block">
-                                    <span className="block text-sm font-bold text-slate-700 mb-1">Email Address</span>
-                                    <input 
-                                        type="email" 
-                                        className="field w-full" 
-                                        value={supportEmail} 
-                                        onChange={(e) => setSupportEmail(e.target.value)}
-                                        required
-                                    />
-                                </label>
-
-                                <label className="block">
-                                    <span className="block text-sm font-bold text-slate-700 mb-1">Inquiry / Message</span>
-                                    <textarea 
-                                        className="field w-full min-h-[100px]" 
-                                        placeholder="Explain your problem or request..."
-                                        value={supportMessage} 
-                                        onChange={(e) => setSupportMessage(e.target.value)}
-                                        required
-                                    />
-                                </label>
-
-                                <div className="flex gap-3 justify-end mt-6">
-                                    <button 
-                                        type="button" 
-                                        className="btn secondary" 
-                                        onClick={() => setShowSupportModal(false)}
-                                        disabled={supportSubmitting}
-                                    >
-                                        Cancel
-                                    </button>
-                                    <button 
-                                        type="submit" 
-                                        className="btn success" 
-                                        disabled={supportSubmitting}
-                                    >
-                                        {supportSubmitting ? "Submitting..." : "Submit Ticket"}
-                                    </button>
+                            <div className="flex flex-col items-center text-center">
+                                <div className="flex h-14 w-14 items-center justify-center rounded-full border-2 text-2xl font-black shadow-inner mb-4 text-sky-500 bg-sky-50 border-sky-100">
+                                    🔒
                                 </div>
-                            </form>
+
+                                <h3 className="text-xl font-black text-slate-900 mb-2">
+                                    Privacy & Data Policy
+                                </h3>
+
+                                <p className="text-sm font-semibold text-slate-500 mb-6 leading-relaxed">
+                                    Your data safety is our top priority. Only order IDs and configurations are saved in our database. To protect your privacy and reduce storage, all uploaded PDF and image files are completely and permanently deleted from our servers immediately after printing.
+                                </p>
+
+                                <label className="flex items-center gap-2 mb-6 cursor-pointer select-none">
+                                    <input
+                                        type="checkbox"
+                                        className="rounded border-slate-300 text-sky-600 focus:ring-sky-500 h-4 w-4"
+                                        checked={dontShowAgain}
+                                        onChange={(e) => setDontShowAgain(e.target.checked)}
+                                    />
+                                    <span className="text-xs font-bold text-slate-600">Don't show this message again</span>
+                                </label>
+
+                                <button
+                                    onClick={() => {
+                                        if (dontShowAgain) {
+                                            localStorage.setItem("dontShowPrivacyNotice", "true");
+                                        }
+                                        setShowPrivacyNotice(false);
+                                    }}
+                                    className="btn w-full success"
+                                >
+                                    I Understand
+                                </button>
+                            </div>
                         </motion.div>
-                    </motion.div>
+                    </div>
                 )}
             </AnimatePresence>
 

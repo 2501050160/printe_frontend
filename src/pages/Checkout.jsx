@@ -71,13 +71,44 @@ function Checkout() {
         }
     };
 
+    const [paperCount, setPaperCount] = useState(9999);
+
     useEffect(() => {
         if (userId) {
             getWalletBalance(userId).then(setWalletBalance);
         }
     }, [userId]);
 
+    useEffect(() => {
+        const fetchPaper = async () => {
+            if (!order?.blockLocation) return;
+            try {
+                const response = await api.get("/printer/paper", {
+                    params: { blockLocation: order.blockLocation }
+                });
+                setPaperCount(response.data != null ? response.data : 0);
+            } catch (err) {
+                console.error("Failed to fetch paper count", err);
+            }
+        };
+        fetchPaper();
+    }, [order]);
+
+    let pagesPerCopy = order?.totalPages || 0;
+    if (order?.selectedPages && order.selectedPages !== "ALL") {
+        const parts = order.selectedPages.split("-").map(Number);
+        if (parts.length === 2 && !isNaN(parts[0]) && !isNaN(parts[1])) {
+            pagesPerCopy = parts[1] - parts[0] + 1;
+        }
+    }
+    const estimatedPagesNeeded = pagesPerCopy * (order?.copies || 1);
+    const paperShortage = estimatedPagesNeeded > paperCount;
+
     const payNow = async () => {
+        if (paperShortage) {
+            showAlert("Low Paper Level", "Print cannot be done due to low paper levels. Please change your block location.", "error");
+            return;
+        }
         try {
             const response = await api.post("/payment/createOrder", null, {
                 params: {
@@ -121,6 +152,10 @@ function Checkout() {
     };
 
     const payWithWallet = async () => {
+        if (paperShortage) {
+            showAlert("Low Paper Level", "Print cannot be done due to low paper levels. Please change your block location.", "error");
+            return;
+        }
         if (walletBalance < finalAmount) {
             showAlert("Insufficient Funds", "Insufficient wallet balance to place this order.", "warning");
             return;
@@ -340,10 +375,27 @@ function Checkout() {
                             </div>
                         </div>
 
+                        {paperShortage && (
+                            <div style={{
+                                background: "#ef4444",
+                                color: "#ffffff",
+                                padding: "10px 16px",
+                                borderRadius: "10px",
+                                fontSize: "13px",
+                                fontWeight: "bold",
+                                marginTop: "16px",
+                                boxShadow: "0 0 15px rgba(239, 68, 68, 0.3)"
+                            }}>
+                                <marquee scrollamount="4">⚠️ Print cannot be done due to low paper. Go back to change locations.</marquee>
+                            </div>
+                        )}
+
                         {walletBalance >= finalAmount && (
                             <button
                                 onClick={payWithWallet}
                                 className="btn secondary mt-4 w-full"
+                                disabled={paperShortage}
+                                style={paperShortage ? { opacity: 0.5, cursor: "not-allowed", background: "#64748b" } : {}}
                             >
                                 Pay With Wallet
                             </button>
@@ -352,6 +404,8 @@ function Checkout() {
                         <button
                             onClick={payNow}
                             className="btn success mt-4 w-full"
+                            disabled={paperShortage}
+                            style={paperShortage ? { opacity: 0.5, cursor: "not-allowed", background: "#64748b" } : {}}
                         >
                             Pay With Razorpay
                         </button>

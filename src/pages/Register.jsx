@@ -1,29 +1,29 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { registerUser } from "../services/auth";
+import { registerUser, persistUser } from "../services/auth";
 
 function Register() {
-
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const navigate = useNavigate();
 
   const handleRegister = async (e) => {
-
     e.preventDefault();
 
     try {
-
-      await registerUser({
+      const response = await registerUser({
         name,
         email,
         password
       });
 
+      persistUser(response);
       alert("Registration Successful");
+      navigate("/blocks");
 
-    } catch {
+    } catch (err) {
       alert("Registration Failed");
     }
   };

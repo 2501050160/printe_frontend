@@ -11,8 +11,6 @@ function CustomModal({
     confirmText = "OK",
     cancelText = "Cancel"
 }) {
-    if (!isOpen) return null;
-
     const iconMap = {
         success: "✓",
         error: "✕",
@@ -44,72 +42,95 @@ function CustomModal({
         onClose();
     };
 
+    const handleDragEnd = (event, info) => {
+        if (Math.abs(info.offset.y) > 140 || Math.abs(info.offset.x) > 140) {
+            if (type !== "confirm") {
+                onClose();
+            }
+        }
+    };
+
     return (
         <AnimatePresence>
-            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-sm">
-                {/* Backdrop Click */}
-                <div className="absolute inset-0" onClick={type === "confirm" ? null : onClose} />
+            {isOpen && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/65 backdrop-blur-sm">
+                    {/* Backdrop Click */}
+                    <div className="absolute inset-0" onClick={type === "confirm" ? null : onClose} />
 
-                <motion.div
-                    className="relative w-full max-w-md overflow-hidden rounded-2xl bg-white p-6 shadow-2xl border border-slate-100 z-10"
-                    initial={{ scale: 0.93, opacity: 0, y: 15 }}
-                    animate={{ scale: 1, opacity: 1, y: 0 }}
-                    exit={{ scale: 0.93, opacity: 0, y: 15 }}
-                    transition={{ type: "spring", duration: 0.4 }}
-                >
-                    <div className="flex flex-col items-center text-center">
-                        {/* Icon Header */}
-                        <div className={`flex h-14 w-14 items-center justify-center rounded-full border-2 text-2xl font-black shadow-inner mb-4 ${iconColorMap[type]}`}>
-                            {iconMap[type]}
-                        </div>
+                    <motion.div
+                        className="relative w-full max-w-md overflow-hidden rounded-2xl bg-white p-6 shadow-2xl border border-slate-100 z-10 cursor-grab active:cursor-grabbing touch-none"
+                        drag
+                        dragConstraints={{ left: 0, right: 0, top: 0, bottom: 0 }}
+                        dragElastic={0.6}
+                        onDragEnd={handleDragEnd}
+                        initial={{ scale: 0.93, opacity: 0, y: 15 }}
+                        animate={{ scale: 1, opacity: 1, y: 0 }}
+                        exit={{ scale: 0.93, opacity: 0, y: 15 }}
+                        transition={{ type: "spring", damping: 25, stiffness: 350 }}
+                    >
+                        {/* Drag Handle */}
+                        <div className="w-12 h-1.5 bg-slate-200 hover:bg-slate-300 transition-colors rounded-full mx-auto mb-4 cursor-grab" />
+                        
+                        {type !== "confirm" && (
+                            <div className="text-[10px] text-center font-bold tracking-wider uppercase text-slate-400 mb-2 select-none">
+                                Swipe or drag away to dismiss
+                            </div>
+                        )}
 
-                        {/* Title */}
-                        <h3 className="text-xl font-black text-slate-900 mb-2">
-                            {title}
-                        </h3>
+                        <div className="flex flex-col items-center text-center">
+                            {/* Icon Header */}
+                            <div className={`flex h-14 w-14 items-center justify-center rounded-full border-2 text-2xl font-black shadow-inner mb-4 ${iconColorMap[type]}`}>
+                                {iconMap[type]}
+                            </div>
 
-                        {/* Message */}
-                        <p className="text-sm font-semibold text-slate-500 mb-6 whitespace-pre-wrap leading-relaxed">
-                            {message}
-                        </p>
+                            {/* Title */}
+                            <h3 className="text-xl font-black text-slate-900 mb-2">
+                                {title}
+                            </h3>
 
-                        {/* Buttons Footer */}
-                        <div className="flex w-full gap-3">
-                            {type === "confirm" ? (
-                                <>
+                            {/* Message */}
+                            <p className="text-sm font-semibold text-slate-500 mb-6 whitespace-pre-wrap leading-relaxed">
+                                {message}
+                            </p>
+
+                            {/* Buttons Footer */}
+                            <div className="flex w-full gap-3">
+                                {type === "confirm" ? (
+                                    <>
+                                        <button
+                                            onClick={onClose}
+                                            className="btn secondary flex-1"
+                                        >
+                                            {cancelText}
+                                        </button>
+                                        <button
+                                            onClick={handleConfirm}
+                                            className="btn success flex-1"
+                                        >
+                                            {confirmText}
+                                        </button>
+                                    </>
+                                ) : (
                                     <button
                                         onClick={onClose}
-                                        className="btn secondary flex-1"
-                                    >
-                                        {cancelText}
-                                    </button>
-                                    <button
-                                        onClick={handleConfirm}
-                                        className="btn success flex-1"
+                                        className={`btn w-full ${
+                                            type === "error"
+                                                ? "danger"
+                                                : type === "warning"
+                                                ? "warning"
+                                                : type === "success"
+                                                ? "success"
+                                                : ""
+                                        }`}
                                     >
                                         {confirmText}
                                     </button>
-                                </>
-                            ) : (
-                                <button
-                                    onClick={onClose}
-                                    className={`btn w-full ${
-                                        type === "error"
-                                            ? "danger"
-                                            : type === "warning"
-                                            ? "warning"
-                                            : type === "success"
-                                            ? "success"
-                                            : ""
-                                    }`}
-                                >
-                                    {confirmText}
-                                </button>
-                            )}
+                                )}
+                            </div>
                         </div>
-                    </div>
-                </motion.div>
-            </div>
+                    </motion.div>
+                </div>
+            )}
         </AnimatePresence>
     );
 }
