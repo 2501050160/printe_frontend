@@ -1,0 +1,287 @@
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
+import api, { RAZORPAY_KEY } from "../services/api";
+import { getStoredWalletBalance, getWalletBalance } from "../services/auth";
+
+function Checkout() {
+    const navigate = useNavigate();
+    const order = JSON.parse(localStorage.getItem("order"));
+    const userId = localStorage.getItem("userId");
+
+    const [couponCode, setCouponCode] = useState("");
+    const [discount, setDiscount] = useState(0);
+    const [finalAmount, setFinalAmount] = useState(order?.price || 0);
+    const [couponApplied, setCouponApplied] = useState(false);
+    const [walletBalance, setWalletBalance] = useState(getStoredWalletBalance());
+
+    useEffect(() => {
+        if (userId) {
+            getWalletBalance(userId).then(setWalletBalance);
+        }
+    }, [userId]);
+
+    const payNow = async () => {
+        try {
+            const response = await api.post("/payment/createOrder", null, {
+                params: {
+                    amount: finalAmount
+                }
+            });
+
+            const orderData = response.data;
+
+            const options = {
+                key: RAZORPAY_KEY,
+                amount: orderData.amount,
+                currency: "INR",
+                name: "Cloud Print",
+                description: "Print Order Payment",
+                order_id: orderData.id,
+                handler: async function (response) {
+                    try {
+                        await api.post("/pdf/paymentSuccess", null, {
+                            params: {
+                                orderId: order.orderId,
+                                paymentId: response.razorpay_payment_id
+                            }
+                        });
+
+                        localStorage.removeItem("order");
+                        navigate(`/payment-success?orderId=${order.orderId}`);
+                    } catch (error) {
+                        console.error(error);
+                        alert("Unable To Update Payment Status");
+                    }
+                }
+            };
+
+            const rzp = new window.Razorpay(options);
+            rzp.open();
+        } catch (error) {
+            console.error("Payment error:", error);
+            alert("Payment Failed");
+        }
+    };
+
+    const payWithWallet = async () => {
+        if (walletBalance < finalAmount) {
+            alert("Insufficient wallet balance");
+            return;
+        }
+
+        try {
+            await api.post("/pdf/payWithWallet", null, {
+                params: {
+                    orderId: order.orderId
+                }
+            });
+
+            await getWalletBalance(userId);
+            localStorage.removeItem("order");
+            navigate(`/payment-success?orderId=${order.orderId}`);
+        } catch (error) {
+            console.error(error);
+            alert(error.response?.data?.message || "Wallet payment failed");
+        }
+    };
+
+    const applyCoupon = async () => {
+        if (couponApplied) {
+            alert("Coupon Already Applied");
+            return;
+        }
+
+        if (!couponCode) {
+            alert("Enter Coupon Code");
+            return;
+        }
+
+        try {
+            const response = await api.get("/coupon/validate", {
+                params: {
+                    couponCode
+                }
+            });
+
+            const coupon = response.data;
+            const discountAmount = (order.price * coupon.discountPercentage) / 100;
+            const finalPrice = order.price - discountAmount;
+
+            setDiscount(discountAmount);
+            setFinalAmount(finalPrice);
+            setCouponApplied(true);
+
+            await api.post("/pdf/updatePrice", null, {
+                params: {
+                    orderId: order.orderId,
+                    price: finalPrice,
+                    originalPrice: order.price,
+                    discountAmount: discountAmount
+                }
+            });
+
+            await api.post("/coupon/use", null, {
+                params: {
+                    couponCode
+                }
+            });
+
+            alert("Coupon Applied Successfully");
+        } catch (error) {
+            console.error(error);
+            alert("Invalid Coupon");
+        }
+    };
+
+    if (!order) {
+        return (
+            <main className="page-shell">
+                <div className="content-wrap">
+                    <div className="panel p-8 text-center">
+                        <p className="eyebrow">Checkout</p>
+                        <h1 className="title">No active order</h1>
+                        <button
+                            onClick={() => navigate("/dashboard")}
+                            className="btn mt-6"
+                        >
+                            Back To Dashboard
+                        </button>
+                    </div>
+                </div>
+            </main>
+        );
+    }
+
+    return (
+        <main className="page-shell page-shell-decorated">
+            <div className="content-wrap">
+                <motion.div
+                    className="top-bar panel top-bar-glass px-6 py-5"
+                    initial={{ opacity: 0, y: 18 }}
+                    animate={{ opacity: 1, y: 0 }}
+                >
+                    <div>
+                        <p className="eyebrow">Secure Payment</p>
+                        <h1 className="title">Checkout</h1>
+                        <p className="subtitle">
+                            Review the order and complete payment through Razorpay or wallet.
+                        </p>
+                    </div>
+
+                    <button
+                        onClick={() => navigate("/dashboard")}
+                        className="btn secondary"
+                    >
+                        Edit Order
+                    </button>
+                </motion.div>
+
+                <div className="grid gap-6 lg:grid-cols-[0.9fr_1.1fr]">
+                    <motion.section
+                        className="panel p-6"
+                        initial={{ opacity: 0, x: -18 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ duration: 0.45 }}
+                    >
+                        <p className="eyebrow">Order Summary</p>
+
+                        <div className="mt-5 space-y-4">
+                            {[
+                                ["Order ID", order.orderId],
+                                ["Customer", localStorage.getItem("userName") || "Customer"],
+                                ["Location", order.blockLocation || "C Block"],
+                                ["Pages", order.selectedPages],
+                                ["Copies", order.copies],
+                                ["Print Type", order.printType],
+                                ["Total Pages", order.totalPages]
+                            ].map(([label, value]) => (
+                                <div
+                                    key={label}
+                                    className="flex items-center justify-between border-b border-slate-100 pb-3"
+                                >
+                                    <span className="font-bold text-slate-500">{label}</span>
+                                    <span className="font-black text-slate-900">{value}</span>
+                                </div>
+                            ))}
+                        </div>
+                    </motion.section>
+
+                    <motion.section
+                        className="panel p-6"
+                        initial={{ opacity: 0, x: 18 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ duration: 0.45 }}
+                    >
+                        <p className="eyebrow">Payment</p>
+
+                        <div className="mt-5 rounded-lg bg-slate-900 p-6 text-white">
+                            <div className="flex items-center justify-between">
+                                <span className="font-bold text-slate-300">Wallet Balance</span>
+                                <span className="text-xl font-black text-cyan-300">Rs. {walletBalance}</span>
+                            </div>
+
+                            <div className="mt-4 flex items-center justify-between">
+                                <span className="font-bold text-slate-300">Price</span>
+                                <span className="text-2xl font-black">Rs. {order.price}</span>
+                            </div>
+
+                            <div className="mt-4 flex items-center justify-between">
+                                <span className="font-bold text-slate-300">Discount</span>
+                                <span className="text-xl font-black text-green-300">Rs. {discount}</span>
+                            </div>
+
+                            <div className="mt-6 border-t border-white/15 pt-5">
+                                <p className="text-sm font-bold text-slate-300">Final Amount</p>
+                                <motion.p
+                                    key={finalAmount}
+                                    className="mt-1 text-5xl font-black"
+                                    initial={{ scale: 0.96, opacity: 0.6 }}
+                                    animate={{ scale: 1, opacity: 1 }}
+                                >
+                                    Rs. {finalAmount}
+                                </motion.p>
+                            </div>
+                        </div>
+
+                        <div className="mt-5 grid gap-3 sm:grid-cols-[1fr_auto]">
+                            <input
+                                type="text"
+                                placeholder="Coupon code"
+                                value={couponCode}
+                                onChange={(e) => setCouponCode(e.target.value)}
+                                className="field"
+                            />
+
+                            <button
+                                onClick={applyCoupon}
+                                disabled={couponApplied}
+                                className={couponApplied ? "btn secondary" : "btn"}
+                            >
+                                {couponApplied ? "Applied" : "Apply"}
+                            </button>
+                        </div>
+
+                        {walletBalance >= finalAmount && (
+                            <button
+                                onClick={payWithWallet}
+                                className="btn secondary mt-4 w-full"
+                            >
+                                Pay With Wallet
+                            </button>
+                        )}
+
+                        <button
+                            onClick={payNow}
+                            className="btn success mt-4 w-full"
+                        >
+                            Pay With Razorpay
+                        </button>
+                    </motion.section>
+                </div>
+            </div>
+        </main>
+    );
+}
+
+export default Checkout;
