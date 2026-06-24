@@ -14,6 +14,23 @@ function PaymentSuccess() {
     const [totalSeconds, setTotalSeconds] = useState(30);
     const [status, setStatus] = useState("CANCEL_WINDOW");
     const [cancelling, setCancelling] = useState(false);
+    const [proceeding, setProceeding] = useState(false);
+
+    const proceedOrder = async () => {
+        if (proceeding) return;
+        setProceeding(true);
+        try {
+            await api.post("/queue/proceed", null, {
+                params: { orderId }
+            });
+            navigate("/my-orders");
+        } catch (error) {
+            console.error("Failed to proceed order:", error);
+            navigate("/my-orders");
+        } finally {
+            setProceeding(false);
+        }
+    };
 
     useEffect(() => {
         if (!orderId) {
@@ -152,16 +169,17 @@ function PaymentSuccess() {
                     <div className="mt-8 grid gap-3 sm:grid-cols-2">
                         <button
                             onClick={cancelOrder}
-                            disabled={cancelling}
+                            disabled={cancelling || proceeding}
                             className="btn danger"
                         >
                             {cancelling ? "Cancelling..." : "Cancel Print"}
                         </button>
                         <button
-                            onClick={() => navigate("/my-orders")}
+                            onClick={proceedOrder}
+                            disabled={proceeding || cancelling}
                             className="btn success"
                         >
-                            Continue to Orders
+                            {proceeding ? "Proceeding..." : "Proceed to Print"}
                         </button>
                     </div>
                 </motion.div>

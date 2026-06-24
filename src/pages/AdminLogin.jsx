@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import api from "../services/api";
+import adminVisualBg from "../assets/admin_visual_bg.png";
 
 function AdminLogin() {
 
@@ -49,34 +50,36 @@ function AdminLogin() {
 
     return (
 
-        <main className="auth-shell">
+        <main className="auth-shell-admin">
 
             <motion.section
-                className="auth-grid"
+                className="auth-grid-admin"
                 initial={{ opacity: 0, y: 24 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.55, ease: "easeOut" }}
             >
 
-                <div className="auth-visual">
+                <div className="auth-visual" style={{
+                    background: `linear-gradient(145deg, rgba(13, 20, 35, 0.8), rgba(9, 13, 22, 0.95)), url(${adminVisualBg}) center/cover`
+                }}>
 
                     <div>
-                        <div className="brand-mark">AD</div>
+                        <div className="brand-mark btn-admin-glow">AD</div>
                     </div>
 
                     <div>
-                        <p className="text-sm uppercase tracking-[0.18em] text-sky-100 font-bold">
-                            Display panel
+                        <p className="text-sm uppercase tracking-[0.18em] text-pink-300 font-bold">
+                            Control Panel
                         </p>
 
                         <h1 className="mt-3 text-4xl font-black leading-tight text-white">
-                            Watch paid jobs arrive and manage the print counter.
+                            Monitor live prints, set rates, and manage local shops.
                         </h1>
                     </div>
 
                 </div>
 
-                <div className="auth-card">
+                <div className="auth-card-admin">
 
                     <motion.div
                         initial={{ opacity: 0, x: 20 }}
@@ -84,14 +87,14 @@ function AdminLogin() {
                         transition={{ delay: 0.15, duration: 0.45 }}
                     >
 
-                        <p className="eyebrow">Admin Login</p>
+                        <p className="eyebrow text-pink-400">Admin Console</p>
 
                         <h2 className="title">
-                            Shop console
+                            Shop Dashboard
                         </h2>
 
                         <p className="subtitle">
-                            Sign in on the PC connected to the printer.
+                            Sign in on the print PC to manage rates and printer mappings.
                         </p>
 
                         <form
@@ -125,17 +128,21 @@ function AdminLogin() {
 
                             <button
                                 type="submit"
-                                className="btn danger w-full"
+                                className="btn btn-admin-glow w-full"
                             >
-                                Login
+                                Login to Console
                             </button>
 
                             <button
                                 type="button"
                                 onClick={() => navigate("/")}
                                 className="btn secondary w-full"
+                                style={{
+                                    borderColor: "rgba(255, 255, 255, 0.1)",
+                                    color: "#cbd5e1"
+                                }}
                             >
-                                User Login
+                                Customer Login
                             </button>
 
                         </form>
