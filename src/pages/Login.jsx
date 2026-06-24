@@ -10,8 +10,19 @@ function Login() {
     const [password, setPassword] = useState("");
     const [error, setError] = useState("");
     const [dbOffline, setDbOffline] = useState(false);
+    
+    // Google AI Slideshow
+    const [bgIndex, setBgIndex] = useState(0);
+    const bgImages = ["/slideshow_1.png", "/slideshow_2.png", "/slideshow_3.png"];
 
     const navigate = useNavigate();
+
+    useEffect(() => {
+        const interval = setInterval(() => {
+            setBgIndex((prev) => (prev + 1) % bgImages.length);
+        }, 5000);
+        return () => clearInterval(interval);
+    }, []);
 
     useEffect(() => {
         const checkDb = async () => {
@@ -65,7 +76,15 @@ function Login() {
                 transition={{ duration: 0.55, ease: "easeOut" }}
             >
 
-                <div className="auth-visual">
+                <div 
+                    className="auth-visual"
+                    style={{
+                        backgroundImage: `linear-gradient(145deg, rgba(15, 76, 129, 0.82), rgba(20, 36, 56, 0.95)), url(${bgImages[bgIndex]})`,
+                        backgroundPosition: "center",
+                        backgroundSize: "cover",
+                        transition: "background-image 1.2s ease-in-out"
+                    }}
+                >
 
                     <div>
                         <div className="brand-mark">CP</div>

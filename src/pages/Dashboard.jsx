@@ -459,8 +459,7 @@ function Dashboard() {
                     onTabChange={setActiveTab}
                     actions={[
                         { label: `Wallet: ₹${walletBalance}`, path: "#", className: "btn success cursor-default !border-emerald-500 !bg-emerald-600/20 !text-emerald-400" },
-                        { label: "Change Location", path: "/blocks", className: "btn secondary" },
-                        { label: "Sign Out", onClick: handleLogout, className: "btn danger" }
+                        { label: "Change Location", path: "/blocks", className: "btn secondary" }
                     ]}
                 />
 

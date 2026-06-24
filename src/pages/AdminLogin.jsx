@@ -1,8 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import api from "../services/api";
-import adminVisualBg from "../assets/admin_visual_bg.png";
 
 function AdminLogin() {
 
@@ -12,7 +11,18 @@ function AdminLogin() {
     const [password, setPassword] =
         useState("");
 
+    // Google AI Slideshow
+    const [bgIndex, setBgIndex] = useState(0);
+    const bgImages = ["/slideshow_1.png", "/slideshow_2.png", "/slideshow_3.png"];
+
     const navigate = useNavigate();
+
+    useEffect(() => {
+        const interval = setInterval(() => {
+            setBgIndex((prev) => (prev + 1) % bgImages.length);
+        }, 5000);
+        return () => clearInterval(interval);
+    }, []);
 
     const handleLogin = async (e) => {
 
@@ -60,7 +70,10 @@ function AdminLogin() {
             >
 
                 <div className="auth-visual" style={{
-                    background: `linear-gradient(145deg, rgba(13, 20, 35, 0.8), rgba(9, 13, 22, 0.95)), url(${adminVisualBg}) center/cover`
+                    backgroundImage: `linear-gradient(145deg, rgba(13, 20, 35, 0.82), rgba(9, 13, 22, 0.95)), url(${bgImages[bgIndex]})`,
+                    backgroundPosition: "center",
+                    backgroundSize: "cover",
+                    transition: "background-image 1.2s ease-in-out"
                 }}>
 
                     <div>

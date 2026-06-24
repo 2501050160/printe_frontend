@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { registerUser, persistUser } from "../services/auth";
@@ -8,6 +8,17 @@ function Register() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const navigate = useNavigate();
+
+  // Google AI Slideshow
+  const [bgIndex, setBgIndex] = useState(0);
+  const bgImages = ["/slideshow_1.png", "/slideshow_2.png", "/slideshow_3.png"];
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setBgIndex((prev) => (prev + 1) % bgImages.length);
+    }, 5000);
+    return () => clearInterval(interval);
+  }, []);
 
   const handleRegister = async (e) => {
     e.preventDefault();
@@ -39,7 +50,15 @@ function Register() {
         transition={{ duration: 0.55, ease: "easeOut" }}
       >
 
-        <div className="auth-visual">
+        <div 
+          className="auth-visual"
+          style={{
+            backgroundImage: `linear-gradient(145deg, rgba(15, 76, 129, 0.82), rgba(20, 36, 56, 0.95)), url(${bgImages[bgIndex]})`,
+            backgroundPosition: "center",
+            backgroundSize: "cover",
+            transition: "background-image 1.2s ease-in-out"
+          }}
+        >
 
           <div>
             <div className="brand-mark">CP</div>
