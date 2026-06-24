@@ -5,6 +5,7 @@ import axios from "axios";
 import api from "../services/api";
 import Navbar from "../components/Navbar";
 import { getWalletBalance } from "../services/auth";
+import CustomModal from "../components/CustomModal";
 
 function Dashboard() {
     const [bwPrice, setBwPrice] = useState(2);
@@ -36,6 +37,38 @@ function Dashboard() {
     const [supportMessage, setSupportMessage] = useState("");
     const [supportSubmitting, setSupportSubmitting] = useState(false);
 
+    // Dynamic state
+    const [paperCount, setPaperCount] = useState(0);
+    const [sections, setSections] = useState([]);
+    const [settings, setSettings] = useState({
+        referralEnabled: true,
+        referrerAmount: 10.0,
+        refereeAmount: 5.0,
+        popupEnabled: true,
+        popupMessage: "",
+        adEnabled: true,
+        adText: ""
+    });
+
+    // Custom Modal config
+    const [modalConfig, setModalConfig] = useState({
+        isOpen: false,
+        title: "",
+        message: "",
+        type: "info",
+        onConfirm: null
+    });
+
+    const showAlert = (title, message, type = "info") => {
+        setModalConfig({
+            isOpen: true,
+            title,
+            message,
+            type,
+            onConfirm: null
+        });
+    };
+
     const [systemStatus, setSystemStatus] = useState({
         databaseConnected: true,
         agentOnline: true,
@@ -50,7 +83,29 @@ function Dashboard() {
 
     useEffect(() => {
         fetchPrices();
+        fetchActiveSections();
     }, []);
+
+    const fetchActiveSections = async () => {
+        try {
+            const response = await api.get("/sections/active");
+            setSections(response.data || []);
+        } catch (err) {
+            console.error("Failed to fetch active sections", err);
+        }
+    };
+
+    const fetchPaperCount = async () => {
+        if (!blockLocation) return;
+        try {
+            const response = await api.get("/printer/paper", {
+                params: { blockLocation }
+            });
+            setPaperCount(response.data != null ? response.data : 0);
+        } catch (err) {
+            console.error("Failed to fetch paper count", err);
+        }
+    };
 
     useEffect(() => {
         const checkStatus = async () => {
@@ -66,7 +121,9 @@ function Dashboard() {
                     printerConfigured: false
                 });
             }
+            fetchPaperCount();
         };
+
         if (blockLocation) {
             checkStatus();
             const interval = setInterval(checkStatus, 8000);
@@ -74,9 +131,40 @@ function Dashboard() {
         }
     }, [blockLocation]);
 
+    // Check Welcome Referral Popup
+    useEffect(() => {
+        const checkReferralPopup = async () => {
+            if (!userId) return;
+            try {
+                // Fetch public settings
+                const settingsRes = await api.get("/system/settings");
+                const publicSettings = settingsRes.data;
+                setSettings(publicSettings);
+
+                // Fetch user orders to see if this is their first order
+                const ordersRes = await api.get("/pdf/userOrders", { params: { userId } });
+                const userOrders = ordersRes.data || [];
+                const hasPaidOrders = userOrders.some(o => o.paymentStatus === "PAID");
+
+                const shown = sessionStorage.getItem("referralWelcomeShown");
+                if (publicSettings.referralEnabled && publicSettings.popupEnabled && !hasPaidOrders && !shown) {
+                    sessionStorage.setItem("referralWelcomeShown", "true");
+                    showAlert(
+                        "🎉 Welcome Offer!",
+                        publicSettings.popupMessage || `Refer your friends and earn rewards! Your code is: ${referralCode}`,
+                        "success"
+                    );
+                }
+            } catch (err) {
+                console.error("Error checking welcome popup", err);
+            }
+        };
+        checkReferralPopup();
+    }, [userId, referralCode]);
+
     const uploadPdf = async () => {
         if (!file) {
-            alert("Please select a PDF");
+            showAlert("No File Selected", "Please select a PDF file to upload.", "warning");
             return;
         }
 
@@ -101,10 +189,10 @@ function Dashboard() {
             setTotalPages(response.data.totalPages);
             setOrderId(response.data.orderId);
             setUploaded(true);
-            alert("PDF Uploaded Successfully");
+            showAlert("Success", "PDF Uploaded Successfully", "success");
         } catch (error) {
             console.error(error);
-            alert("Upload Failed");
+            showAlert("Upload Failed", "Could not upload the PDF file.", "error");
         } finally {
             setUploading(false);
         }
@@ -131,7 +219,7 @@ function Dashboard() {
 
     const proceedToOrder = async () => {
         if (!uploaded) {
-            alert("Upload PDF First");
+            showAlert("PDF Not Uploaded", "Please upload a PDF first.", "warning");
             return;
         }
 
@@ -140,7 +228,7 @@ function Dashboard() {
             const end = parseInt(endPage);
 
             if (isNaN(start) || isNaN(end) || start < 1 || end > totalPages || start > end) {
-                alert(`Pages must be between 1 and ${totalPages}`);
+                showAlert("Invalid Pages", `Pages must be between 1 and ${totalPages}`, "error");
                 return;
             }
         }
@@ -186,14 +274,14 @@ function Dashboard() {
             navigate("/checkout");
         } catch (error) {
             console.error(error);
-            alert("Unable to Create Order");
+            showAlert("Order Failed", "Unable to create order.", "error");
         }
     };
 
     const handleSupportSubmit = async (e) => {
         e.preventDefault();
         if (!supportName || !supportEmail || !supportMessage) {
-            alert("Please fill in all fields");
+            showAlert("Required Fields Missing", "Please fill in all fields.", "warning");
             return;
         }
 
@@ -214,12 +302,12 @@ function Dashboard() {
                 _subject: "New Cloud Print Support Request"
             });
 
-            alert("Support request submitted successfully! We will get back to you via email.");
+            showAlert("Ticket Created", "Support request submitted successfully! We will get back to you via email.", "success");
             setSupportMessage("");
             setShowSupportModal(false);
         } catch (err) {
             console.error(err);
-            alert("Failed to submit support request. Please try again.");
+            showAlert("Error", "Failed to submit support request. Please try again.", "error");
         } finally {
             setSupportSubmitting(false);
         }
@@ -229,6 +317,8 @@ function Dashboard() {
     const selectedPageCount = pageOption === "ALL" ? totalPages : (startPage && endPage ? Math.max(0, Number(endPage) - Number(startPage) + 1) : 0);
     const estimatedTotal = selectedPageCount * Number(copies || 1) * rate;
     const isPrintingDisabled = !systemStatus.databaseConnected || !systemStatus.agentOnline || !systemStatus.printerConfigured;
+
+    const displayAdText = settings.adText ? settings.adText.replace("{referralCode}", referralCode) : "";
 
     return (
         <main className="page-shell page-shell-decorated">
@@ -246,24 +336,26 @@ function Dashboard() {
                 />
 
                 {/* Non-intrusive Referral Advertisement Banner */}
-                <div style={{
-                    background: "linear-gradient(90deg, #1e293b, #0f172a)",
-                    border: "1px solid #0284c7",
-                    color: "#cbd5e1",
-                    padding: "8px 20px",
-                    borderRadius: "10px",
-                    fontSize: "13px",
-                    fontWeight: "bold",
-                    marginBottom: "16px",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    boxShadow: "0 0 15px rgba(2, 132, 199, 0.15)"
-                }}>
-                    <marquee scrollamount="4">
-                        🎉 REFER & EARN: Share your referral code <span style={{ color: "#38bdf8", background: "#0c4a6e", padding: "2px 6px", borderRadius: "4px", fontFamily: "monospace" }}>{referralCode}</span> with friends! They get ₹5 wallet credit on payment, and you get ₹10 directly in your wallet! 🎉
-                    </marquee>
-                </div>
+                {settings.adEnabled && displayAdText && (
+                    <div style={{
+                        background: "linear-gradient(90deg, #1e293b, #0f172a)",
+                        border: "1px solid #0284c7",
+                        color: "#cbd5e1",
+                        padding: "8px 20px",
+                        borderRadius: "10px",
+                        fontSize: "13px",
+                        fontWeight: "bold",
+                        marginBottom: "16px",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        boxShadow: "0 0 15px rgba(2, 132, 199, 0.15)"
+                    }}>
+                        <marquee scrollamount="4">
+                            {displayAdText}
+                        </marquee>
+                    </div>
+                )}
 
                 {/* Connectivity guards marquee alert */}
                 {isPrintingDisabled && (
@@ -434,6 +526,35 @@ function Dashboard() {
                                 Rs. {estimatedTotal || 0}
                             </motion.p>
                         </div>
+
+                        {/* Printer Info Panel */}
+                        <div className="mt-6 rounded-xl border border-slate-100 bg-slate-50 p-4">
+                            <p className="eyebrow">Printer Details</p>
+                            <h3 className="mt-1 text-sm font-black text-slate-900">
+                                {blockLocation} Status
+                            </h3>
+                            
+                            <div className="mt-3 space-y-2">
+                                <div className="flex items-center justify-between text-xs">
+                                    <span className="font-bold text-slate-500">Connection</span>
+                                    <span className={`status-pill ${systemStatus.agentOnline ? 'status-completed' : 'status-unpaid'}`} style={{ minHeight: '20px', fontSize: '9px', padding: '2px 8px' }}>
+                                        {systemStatus.agentOnline ? 'ONLINE' : 'OFFLINE'}
+                                    </span>
+                                </div>
+                                <div className="flex items-center justify-between text-xs">
+                                    <span className="font-bold text-slate-500">Configured</span>
+                                    <span className={`status-pill ${systemStatus.printerConfigured ? 'status-completed' : 'status-unpaid'}`} style={{ minHeight: '20px', fontSize: '9px', padding: '2px 8px' }}>
+                                        {systemStatus.printerConfigured ? 'YES' : 'NO'}
+                                    </span>
+                                </div>
+                                <div className="flex items-center justify-between text-xs border-t border-slate-200/60 pt-2 mt-2">
+                                    <span className="font-bold text-slate-500">Paper Remaining</span>
+                                    <span className={`font-black ${paperCount < 50 ? 'text-rose-500' : 'text-emerald-600'}`}>
+                                        {paperCount} sheets
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
                     </motion.aside>
                 </div>
 
@@ -541,13 +662,63 @@ function Dashboard() {
                         </motion.section>
                     )}
                 </AnimatePresence>
+
+                {/* Dynamic Announcements & Banners */}
+                {sections.length > 0 && (
+                    <motion.section 
+                        className="panel mt-6 p-6"
+                        initial={{ opacity: 0, y: 18 }}
+                        animate={{ opacity: 1, y: 0 }}
+                    >
+                        <div className="section-header">
+                            <div>
+                                <p className="eyebrow">Announcements & Services</p>
+                                <h2 className="text-2xl font-black text-slate-900">Featured Updates & Promotions</h2>
+                            </div>
+                        </div>
+                        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 mt-4">
+                            {sections.map((sec, idx) => (
+                                <motion.div
+                                    key={sec.id}
+                                    className="block-card flex flex-col justify-between"
+                                    initial={{ opacity: 0, y: 10 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    transition={{ delay: idx * 0.05 }}
+                                    style={{
+                                        borderColor: sec.sectionType === 'ADVERTISING' ? '#0ea5e9' : sec.sectionType === 'NEW_BLOCK' ? '#10b981' : '#8b5cf6',
+                                        '--block-accent': sec.sectionType === 'ADVERTISING' ? '#0ea5e9' : sec.sectionType === 'NEW_BLOCK' ? '#10b981' : '#8b5cf6'
+                                    }}
+                                >
+                                    <div>
+                                        <span className="status-pill mb-3" style={{
+                                            color: sec.sectionType === 'ADVERTISING' ? '#0284c7' : sec.sectionType === 'NEW_BLOCK' ? '#047857' : '#6d28d9',
+                                            background: sec.sectionType === 'ADVERTISING' ? '#e0f2fe' : sec.sectionType === 'NEW_BLOCK' ? '#d1fae5' : '#f3e8ff',
+                                            fontSize: '10px',
+                                            minHeight: '20px',
+                                            padding: '2px 8px'
+                                        }}>
+                                            {sec.sectionType}
+                                        </span>
+                                        <h3 className="block-card-title mt-2 text-xl font-bold text-slate-900">{sec.title}</h3>
+                                        <p className="block-card-text text-sm text-slate-600 mt-2 whitespace-pre-wrap leading-relaxed">{sec.content}</p>
+                                    </div>
+                                    {sec.redirectUrl && (
+                                        <a href={sec.redirectUrl} target="_blank" rel="noopener noreferrer" className="block-card-cta mt-4 inline-block hover:underline">
+                                            Learn More →
+                                        </a>
+                                    )}
+                                </motion.div>
+                            ))}
+                        </div>
+                    </motion.section>
+                )}
             </div>
 
             {/* Support Modal */}
             <AnimatePresence>
                 {showSupportModal && (
                     <motion.div 
-                        className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm"
+                        className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 backdrop-blur-sm"
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
@@ -620,9 +791,18 @@ function Dashboard() {
                     </motion.div>
                 )}
             </AnimatePresence>
+
+            {/* Custom Premium Modal */}
+            <CustomModal
+                isOpen={modalConfig.isOpen}
+                onClose={() => setModalConfig(prev => ({ ...prev, isOpen: false }))}
+                title={modalConfig.title}
+                message={modalConfig.message}
+                type={modalConfig.type}
+                onConfirm={modalConfig.onConfirm}
+            />
         </main>
     );
 }
 
 export default Dashboard;
-

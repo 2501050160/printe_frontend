@@ -2,9 +2,9 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import api, { getPdfDownloadUrl } from "../services/api";
+import CustomModal from "../components/CustomModal";
 
 function AdminDashboard() {
-
     const navigate = useNavigate();
 
     const [coupons, setCoupons] = useState([]);
@@ -25,6 +25,65 @@ function AdminDashboard() {
     const [selectedPricingBlock, setSelectedPricingBlock] = useState("C Block");
     const [activeTab, setActiveTab] = useState("queue");
 
+    // Dynamic settings & blocks
+    const [blocks, setBlocks] = useState([]);
+    const [newBlockName, setNewBlockName] = useState("");
+    const [printers, setPrinters] = useState([]);
+    const [printerPapers, setPrinterPapers] = useState({});
+    const [sections, setSections] = useState([]);
+    const [systemSettings, setSystemSettings] = useState({
+        referralEnabled: true,
+        referrerAmount: 10.0,
+        refereeAmount: 5.0,
+        popupEnabled: true,
+        popupMessage: "",
+        adEnabled: true,
+        adText: ""
+    });
+
+    // SQL Console states
+    const [sqlQuery, setSqlQuery] = useState("SELECT * FROM users;");
+    const [sqlResult, setSqlResult] = useState(null);
+    const [sqlError, setSqlError] = useState("");
+    const [sqlExecuting, setSqlExecuting] = useState(false);
+
+    // Section Creator States
+    const [secTitle, setSecTitle] = useState("");
+    const [secContent, setSecContent] = useState("");
+    const [secType, setSecType] = useState("ADVERTISING");
+    const [secImage, setSecImage] = useState("");
+    const [secRedirect, setSecRedirect] = useState("");
+    const [secOrder, setSecOrder] = useState(0);
+
+    // Custom Modal configs
+    const [modalConfig, setModalConfig] = useState({
+        isOpen: false,
+        title: "",
+        message: "",
+        type: "info",
+        onConfirm: null
+    });
+
+    const showAlert = (title, message, type = "info") => {
+        setModalConfig({
+            isOpen: true,
+            title,
+            message,
+            type,
+            onConfirm: null
+        });
+    };
+
+    const showConfirm = (title, message, onConfirm) => {
+        setModalConfig({
+            isOpen: true,
+            title,
+            message,
+            type: "confirm",
+            onConfirm
+        });
+    };
+
     useEffect(() => {
         const adminId = localStorage.getItem("adminId");
         if (!adminId) {
@@ -36,6 +95,7 @@ function AdminDashboard() {
         fetchOrders();
         fetchStats();
         fetchPrices(selectedPricingBlock);
+        fetchBlocks();
 
         const interval = setInterval(() => {
             fetchOrders();
@@ -57,91 +117,53 @@ function AdminDashboard() {
         } else if (activeTab === "settings") {
             fetchPrices(selectedPricingBlock);
             fetchCoupons();
+            fetchBlocks();
+        } else if (activeTab === "system") {
+            fetchSystemSettings();
+            fetchBlocks();
+            fetchPrinters();
+            fetchSections();
         }
     }, [activeTab]);
 
-const deleteCoupon = async (
-    id
-) => {
+    const deleteCoupon = async (id) => {
+        try {
+            await api.post("/coupon/delete", null, {
+                params: { id }
+            });
+            fetchCoupons();
+            showAlert("Deleted", "Coupon Deleted Successfully", "success");
+        } catch (error) {
+            console.error(error);
+            showAlert("Error", "Failed to delete coupon", "error");
+        }
+    };
 
-    try {
-
-        await api.post(
-            "/coupon/delete",
-            null,
-            {
-                params: {
-                    id
-                }
-            }
-        );
-
-        fetchCoupons();
-
-        alert(
-            "Coupon Deleted"
-        );
-
-    } catch (error) {
-
-        console.error(error);
-    }
-};
-
-        const fetchCoupons = async () => {
-
-    try {
-
-        const response =
-            await api.get(
-                "/coupon/all"
-            );
-
-        setCoupons(
-            response.data
-        );
-
-    } catch (error) {
-
-        console.error(error);
-    }
-};
+    const fetchCoupons = async () => {
+        try {
+            const response = await api.get("/coupon/all");
+            setCoupons(response.data);
+        } catch (error) {
+            console.error(error);
+        }
+    };
 
     const fetchOrders = async () => {
-
         try {
-
-            const response =
-                await api.get(
-                    "/pdf/orders"
-                );
-
+            const response = await api.get("/pdf/orders");
             setOrders(response.data);
-
         } catch (error) {
-
             console.error(error);
         }
     };
 
     const fetchStats = async () => {
-
         try {
-
-            const response =
-                await api.get(
-                    "/pdf/stats",
-                    {
-                        params: {
-                            period: revenuePeriod
-                        }
-                    }
-                );
-
+            const response = await api.get("/pdf/stats", {
+                params: { period: revenuePeriod }
+            });
             setStats(response.data);
-
         } catch (error) {
-
             console.error(error);
         }
     };
@@ -186,10 +208,10 @@ const deleteCoupon = async (
                 }
             });
 
-            alert(`Prices Updated Successfully for ${selectedPricingBlock}`);
+            showAlert("Success", `Prices Updated Successfully for ${selectedPricingBlock}`, "success");
         } catch (error) {
             console.error(error);
-            alert("Unable to Update Prices");
+            showAlert("Error", "Unable to Update Prices", "error");
         }
     };
 
@@ -210,23 +232,27 @@ const deleteCoupon = async (
             fetchUsers();
         } catch (error) {
             console.error("Error toggling block status:", error);
-            alert("Failed to toggle block status");
+            showAlert("Error", "Failed to toggle block status", "error");
         }
     };
 
     const deleteUser = async (userId) => {
-        if (!window.confirm("Are you sure you want to delete this user permanently?")) {
-            return;
-        }
-        try {
-            await api.delete("/admin/users/delete", {
-                params: { id: userId }
-            });
-            fetchUsers();
-        } catch (error) {
-            console.error("Error deleting user:", error);
-            alert("Failed to delete user");
-        }
+        showConfirm(
+            "Confirm Delete",
+            "Are you sure you want to delete this user permanently? All wallet records and orders for this user will be impacted.",
+            async () => {
+                try {
+                    await api.delete("/admin/users/delete", {
+                        params: { id: userId }
+                    });
+                    fetchUsers();
+                    showAlert("Success", "User accounts deleted successfully", "success");
+                } catch (error) {
+                    console.error("Error deleting user:", error);
+                    showAlert("Error", "Failed to delete user", "error");
+                }
+            }
+        );
     };
 
     const fetchSupportTickets = async () => {
@@ -239,133 +265,77 @@ const deleteCoupon = async (
     };
 
     const resetStats = async () => {
-        if (!window.confirm("CRITICAL WARNING: This will permanently delete ALL orders and printing history. This action CANNOT be undone. Are you sure you want to proceed?")) {
-            return;
-        }
-        try {
-            await api.post("/admin/reset-stats");
-            alert("Statistics and order logs have been reset successfully.");
-            fetchStats();
-            fetchOrders();
-        } catch (error) {
-            console.error("Error resetting stats:", error);
-            alert("Failed to reset statistics");
-        }
+        showConfirm(
+            "CRITICAL WARNING",
+            "This will permanently delete ALL orders and printing history. This action CANNOT be undone. Are you sure you want to proceed?",
+            async () => {
+                try {
+                    await api.post("/admin/reset-stats");
+                    showAlert("Reset Success", "Statistics and order logs have been reset successfully.", "success");
+                    fetchStats();
+                    fetchOrders();
+                } catch (error) {
+                    console.error("Error resetting stats:", error);
+                    showAlert("Error", "Failed to reset statistics", "error");
+                }
+            }
+        );
     };
 
     const createCoupon = async () => {
-
-    try {
-
-        await api.post(
-            "/coupon/create",
-            {
+        try {
+            await api.post("/coupon/create", {
                 couponCode,
                 discountPercentage,
                 expiryDate,
                 maxUses
-            }
-        );
+            });
 
-        alert(
-            "Coupon Created Successfully"
-        );
-        fetchCoupons();
-        setCouponCode("");
-        setDiscountPercentage("");
-        setExpiryDate("");
-        setMaxUses("");
+            showAlert("Success", "Coupon Created Successfully", "success");
+            fetchCoupons();
+            setCouponCode("");
+            setDiscountPercentage("");
+            setExpiryDate("");
+            setMaxUses("");
+        } catch (error) {
+            console.error(error);
+            showAlert("Error", "Unable To Create Coupon", "error");
+        }
+    };
 
-    } catch (error) {
+    const updateStatus = async (id, status) => {
+        try {
+            await api.post("/pdf/updateStatus", null, {
+                params: { id, status }
+            });
+            fetchOrders();
+            fetchStats();
+        } catch (error) {
+            console.error(error);
+        }
+    };
 
-        console.error(error);
-
-        alert(
-            "Unable To Create Coupon"
-        );
-    }
-};
-
-    const updateStatus = async (
-    id,
-    status
-) => {
-
-    try {
-
-        await api.post(
-            "/pdf/updateStatus",
-            null,
-            {
-                params: {
-                    id,
-                    status
-                }
-            }
-        );
-
-        fetchOrders();
-        fetchStats();
-
-    } catch (error) {
-
-        console.error(error);
-    }
-};
-
-const downloadPdf = (
-    id
-) => {
-
-    window.open(
-        getPdfDownloadUrl(id),
-        "_blank"
-    );
-};
+    const downloadPdf = (id) => {
+        window.open(getPdfDownloadUrl(id), "_blank");
+    };
 
     const logout = () => {
-
-        localStorage.removeItem(
-            "adminId"
-        );
-
-        localStorage.removeItem(
-            "adminUser"
-        );
-
-        navigate(
-            "/admin-login"
-        );
+        localStorage.removeItem("adminId");
+        localStorage.removeItem("adminUser");
+        navigate("/admin-login");
     };
 
     const statusClass = (status) => {
-
-    if (status === "CANCELLED") {
-        return "status-pill status-unpaid";
-    }
-
-    if (status === "CANCEL_WINDOW") {
-        return "status-pill status-unpaid";
-    }
-
-    if (status === "QUEUE") {
+        if (status === "CANCELLED") return "status-pill status-unpaid";
+        if (status === "CANCEL_WINDOW") return "status-pill status-unpaid";
+        if (status === "QUEUE") return "status-pill status-created";
+        if (status === "COMPLETED") return "status-pill status-completed";
+        if (status === "PRINTING") return "status-pill status-printing";
         return "status-pill status-created";
-    }
+    };
 
-    if (status === "COMPLETED") {
-        return "status-pill status-completed";
-    }
-
-    if (status === "PRINTING") {
-        return "status-pill status-printing";
-    }
-
-    return "status-pill status-created";
-};
     const paymentClass = (status) =>
-        status === "PAID"
-            ? "status-pill status-paid"
-            : "status-pill status-unpaid";
+        status === "PAID" ? "status-pill status-paid" : "status-pill status-unpaid";
 
     const revenueFilters = [
         ["all", "All Time"],
@@ -388,6 +358,182 @@ const downloadPdf = (
         ["Printing", stats.printingOrders || 0, "linear-gradient(135deg, #ca8a04, #c2413d)"],
         ["Completed", stats.completedOrders || 0, "linear-gradient(135deg, #2563eb, #16865b)"]
     ];
+
+    // Dynamic blocks & refills helper methods
+    const fetchBlocks = async () => {
+        try {
+            const response = await api.get("/blocks/all");
+            setBlocks(response.data || []);
+        } catch (error) {
+            console.error("Error fetching blocks:", error);
+        }
+    };
+
+    const fetchPrinters = async () => {
+        try {
+            const response = await api.get("/printer/all");
+            setPrinters(response.data || []);
+            
+            const papersMap = {};
+            for (const printer of response.data) {
+                try {
+                    const paperRes = await api.get("/printer/paper", {
+                        params: { blockLocation: printer.blockLocation }
+                    });
+                    papersMap[printer.blockLocation] = paperRes.data != null ? paperRes.data : 0;
+                } catch (err) {
+                    console.error("Error fetching paper count for", printer.blockLocation, err);
+                }
+            }
+            setPrinterPapers(papersMap);
+        } catch (error) {
+            console.error("Error fetching printers:", error);
+        }
+    };
+
+    const updatePrinterPaper = async (blockLoc, count) => {
+        try {
+            await api.post("/printer/updatePaper", null, {
+                params: {
+                    blockLocation: blockLoc,
+                    paperCount: count
+                }
+            });
+            showAlert("Success", `Paper count updated successfully for ${blockLoc}`, "success");
+            fetchPrinters();
+        } catch (error) {
+            console.error("Failed to update paper count:", error);
+            showAlert("Error", "Failed to update paper count", "error");
+        }
+    };
+
+    const addBlock = async (e) => {
+        e.preventDefault();
+        if (!newBlockName.trim()) {
+            showAlert("Required", "Please enter a block name", "warning");
+            return;
+        }
+        try {
+            await api.post("/blocks/add", null, {
+                params: { name: newBlockName.trim() }
+            });
+            showAlert("Success", `Block '${newBlockName}' added and default prices initialized.`, "success");
+            setNewBlockName("");
+            fetchBlocks();
+        } catch (error) {
+            console.error("Error adding block:", error);
+            showAlert("Failed", error.response?.data || "Failed to add block", "error");
+        }
+    };
+
+    const fetchSystemSettings = async () => {
+        try {
+            const response = await api.get("/admin/settings");
+            setSystemSettings(response.data);
+        } catch (error) {
+            console.error("Error fetching admin settings:", error);
+        }
+    };
+
+    const saveSystemSettings = async (e) => {
+        e.preventDefault();
+        try {
+            await api.post("/admin/settings/update", systemSettings);
+            showAlert("Success", "System Settings Updated Successfully", "success");
+        } catch (error) {
+            console.error("Error updating system settings:", error);
+            showAlert("Error", "Failed to update system settings", "error");
+        }
+    };
+
+    const fetchSections = async () => {
+        try {
+            const response = await api.get("/sections/all");
+            setSections(response.data || []);
+        } catch (error) {
+            console.error("Error fetching sections:", error);
+        }
+    };
+
+    const addSection = async (e) => {
+        e.preventDefault();
+        if (!secTitle.trim() || !secContent.trim()) {
+            showAlert("Required Fields", "Title and Content are required", "warning");
+            return;
+        }
+        try {
+            await api.post("/sections/add", {
+                title: secTitle.trim(),
+                content: secContent.trim(),
+                sectionType: secType,
+                imageUrl: secImage.trim() || null,
+                redirectUrl: secRedirect.trim() || null,
+                displayOrder: Number(secOrder || 0),
+                active: true
+            });
+            showAlert("Success", "Frontend Section Added Successfully", "success");
+            setSecTitle("");
+            setSecContent("");
+            setSecImage("");
+            setSecRedirect("");
+            setSecOrder(0);
+            fetchSections();
+        } catch (error) {
+            console.error("Error adding section:", error);
+            showAlert("Error", "Failed to add section", "error");
+        }
+    };
+
+    const toggleSectionStatus = async (id, currentStatus) => {
+        try {
+            await api.post("/sections/update-status", null, {
+                params: {
+                    id,
+                    active: !currentStatus
+                }
+            });
+            showAlert("Success", "Section status updated", "success");
+            fetchSections();
+        } catch (error) {
+            console.error("Error toggling section status:", error);
+            showAlert("Error", "Failed to update status", "error");
+        }
+    };
+
+    const deleteSection = async (id) => {
+        showConfirm("Confirm Delete", "Are you sure you want to delete this section permanently?", async () => {
+            try {
+                await api.delete("/sections/delete", {
+                    params: { id }
+                });
+                showAlert("Deleted", "Section deleted successfully", "success");
+                fetchSections();
+            } catch (error) {
+                console.error("Error deleting section:", error);
+                showAlert("Error", "Failed to delete section", "error");
+            }
+        });
+    };
+
+    const runSqlQuery = async (e) => {
+        e.preventDefault();
+        if (!sqlQuery.trim()) {
+            setSqlError("Query cannot be empty");
+            return;
+        }
+        setSqlExecuting(true);
+        setSqlResult(null);
+        setSqlError("");
+        try {
+            const response = await api.post("/admin/sql", { query: sqlQuery });
+            setSqlResult(response.data);
+        } catch (error) {
+            console.error("SQL Error:", error);
+            setSqlError(error.response?.data || error.message || "Failed to execute query");
+        } finally {
+            setSqlExecuting(false);
+        }
+    };
 
     return (
         <main className="page-shell page-shell-decorated">
@@ -448,6 +594,7 @@ const downloadPdf = (
                             setActiveTab("settings");
                             fetchPrices(selectedPricingBlock);
                             fetchCoupons();
+                            fetchBlocks();
                         }}
                         className={`px-4 py-2 font-bold text-sm rounded-lg transition-all ${
                             activeTab === "settings"
@@ -482,6 +629,36 @@ const downloadPdf = (
                         }`}
                     >
                         Support Tickets
+                    </button>
+                    <button
+                        onClick={() => {
+                            setActiveTab("system");
+                            fetchSystemSettings();
+                            fetchBlocks();
+                            fetchPrinters();
+                            fetchSections();
+                        }}
+                        className={`px-4 py-2 font-bold text-sm rounded-lg transition-all ${
+                            activeTab === "system"
+                                ? "bg-slate-900 text-white shadow-md shadow-slate-955/20"
+                                : "text-slate-600 hover:bg-slate-100/60"
+                        }`}
+                    >
+                        System Config
+                    </button>
+                    <button
+                        onClick={() => {
+                            setActiveTab("sql");
+                            setSqlResult(null);
+                            setSqlError("");
+                        }}
+                        className={`px-4 py-2 font-bold text-sm rounded-lg transition-all ${
+                            activeTab === "sql"
+                                ? "bg-slate-900 text-white shadow-md shadow-slate-955/20"
+                                : "text-slate-600 hover:bg-slate-100/60"
+                        }`}
+                    >
+                        SQL Terminal
                     </button>
                 </div>
 
@@ -724,9 +901,18 @@ const downloadPdf = (
                                         }}
                                         className="field"
                                     >
-                                        <option value="C Block">C Block</option>
-                                        <option value="R Block">R Block</option>
-                                        <option value="L Block">L Block</option>
+                                        {blocks.map((block) => (
+                                            <option key={block.id} value={block.name}>
+                                                {block.name}
+                                            </option>
+                                        ))}
+                                        {blocks.length === 0 && (
+                                            <>
+                                                <option value="C Block">C Block</option>
+                                                <option value="R Block">R Block</option>
+                                                <option value="L Block">L Block</option>
+                                            </>
+                                        )}
                                     </select>
                                 </div>
 
@@ -1029,7 +1215,359 @@ const downloadPdf = (
                         </table>
                     </motion.section>
                 )}
+
+                {/* System Config Tab */}
+                {activeTab === "system" && (
+                    <div className="mt-6 space-y-6">
+                        <div className="grid gap-6 lg:grid-cols-2">
+                            {/* General System Settings */}
+                            <motion.section
+                                className="panel p-6"
+                                initial={{ opacity: 0, y: 12 }}
+                                animate={{ opacity: 1, y: 0 }}
+                            >
+                                <div className="section-header mb-4">
+                                    <div>
+                                        <p className="eyebrow">Settings</p>
+                                        <h2 className="text-2xl font-black text-slate-900">General Configuration</h2>
+                                    </div>
+                                </div>
+                                <form onSubmit={saveSystemSettings} className="space-y-4">
+                                    <div className="flex items-center gap-2 pb-2">
+                                        <input 
+                                            type="checkbox" 
+                                            id="refEnabled" 
+                                            checked={systemSettings.referralEnabled}
+                                            onChange={(e) => setSystemSettings({...systemSettings, referralEnabled: e.target.checked})}
+                                            className="w-4 h-4 accent-slate-900"
+                                        />
+                                        <label htmlFor="refEnabled" className="text-sm font-bold text-slate-700">Referral Program Active</label>
+                                    </div>
+                                    <div className="grid gap-4 sm:grid-cols-2">
+                                        <label className="block">
+                                            <span className="block text-xs font-bold text-slate-500 mb-1">Referrer Reward (Rs.)</span>
+                                            <input 
+                                                type="number" 
+                                                className="field" 
+                                                value={systemSettings.referrerAmount}
+                                                onChange={(e) => setSystemSettings({...systemSettings, referrerAmount: Number(e.target.value)})}
+                                                step="0.5"
+                                            />
+                                        </label>
+                                        <label className="block">
+                                            <span className="block text-xs font-bold text-slate-500 mb-1">Referee Reward (Rs.)</span>
+                                            <input 
+                                                type="number" 
+                                                className="field" 
+                                                value={systemSettings.refereeAmount}
+                                                onChange={(e) => setSystemSettings({...systemSettings, refereeAmount: Number(e.target.value)})}
+                                                step="0.5"
+                                            />
+                                        </label>
+                                    </div>
+                                    <div className="flex items-center gap-2 pt-2 pb-2">
+                                        <input 
+                                            type="checkbox" 
+                                            id="popupEnabled" 
+                                            checked={systemSettings.popupEnabled}
+                                            onChange={(e) => setSystemSettings({...systemSettings, popupEnabled: e.target.checked})}
+                                            className="w-4 h-4 accent-slate-900"
+                                        />
+                                        <label htmlFor="popupEnabled" className="text-sm font-bold text-slate-700">Welcome Referral Popup Enabled</label>
+                                    </div>
+                                    <label className="block">
+                                        <span className="block text-xs font-bold text-slate-500 mb-1">Welcome Popup Message</span>
+                                        <textarea 
+                                            className="field min-h-[70px]" 
+                                            value={systemSettings.popupMessage}
+                                            onChange={(e) => setSystemSettings({...systemSettings, popupMessage: e.target.value})}
+                                        />
+                                    </label>
+                                    <div className="flex items-center gap-2 pt-2 pb-2">
+                                        <input 
+                                            type="checkbox" 
+                                            id="adEnabled" 
+                                            checked={systemSettings.adEnabled}
+                                            onChange={(e) => setSystemSettings({...systemSettings, adEnabled: e.target.checked})}
+                                            className="w-4 h-4 accent-slate-900"
+                                        />
+                                        <label htmlFor="adEnabled" className="text-sm font-bold text-slate-700">Scrolling Announcement Active</label>
+                                    </div>
+                                    <label className="block">
+                                        <span className="block text-xs font-bold text-slate-500 mb-1">Scrolling Announcement Text</span>
+                                        <textarea 
+                                            className="field min-h-[70px]" 
+                                            value={systemSettings.adText}
+                                            onChange={(e) => setSystemSettings({...systemSettings, adText: e.target.value})}
+                                        />
+                                    </label>
+                                    <button type="submit" className="btn success w-full">Save Configuration</button>
+                                </form>
+                            </motion.section>
+
+                            {/* Blocks & Printers Panel */}
+                            <div className="space-y-6">
+                                {/* Dynamic Block Creator */}
+                                <motion.section 
+                                    className="panel p-6"
+                                    initial={{ opacity: 0, y: 12 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    transition={{ delay: 0.05 }}
+                                >
+                                    <div className="section-header mb-4">
+                                        <div>
+                                            <p className="eyebrow">Blocks</p>
+                                            <h2 className="text-2xl font-black text-slate-900">Add Printing Block</h2>
+                                        </div>
+                                    </div>
+                                    <form onSubmit={addBlock} className="flex gap-3">
+                                        <input 
+                                            type="text" 
+                                            placeholder="Block name (e.g. D Block)" 
+                                            className="field"
+                                            value={newBlockName}
+                                            onChange={(e) => setNewBlockName(e.target.value)}
+                                        />
+                                        <button type="submit" className="btn">Add Block</button>
+                                    </form>
+                                </motion.section>
+
+                                {/* Printers paper count refills */}
+                                <motion.section 
+                                    className="panel p-6"
+                                    initial={{ opacity: 0, y: 12 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    transition={{ delay: 0.1 }}
+                                >
+                                    <div className="section-header mb-4">
+                                        <div>
+                                            <p className="eyebrow">Printers</p>
+                                            <h2 className="text-2xl font-black text-slate-900">Printer Paper Levels</h2>
+                                        </div>
+                                    </div>
+                                    <div className="space-y-4">
+                                        {printers.map(p => {
+                                            const currentPaper = printerPapers[p.blockLocation] != null ? printerPapers[p.blockLocation] : 0;
+                                            return (
+                                                <div key={p.id} className="flex items-center justify-between border-b border-slate-100 pb-3 last:border-0 last:pb-0">
+                                                    <div>
+                                                        <p className="font-black text-slate-900">{p.blockLocation}</p>
+                                                        <p className="text-xs font-bold text-slate-400">{p.printerName || "Not configured"}</p>
+                                                    </div>
+                                                    <div className="flex items-center gap-3">
+                                                        <input 
+                                                            type="number" 
+                                                            className="field w-24 text-center font-bold" 
+                                                            defaultValue={currentPaper}
+                                                            id={`paper-${p.blockLocation}`}
+                                                        />
+                                                        <button 
+                                                            onClick={() => {
+                                                                const count = Number(document.getElementById(`paper-${p.blockLocation}`).value || 0);
+                                                                updatePrinterPaper(p.blockLocation, count);
+                                                            }}
+                                                            className="btn secondary min-h-0 px-3 py-1.5 text-xs"
+                                                        >
+                                                            Refill
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            );
+                                        })}
+                                        {printers.length === 0 && (
+                                            <p className="text-sm font-bold text-slate-500 text-center py-4">No printer configurations found. Configure them in Printer Settings.</p>
+                                        )}
+                                    </div>
+                                </motion.section>
+                            </div>
+                        </div>
+
+                        {/* Frontend Section Management */}
+                        <motion.section 
+                            className="panel p-6 overflow-x-auto"
+                            initial={{ opacity: 0, y: 12 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.15 }}
+                        >
+                            <div className="section-header mb-4">
+                                <div>
+                                    <p className="eyebrow">Announcements</p>
+                                    <h2 className="text-2xl font-black text-slate-900">Frontend Section Manager</h2>
+                                    <p className="subtitle">Manage custom advertisement panels, block descriptions, or feature update cards displayed to customers.</p>
+                                </div>
+                            </div>
+                            
+                            {/* Create Section Form */}
+                            <form onSubmit={addSection} className="grid gap-4 md:grid-cols-3 bg-slate-50 p-4 rounded-xl border border-slate-100 mb-6">
+                                <label className="block">
+                                    <span className="block text-xs font-bold text-slate-500 mb-1">Title</span>
+                                    <input type="text" className="field" placeholder="Section title" value={secTitle} onChange={(e) => setSecTitle(e.target.value)} />
+                                </label>
+                                <label className="block">
+                                    <span className="block text-xs font-bold text-slate-500 mb-1">Section Type</span>
+                                    <select className="field" value={secType} onChange={(e) => setSecType(e.target.value)}>
+                                        <option value="ADVERTISING">Advertising</option>
+                                        <option value="NEW_BLOCK">New Block Info</option>
+                                        <option value="FEATURE">Feature Announcement</option>
+                                    </select>
+                                </label>
+                                <label className="block">
+                                    <span className="block text-xs font-bold text-slate-500 mb-1">Display Order (weight)</span>
+                                    <input type="number" className="field" value={secOrder} onChange={(e) => setSecOrder(e.target.value)} />
+                                </label>
+                                <label className="block md:col-span-3">
+                                    <span className="block text-xs font-bold text-slate-500 mb-1">Content / Announcement Message</span>
+                                    <textarea className="field min-h-[80px]" placeholder="Write description or announcement content details..." value={secContent} onChange={(e) => setSecContent(e.target.value)} />
+                                </label>
+                                <label className="block md:col-span-2">
+                                    <span className="block text-xs font-bold text-slate-500 mb-1">Redirect Link (optional)</span>
+                                    <input type="text" className="field" placeholder="https://google.com or route link" value={secRedirect} onChange={(e) => setSecRedirect(e.target.value)} />
+                                </label>
+                                <div className="flex items-end">
+                                    <button type="submit" className="btn w-full">Add Frontend Section</button>
+                                </div>
+                            </form>
+
+                            {/* Section list table */}
+                            <table className="data-table w-full">
+                                <thead>
+                                    <tr>
+                                        <th>Title</th>
+                                        <th>Type</th>
+                                        <th>Content</th>
+                                        <th>Order</th>
+                                        <th>Status</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {sections.map(sec => (
+                                        <tr key={sec.id}>
+                                            <td className="font-black text-slate-900">{sec.title}</td>
+                                            <td>
+                                                <span className={`status-pill ${
+                                                    sec.sectionType === 'ADVERTISING' ? 'status-paid' : sec.sectionType === 'NEW_BLOCK' ? 'status-completed' : 'status-created'
+                                                }`} style={{ fontSize: '10px', minHeight: '22px' }}>
+                                                    {sec.sectionType}
+                                                </span>
+                                            </td>
+                                            <td className="max-w-xs truncate text-xs font-semibold text-slate-500">{sec.content}</td>
+                                            <td className="font-bold">{sec.displayOrder}</td>
+                                            <td>
+                                                <button 
+                                                    onClick={() => toggleSectionStatus(sec.id, sec.active)}
+                                                    className={`status-pill ${sec.active ? 'status-paid' : 'status-unpaid'}`}
+                                                    style={{ fontSize: '10px', minHeight: '22px' }}
+                                                >
+                                                    {sec.active ? "ACTIVE" : "INACTIVE"}
+                                                </button>
+                                            </td>
+                                            <td>
+                                                <button onClick={() => deleteSection(sec.id)} className="btn danger min-h-0 px-3 py-1.5 text-xs font-bold">Delete</button>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                    {sections.length === 0 && (
+                                        <tr>
+                                            <td colSpan="6" className="text-center font-bold text-slate-500 py-6">No custom sections defined. Create one above.</td>
+                                        </tr>
+                                    )}
+                                </tbody>
+                            </table>
+                        </motion.section>
+                    </div>
+                )}
+
+                {/* SQL Terminal Tab */}
+                {activeTab === "sql" && (
+                    <motion.section 
+                        className="panel mt-6 p-6"
+                        initial={{ opacity: 0, y: 12 }}
+                        animate={{ opacity: 1, y: 0 }}
+                    >
+                        <div className="section-header pb-4">
+                            <div>
+                                <p className="eyebrow">Database Console</p>
+                                <h2 className="text-2xl font-black text-slate-900">SQL Execution Console</h2>
+                                <p className="subtitle">Execute raw database queries directly. SELECT queries will display output tables, while update statements report rows affected.</p>
+                            </div>
+                        </div>
+
+                        <form onSubmit={runSqlQuery} className="space-y-4">
+                            <textarea
+                                value={sqlQuery}
+                                onChange={(e) => setSqlQuery(e.target.value)}
+                                className="field font-mono text-sm leading-relaxed min-h-[140px] bg-slate-950 text-cyan-400 border-slate-800 p-4 focus:ring-4 focus:ring-cyan-950"
+                                placeholder="SELECT * FROM users;"
+                            />
+                            <div className="flex justify-end">
+                                <button type="submit" className="btn warning min-h-0 font-bold px-6 py-2.5" disabled={sqlExecuting}>
+                                    {sqlExecuting ? "Executing query..." : "Execute Statement"}
+                                </button>
+                            </div>
+                        </form>
+
+                        {/* Error output */}
+                        {sqlError && (
+                            <div className="mt-6 p-4 rounded-xl border border-rose-200 bg-rose-50 text-rose-700 text-sm font-mono whitespace-pre-wrap">
+                                ⚠️ {sqlError}
+                            </div>
+                        )}
+
+                        {/* Results output */}
+                        {sqlResult && (
+                            <div className="mt-6 border-t border-slate-100 pt-6">
+                                <h3 className="text-lg font-black text-slate-900 mb-4">Query Execution Result</h3>
+                                
+                                {Array.isArray(sqlResult) ? (
+                                    sqlResult.length > 0 ? (
+                                        <div className="overflow-x-auto rounded-xl border border-slate-200 bg-slate-50">
+                                            <table className="data-table w-full text-xs font-mono">
+                                                <thead>
+                                                    <tr>
+                                                        {Object.keys(sqlResult[0]).map(col => (
+                                                            <th key={col} className="bg-slate-100 text-slate-700 p-3 border-b border-slate-200 text-left font-black tracking-wider">{col}</th>
+                                                        ))}
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    {sqlResult.map((row, idx) => (
+                                                        <tr key={idx} className="hover:bg-slate-100/80 transition-colors">
+                                                            {Object.values(row).map((val, cIdx) => (
+                                                                <td key={cIdx} className="p-3 border-b border-slate-200 text-slate-800 font-medium">
+                                                                    {val === null ? <span className="text-slate-400 italic">null</span> : String(val)}
+                                                                </td>
+                                                            ))}
+                                                        </tr>
+                                                    ))}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    ) : (
+                                        <div className="text-slate-500 font-bold text-center py-6 border border-slate-100 rounded-xl bg-slate-50">
+                                            Query completed successfully. Empty result set (0 rows returned).
+                                        </div>
+                                    )
+                                ) : (
+                                    <div className="p-4 rounded-xl border border-emerald-200 bg-emerald-50 text-emerald-800 text-sm font-semibold">
+                                        ✓ {sqlResult.message || `Query succeeded. Rows affected: ${sqlResult.rowsAffected}`}
+                                    </div>
+                                )}
+                            </div>
+                        )}
+                    </motion.section>
+                )}
             </div>
+
+            {/* Custom Premium Modal */}
+            <CustomModal
+                isOpen={modalConfig.isOpen}
+                onClose={() => setModalConfig(prev => ({ ...prev, isOpen: false }))}
+                title={modalConfig.title}
+                message={modalConfig.message}
+                type={modalConfig.type}
+                onConfirm={modalConfig.onConfirm}
+            />
         </main>
     );
 }

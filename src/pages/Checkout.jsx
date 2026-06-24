@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import api, { RAZORPAY_KEY } from "../services/api";
 import { getStoredWalletBalance, getWalletBalance } from "../services/auth";
+import CustomModal from "../components/CustomModal";
 
 function Checkout() {
     const navigate = useNavigate();
@@ -17,14 +18,33 @@ function Checkout() {
     const [referralCode, setReferralCode] = useState(order?.appliedReferralCode || "");
     const [referralApplied, setReferralApplied] = useState(!!order?.appliedReferralCode);
 
+    // Custom Modal config
+    const [modalConfig, setModalConfig] = useState({
+        isOpen: false,
+        title: "",
+        message: "",
+        type: "info",
+        onConfirm: null
+    });
+
+    const showAlert = (title, message, type = "info") => {
+        setModalConfig({
+            isOpen: true,
+            title,
+            message,
+            type,
+            onConfirm: null
+        });
+    };
+
     const applyReferral = async () => {
         if (referralApplied) {
-            alert("Referral code already applied");
+            showAlert("Already Applied", "Referral code has already been applied to this order.", "warning");
             return;
         }
 
         if (!referralCode.trim()) {
-            alert("Please enter a referral code");
+            showAlert("Required Field", "Please enter a referral code.", "warning");
             return;
         }
 
@@ -41,13 +61,13 @@ function Checkout() {
                 setReferralApplied(true);
                 const updatedOrder = { ...order, appliedReferralCode: referralCode.trim() };
                 localStorage.setItem("order", JSON.stringify(updatedOrder));
-                alert(response.data.message || "Referral code applied successfully!");
+                showAlert("Success", response.data.message || "Referral code applied successfully!", "success");
             } else {
-                alert(response.data.message || "Invalid referral code");
+                showAlert("Failed", response.data.message || "Invalid referral code", "error");
             }
         } catch (error) {
             console.error("Referral application failed:", error);
-            alert(error.response?.data?.message || "Failed to apply referral code");
+            showAlert("Error", error.response?.data?.message || "Failed to apply referral code", "error");
         }
     };
 
@@ -87,7 +107,7 @@ function Checkout() {
                         navigate(`/payment-success?orderId=${order.orderId}`);
                     } catch (error) {
                         console.error(error);
-                        alert("Unable To Update Payment Status");
+                        showAlert("Error", "Unable to update payment status.", "error");
                     }
                 }
             };
@@ -96,13 +116,13 @@ function Checkout() {
             rzp.open();
         } catch (error) {
             console.error("Payment error:", error);
-            alert("Payment Failed");
+            showAlert("Payment Failed", "Payment processing failed.", "error");
         }
     };
 
     const payWithWallet = async () => {
         if (walletBalance < finalAmount) {
-            alert("Insufficient wallet balance");
+            showAlert("Insufficient Funds", "Insufficient wallet balance to place this order.", "warning");
             return;
         }
 
@@ -118,18 +138,18 @@ function Checkout() {
             navigate(`/payment-success?orderId=${order.orderId}`);
         } catch (error) {
             console.error(error);
-            alert(error.response?.data?.message || "Wallet payment failed");
+            showAlert("Error", error.response?.data?.message || "Wallet payment failed", "error");
         }
     };
 
     const applyCoupon = async () => {
         if (couponApplied) {
-            alert("Coupon Already Applied");
+            showAlert("Already Applied", "Coupon has already been applied.", "warning");
             return;
         }
 
         if (!couponCode) {
-            alert("Enter Coupon Code");
+            showAlert("Required Field", "Please enter coupon code.", "warning");
             return;
         }
 
@@ -163,10 +183,10 @@ function Checkout() {
                 }
             });
 
-            alert("Coupon Applied Successfully");
+            showAlert("Success", "Coupon Applied Successfully", "success");
         } catch (error) {
             console.error(error);
-            alert("Invalid Coupon");
+            showAlert("Invalid Coupon", "The entered coupon code is invalid or expired.", "error");
         }
     };
 
@@ -338,6 +358,16 @@ function Checkout() {
                     </motion.section>
                 </div>
             </div>
+
+            {/* Custom Premium Modal */}
+            <CustomModal
+                isOpen={modalConfig.isOpen}
+                onClose={() => setModalConfig(prev => ({ ...prev, isOpen: false }))}
+                title={modalConfig.title}
+                message={modalConfig.message}
+                type={modalConfig.type}
+                onConfirm={modalConfig.onConfirm}
+            />
         </main>
     );
 }
