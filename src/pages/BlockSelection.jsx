@@ -5,27 +5,21 @@ import Navbar from "../components/Navbar";
 const blocks = [
     {
         name: "C Block",
-        description: "Main campus print counter",
+        description: "C Block print counter",
         icon: "🏛️",
         accent: "#0891b2"
     },
     {
-        name: "D Block",
-        description: "Engineering wing pickup",
-        icon: "⚙️",
+        name: "R Block",
+        description: "R Block print counter",
+        icon: "⚡",
         accent: "#059669"
     },
     {
-        name: "E Block",
-        description: "Science block desk",
-        icon: "🔬",
+        name: "L Block",
+        description: "L Block print counter",
+        icon: "📘",
         accent: "#7c3aed"
-    },
-    {
-        name: "Library",
-        description: "Quiet study print zone",
-        icon: "📚",
-        accent: "#b45309"
     }
 ];
 

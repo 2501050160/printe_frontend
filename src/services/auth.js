@@ -19,6 +19,9 @@ export function persistUser(user) {
     localStorage.setItem("userId", user.id);
     localStorage.setItem("userName", user.name);
     localStorage.setItem("userEmail", user.email);
+    if (user.referralCode) {
+        localStorage.setItem("referralCode", user.referralCode);
+    }
 
     if (user.walletBalance != null) {
         localStorage.setItem(
@@ -32,6 +35,7 @@ export function clearUserSession() {
     localStorage.removeItem("userId");
     localStorage.removeItem("userName");
     localStorage.removeItem("userEmail");
+    localStorage.removeItem("referralCode");
     localStorage.removeItem("walletBalance");
     localStorage.removeItem("selectedBlock");
     localStorage.removeItem("order");

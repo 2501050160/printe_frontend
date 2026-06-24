@@ -14,6 +14,42 @@ function Checkout() {
     const [finalAmount, setFinalAmount] = useState(order?.price || 0);
     const [couponApplied, setCouponApplied] = useState(false);
     const [walletBalance, setWalletBalance] = useState(getStoredWalletBalance());
+    const [referralCode, setReferralCode] = useState(order?.appliedReferralCode || "");
+    const [referralApplied, setReferralApplied] = useState(!!order?.appliedReferralCode);
+
+    const applyReferral = async () => {
+        if (referralApplied) {
+            alert("Referral code already applied");
+            return;
+        }
+
+        if (!referralCode.trim()) {
+            alert("Please enter a referral code");
+            return;
+        }
+
+        try {
+            const response = await api.post("/pdf/applyReferral", null, {
+                params: {
+                    orderId: order.orderId,
+                    referralCode: referralCode.trim(),
+                    userId: userId
+                }
+            });
+
+            if (response.data.success) {
+                setReferralApplied(true);
+                const updatedOrder = { ...order, appliedReferralCode: referralCode.trim() };
+                localStorage.setItem("order", JSON.stringify(updatedOrder));
+                alert(response.data.message || "Referral code applied successfully!");
+            } else {
+                alert(response.data.message || "Invalid referral code");
+            }
+        } catch (error) {
+            console.error("Referral application failed:", error);
+            alert(error.response?.data?.message || "Failed to apply referral code");
+        }
+    };
 
     useEffect(() => {
         if (userId) {
@@ -260,6 +296,28 @@ function Checkout() {
                             >
                                 {couponApplied ? "Applied" : "Apply"}
                             </button>
+                        </div>
+
+                        <div className="mt-4 border-t border-slate-100 pt-4">
+                            <p className="text-sm font-bold text-slate-500 mb-2">Refer & Earn (Referee gets Rs. 5 & Referrer gets Rs. 10)</p>
+                            <div className="grid gap-3 sm:grid-cols-[1fr_auto]">
+                                <input
+                                    type="text"
+                                    placeholder="Enter referral code"
+                                    value={referralCode}
+                                    onChange={(e) => setReferralCode(e.target.value)}
+                                    className="field uppercase"
+                                    disabled={referralApplied}
+                                />
+
+                                <button
+                                    onClick={applyReferral}
+                                    disabled={referralApplied}
+                                    className={referralApplied ? "btn secondary" : "btn"}
+                                >
+                                    {referralApplied ? "Applied" : "Apply Code"}
+                                </button>
+                            </div>
                         </div>
 
                         {walletBalance >= finalAmount && (

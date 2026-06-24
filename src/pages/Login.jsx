@@ -1,19 +1,40 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { loginUser, persistUser } from "../services/auth";
+import api from "../services/api";
 
 function Login() {
 
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [error, setError] = useState("");
+    const [dbOffline, setDbOffline] = useState(false);
 
     const navigate = useNavigate();
+
+    useEffect(() => {
+        const checkDb = async () => {
+            try {
+                const response = await api.get("/system/db-status");
+                if (response.data && response.data.databaseConnected) {
+                    setDbOffline(false);
+                } else {
+                    setDbOffline(true);
+                }
+            } catch (err) {
+                setDbOffline(true);
+            }
+        };
+        checkDb();
+        const interval = setInterval(checkDb, 10000);
+        return () => clearInterval(interval);
+    }, []);
 
     const handleLogin = async (e) => {
 
         e.preventDefault();
+        if (dbOffline) return;
 
         try {
 
@@ -28,7 +49,7 @@ function Login() {
             console.error(error);
 
             setError(
-                "Invalid email or password"
+                error.response?.data || "Invalid email or password"
             );
         }
     };
@@ -54,7 +75,7 @@ function Login() {
                         <p className="text-sm uppercase tracking-[0.18em] text-sky-100 font-bold">
                             Shop print console
                         </p>
-
+ 
                         <h1 className="mt-3 text-4xl font-black leading-tight text-white">
                             Upload anywhere. Print here. Collect in minutes.
                         </h1>
@@ -80,6 +101,25 @@ function Login() {
                             Sign in to upload PDF files and track print orders.
                         </p>
 
+                        {dbOffline && (
+                            <div style={{
+                                background: "#ef4444",
+                                color: "#ffffff",
+                                padding: "8px 12px",
+                                borderRadius: "8px",
+                                fontSize: "14px",
+                                fontWeight: "bold",
+                                marginTop: "16px",
+                                display: "flex",
+                                alignItems: "center",
+                                gap: "6px",
+                                boxShadow: "0 0 15px rgba(239, 68, 68, 0.4)"
+                            }}>
+                                <span style={{ animation: "pulse 1s infinite" }}>⚠️</span>
+                                <marquee scrollamount="4">SYSTEM OFFLINE: Database connection is currently unavailable. Please try again later.</marquee>
+                            </div>
+                        )}
+
                         <form
                             onSubmit={handleLogin}
                             className="mt-8 space-y-4"
@@ -93,6 +133,7 @@ function Login() {
                                 onChange={(e) =>
                                     setEmail(e.target.value)
                                 }
+                                disabled={dbOffline}
                             />
 
                             <input
@@ -103,6 +144,7 @@ function Login() {
                                 onChange={(e) =>
                                     setPassword(e.target.value)
                                 }
+                                disabled={dbOffline}
                             />
 
                             {error && (
@@ -118,6 +160,8 @@ function Login() {
                             <button
                                 type="submit"
                                 className="btn w-full"
+                                disabled={dbOffline}
+                                style={dbOffline ? { opacity: 0.5, cursor: "not-allowed", background: "#64748b" } : {}}
                             >
                                 Login
                             </button>
