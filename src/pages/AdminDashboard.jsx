@@ -38,7 +38,9 @@ function AdminDashboard() {
         popupEnabled: true,
         popupMessage: "",
         adEnabled: true,
-        adText: ""
+        adText: "",
+        generalPopupEnabled: false,
+        generalPopupMessage: ""
     });
 
     // Rewards & Voucher creator states
@@ -1391,6 +1393,27 @@ function AdminDashboard() {
                                             onChange={(e) => setSystemSettings({...systemSettings, adText: e.target.value})}
                                         />
                                     </label>
+                                    
+                                    <div className="flex items-center gap-2 pt-4 pb-2 border-t border-slate-100">
+                                        <input 
+                                            type="checkbox" 
+                                            id="generalPopupEnabled" 
+                                            checked={systemSettings.generalPopupEnabled}
+                                            onChange={(e) => setSystemSettings({...systemSettings, generalPopupEnabled: e.target.checked})}
+                                            className="w-4 h-4 accent-slate-900"
+                                        />
+                                        <label htmlFor="generalPopupEnabled" className="text-sm font-bold text-slate-700">General Announcement Popup Enabled</label>
+                                    </div>
+                                    <label className="block">
+                                        <span className="block text-xs font-bold text-slate-500 mb-1">General Announcement Popup Message</span>
+                                        <textarea 
+                                            className="field min-h-[80px]" 
+                                            placeholder="Write an announcement to show to all users on their dashboard..."
+                                            value={systemSettings.generalPopupMessage}
+                                            onChange={(e) => setSystemSettings({...systemSettings, generalPopupMessage: e.target.value})}
+                                        />
+                                    </label>
+
                                     <button type="submit" className="btn success w-full mt-2">Save Marketing Config</button>
                                 </form>
                             </motion.section>

@@ -58,12 +58,18 @@ function Dashboard() {
         popupEnabled: true,
         popupMessage: "",
         adEnabled: true,
-        adText: ""
+        adText: "",
+        generalPopupEnabled: false,
+        generalPopupMessage: ""
     });
 
     // Welcome Privacy Modal States
     const [showPrivacyNotice, setShowPrivacyNotice] = useState(false);
     const [dontShowAgain, setDontShowAgain] = useState(false);
+
+    // General Announcement Modal States
+    const [showGeneralPopup, setShowGeneralPopup] = useState(false);
+    const [dontShowGeneralPopupAgain, setDontShowGeneralPopupAgain] = useState(false);
 
     // Custom Modal config
     const [modalConfig, setModalConfig] = useState({
@@ -184,6 +190,14 @@ function Dashboard() {
                 const settingsRes = await api.get("/system/settings");
                 const publicSettings = settingsRes.data;
                 setSettings(publicSettings);
+
+                // Check General Announcement Popup
+                if (publicSettings.generalPopupEnabled === true || publicSettings.generalPopupEnabled === "true") {
+                    const dismissedMsg = localStorage.getItem("dismissedGeneralPopupMessage");
+                    if (publicSettings.generalPopupMessage && dismissedMsg !== publicSettings.generalPopupMessage) {
+                        setShowGeneralPopup(true);
+                    }
+                }
 
                 // Fetch user orders to see if this is their first order
                 const ordersRes = await api.get("/pdf/userOrders", { params: { userId } });
@@ -1152,6 +1166,73 @@ function Dashboard() {
                                     className="btn w-full success"
                                 >
                                     I Understand
+                                </button>
+                            </div>
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
+
+            {/* General Announcement Modal */}
+            <AnimatePresence>
+                {showGeneralPopup && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/65 backdrop-blur-sm">
+                        <motion.div
+                            className="relative w-full max-w-md overflow-hidden rounded-2xl bg-white p-6 shadow-2xl border border-slate-100 z-10 cursor-grab active:cursor-grabbing touch-none"
+                            drag
+                            dragConstraints={{ left: 0, right: 0, top: 0, bottom: 0 }}
+                            dragElastic={0.6}
+                            onDragEnd={(event, info) => {
+                                if (Math.abs(info.offset.y) > 140 || Math.abs(info.offset.x) > 140) {
+                                    if (dontShowGeneralPopupAgain) {
+                                        localStorage.setItem("dismissedGeneralPopupMessage", settings.generalPopupMessage);
+                                    }
+                                    setShowGeneralPopup(false);
+                                }
+                            }}
+                            initial={{ scale: 0.93, opacity: 0, y: 15 }}
+                            animate={{ scale: 1, opacity: 1, y: 0 }}
+                            exit={{ scale: 0.93, opacity: 0, y: 15 }}
+                            transition={{ type: "spring", damping: 25, stiffness: 350 }}
+                        >
+                            <div className="w-12 h-1.5 bg-slate-200 hover:bg-slate-300 transition-colors rounded-full mx-auto mb-4 cursor-grab" />
+                            <div className="text-[10px] text-center font-bold tracking-wider uppercase text-slate-400 mb-2 select-none">
+                                Swipe or drag away to dismiss
+                            </div>
+
+                            <div className="flex flex-col items-center text-center">
+                                <div className="flex h-14 w-14 items-center justify-center rounded-full border-2 text-2xl font-black shadow-inner mb-4 text-indigo-500 bg-indigo-50 border-indigo-100">
+                                    📢
+                                </div>
+
+                                <h3 className="text-xl font-black text-slate-900 mb-2">
+                                    Announcement
+                                </h3>
+
+                                <p className="text-sm font-semibold text-slate-500 mb-6 leading-relaxed whitespace-pre-line">
+                                    {settings.generalPopupMessage}
+                                </p>
+
+                                <label className="flex items-center gap-2 mb-6 cursor-pointer select-none">
+                                    <input
+                                        type="checkbox"
+                                        className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 h-4 w-4"
+                                        checked={dontShowGeneralPopupAgain}
+                                        onChange={(e) => setDontShowGeneralPopupAgain(e.target.checked)}
+                                    />
+                                    <span className="text-xs font-bold text-slate-600">Don't show this announcement again</span>
+                                </label>
+
+                                <button
+                                    onClick={() => {
+                                        if (dontShowGeneralPopupAgain) {
+                                            localStorage.setItem("dismissedGeneralPopupMessage", settings.generalPopupMessage);
+                                        }
+                                        setShowGeneralPopup(false);
+                                    }}
+                                    className="btn w-full success"
+                                >
+                                    Dismiss
                                 </button>
                             </div>
                         </motion.div>
