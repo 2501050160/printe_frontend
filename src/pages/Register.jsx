@@ -5,6 +5,7 @@ import { registerUser, persistUser } from "../services/auth";
 
 function Register() {
   const [username, setUsername] = useState("");
+  const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
   const navigate = useNavigate();
 
@@ -14,6 +15,7 @@ function Register() {
     try {
       const response = await registerUser({
         username,
+        phone,
         password
       });
 
@@ -96,6 +98,18 @@ function Register() {
                 onChange={(e) =>
                   setUsername(e.target.value)
                 }
+                required
+              />
+
+              <input
+                type="tel"
+                placeholder="Phone Number"
+                className="field"
+                value={phone}
+                onChange={(e) =>
+                  setPhone(e.target.value)
+                }
+                required
               />
 
               <input
@@ -106,6 +120,7 @@ function Register() {
                 onChange={(e) =>
                   setPassword(e.target.value)
                 }
+                required
               />
 
               <button

@@ -50,9 +50,6 @@ function BlockSelection() {
                     title="Choose Print Location"
                     subtitle="Step 1 · Pickup Point"
                     badge="Required"
-                    actions={[
-                        { label: "Logout", onClick: logout, className: "btn secondary" }
-                    ]}
                 />
 
                 <motion.p

@@ -137,13 +137,14 @@ function Login() {
 
                             <input
                                 type="text"
-                                placeholder="Username"
+                                placeholder="Username or Phone number"
                                 className="field"
                                 value={username}
                                 onChange={(e) =>
                                     setUsername(e.target.value)
                                 }
                                 disabled={dbOffline}
+                                required
                             />
 
                             <input

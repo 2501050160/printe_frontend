@@ -26,7 +26,7 @@ function Navbar({ title, subtitle, actions = [], badge, tabs = [], activeTab, on
 
     return (
         <motion.div
-            className="top-bar panel top-bar-glass px-6 py-5 flex flex-col md:flex-row md:items-center justify-between gap-4 relative"
+            className="top-bar panel top-bar-glass px-6 py-5 flex flex-col md:flex-row md:items-center justify-between gap-4 relative z-[9999]"
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.45 }}
@@ -95,7 +95,11 @@ function Navbar({ title, subtitle, actions = [], badge, tabs = [], activeTab, on
 
                 {/* Profile Avatar and Dropdown */}
                 {(userId || adminId) && (
-                    <div className="relative">
+                    <div 
+                        className={`relative ${profileOpen ? "z-[9999]" : "z-30"}`}
+                        onMouseEnter={() => setProfileOpen(true)}
+                        onMouseLeave={() => setProfileOpen(false)}
+                    >
                         <button
                             onClick={() => setProfileOpen(!profileOpen)}
                             className="w-10 h-10 rounded-full bg-gradient-to-tr from-sky-500 to-blue-600 text-white flex items-center justify-center font-black text-sm border-2 border-white shadow-md hover:scale-105 active:scale-95 transition-all cursor-pointer"
@@ -106,12 +110,8 @@ function Navbar({ title, subtitle, actions = [], badge, tabs = [], activeTab, on
 
                         <AnimatePresence>
                             {profileOpen && (
-                                <>
-                                    {/* Click-away overlay */}
-                                    <div className="fixed inset-0 z-40" onClick={() => setProfileOpen(false)} />
-                                    
-                                    <motion.div
-                                        className="absolute right-0 top-full mt-3 w-64 rounded-2xl bg-white p-5 shadow-2xl border border-slate-200 z-50 text-slate-900"
+                                <motion.div
+                                    className="absolute right-0 top-full mt-3 w-64 rounded-2xl bg-white p-5 shadow-2xl border border-slate-200 z-[9999] text-slate-900"
                                         initial={{ opacity: 0, y: 10, scale: 0.95 }}
                                         animate={{ opacity: 1, y: 0, scale: 1 }}
                                         exit={{ opacity: 0, y: 10, scale: 0.95 }}
@@ -161,7 +161,6 @@ function Navbar({ title, subtitle, actions = [], badge, tabs = [], activeTab, on
                                             Logout
                                         </button>
                                     </motion.div>
-                                </>
                             )}
                         </AnimatePresence>
                     </div>
