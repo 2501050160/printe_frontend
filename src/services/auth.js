@@ -1,8 +1,8 @@
 import api from "./api";
 
-export async function loginUser(username, password) {
+export async function loginUser(email, password) {
     const response = await api.post("/login", {
-        username,
+        email,
         password
     });
 
@@ -18,7 +18,7 @@ export async function registerUser(user) {
 export function persistUser(user) {
     localStorage.setItem("userId", user.id);
     localStorage.setItem("userName", user.name);
-    localStorage.setItem("userEmail", user.username);
+    localStorage.setItem("userEmail", user.email);
     if (user.referralCode) {
         localStorage.setItem("referralCode", user.referralCode);
     }

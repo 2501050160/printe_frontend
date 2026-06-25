@@ -6,7 +6,7 @@ import api from "../services/api";
 
 function Login() {
 
-    const [username, setUsername] = useState("");
+    const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [error, setError] = useState("");
     const [dbOffline, setDbOffline] = useState(false);
@@ -38,7 +38,7 @@ function Login() {
 
         try {
 
-            const response = await loginUser(username, password);
+            const response = await loginUser(email, password);
 
             persistUser(response);
 
@@ -49,7 +49,7 @@ function Login() {
             console.error(error);
 
             setError(
-                error.response?.data || "Invalid username or password"
+                error.response?.data || "Invalid email or password"
             );
         }
     };
@@ -125,8 +125,8 @@ function Login() {
                                 gap: "6px",
                                 boxShadow: "0 0 15px rgba(239, 68, 68, 0.4)"
                             }}>
-                                <span style={{ animation: "pulse 1s infinite" }}>⚠️</span>
-                                <marquee scrollamount="4">SYSTEM OFFLINE: Database connection is currently unavailable. Please try again later.</marquee>
+                                <span>⚠️</span>
+                                <marquee scrollamount="4">Unable to connect to the print server, please wait...</marquee>
                             </div>
                         )}
 
@@ -136,12 +136,12 @@ function Login() {
                         >
 
                             <input
-                                type="text"
-                                placeholder="Username or Phone number"
+                                type="email"
+                                placeholder="Email address"
                                 className="field"
-                                value={username}
+                                value={email}
                                 onChange={(e) =>
-                                    setUsername(e.target.value)
+                                    setEmail(e.target.value)
                                 }
                                 disabled={dbOffline}
                                 required

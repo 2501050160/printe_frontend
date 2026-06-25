@@ -507,7 +507,7 @@ function Dashboard() {
                 )}
 
                 {/* Connectivity guards marquee alert */}
-                {(!systemStatus.databaseConnected || !systemStatus.agentOnline || !systemStatus.printerConfigured) && (
+                {(!systemStatus.databaseConnected || !systemStatus.agentOnline || !systemStatus.printerConfigured || paperCount <= 0) && (
                     <div style={{
                         background: "#ef4444",
                         color: "#ffffff",
@@ -522,6 +522,7 @@ function Dashboard() {
                             {!systemStatus.databaseConnected && "⚠️ Warning: Database connection is offline. System is currently disabled."}
                             {systemStatus.databaseConnected && !systemStatus.agentOnline && `⚠️ Warning: Print Agent for ${blockLocation} is currently OFFLINE. Printing is temporarily disabled.`}
                             {systemStatus.databaseConnected && systemStatus.agentOnline && !systemStatus.printerConfigured && `⚠️ Warning: No active printer is assigned to ${blockLocation}. Printing is temporarily disabled.`}
+                            {systemStatus.databaseConnected && systemStatus.agentOnline && systemStatus.printerConfigured && paperCount <= 0 && `⚠️ Warning: Printing is disabled because paper is out.`}
                         </marquee>
                     </div>
                 )}
@@ -603,7 +604,7 @@ function Dashboard() {
 
                             <label 
                                 className="upload-zone block" 
-                                style={(!systemStatus.databaseConnected || !systemStatus.agentOnline || !systemStatus.printerConfigured) ? { opacity: 0.5, cursor: "not-allowed" } : {}}
+                                style={(!systemStatus.databaseConnected || !systemStatus.agentOnline || !systemStatus.printerConfigured || paperCount <= 0) ? { opacity: 0.5, cursor: "not-allowed" } : {}}
                             >
                                 <div className="mb-5 text-left">
                                     <span className="mb-2 block text-sm font-black text-slate-700">
@@ -619,7 +620,7 @@ function Dashboard() {
                                     multiple
                                     onChange={handleFileSelect}
                                     className="hidden"
-                                    disabled={(!systemStatus.databaseConnected || !systemStatus.agentOnline || !systemStatus.printerConfigured) || uploading}
+                                    disabled={(!systemStatus.databaseConnected || !systemStatus.agentOnline || !systemStatus.printerConfigured || paperCount <= 0) || uploading}
                                 />
 
                                 <div className="flex flex-col gap-2 text-center">
@@ -638,8 +639,8 @@ function Dashboard() {
                             <button
                                 onClick={uploadPdf}
                                 className="btn mt-5 w-full"
-                                disabled={(!systemStatus.databaseConnected || !systemStatus.agentOnline || !systemStatus.printerConfigured) || uploading || selectedFiles.length === 0}
-                                style={((!systemStatus.databaseConnected || !systemStatus.agentOnline || !systemStatus.printerConfigured) || uploading || selectedFiles.length === 0) ? { opacity: 0.5, cursor: "not-allowed", background: "#64748b" } : {}}
+                                disabled={(!systemStatus.databaseConnected || !systemStatus.agentOnline || !systemStatus.printerConfigured || paperCount <= 0) || uploading || selectedFiles.length === 0}
+                                style={((!systemStatus.databaseConnected || !systemStatus.agentOnline || !systemStatus.printerConfigured || paperCount <= 0) || uploading || selectedFiles.length === 0) ? { opacity: 0.5, cursor: "not-allowed", background: "#64748b" } : {}}
                             >
                                 {uploading ? "Processing and merging files, please wait..." : "Upload & Merge Files"}
                             </button>
