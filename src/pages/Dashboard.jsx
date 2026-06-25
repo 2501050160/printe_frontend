@@ -171,6 +171,12 @@ function Dashboard() {
                     printerConfigured: false
                 });
             }
+            try {
+                const settingsRes = await api.get("/system/settings");
+                setSettings(settingsRes.data);
+            } catch (err) {
+                console.error("Failed to fetch settings", err);
+            }
             fetchPaperCount();
         };
 
@@ -519,6 +525,51 @@ function Dashboard() {
                         </marquee>
                     </div>
                 )}
+
+                {/* System Health & Document Status Bar */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+                    {/* Database Connection */}
+                    <div className="panel p-4 flex items-center justify-between border-l-4 border-l-sky-500 bg-white/50 backdrop-blur-sm shadow-sm">
+                        <div className="flex items-center gap-3">
+                            <span className="text-xl">🗄️</span>
+                            <div>
+                                <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Database Status</h4>
+                                <p className={`text-sm font-black mt-0.5 ${systemStatus.databaseConnected ? "text-emerald-600" : "text-rose-600 animate-pulse"}`}>
+                                    {systemStatus.databaseConnected ? "Connected" : "Offline"}
+                                </p>
+                            </div>
+                        </div>
+                        <span className={`w-3 h-3 rounded-full ${systemStatus.databaseConnected ? "bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.5)]" : "bg-rose-500 shadow-[0_0_10px_rgba(239,68,68,0.5)] animate-ping"}`} />
+                    </div>
+
+                    {/* Printer Agent Connection */}
+                    <div className="panel p-4 flex items-center justify-between border-l-4 border-l-purple-500 bg-white/50 backdrop-blur-sm shadow-sm">
+                        <div className="flex items-center gap-3">
+                            <span className="text-xl">🖨️</span>
+                            <div>
+                                <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Printer Agent ({blockLocation || "N/A"})</h4>
+                                <p className={`text-sm font-black mt-0.5 ${systemStatus.agentOnline ? "text-emerald-600" : "text-rose-600 animate-pulse"}`}>
+                                    {systemStatus.agentOnline ? "Online & Ready" : "Offline"}
+                                </p>
+                            </div>
+                        </div>
+                        <span className={`w-3 h-3 rounded-full ${systemStatus.agentOnline ? "bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.5)]" : "bg-rose-500 shadow-[0_0_10px_rgba(239,68,68,0.5)] animate-ping"}`} />
+                    </div>
+
+                    {/* Document Pages Count */}
+                    <div className="panel p-4 flex items-center justify-between border-l-4 border-l-indigo-500 bg-white/50 backdrop-blur-sm shadow-sm">
+                        <div className="flex items-center gap-3">
+                            <span className="text-xl">📄</span>
+                            <div>
+                                <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Page Count</h4>
+                                <p className={`text-sm font-black mt-0.5 ${totalPages > 0 ? "text-emerald-600" : "text-amber-500"}`}>
+                                    {totalPages > 0 ? `${totalPages} Page(s)` : "No Files Uploaded"}
+                                </p>
+                            </div>
+                        </div>
+                        <span className={`w-3 h-3 rounded-full ${totalPages > 0 ? "bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.5)]" : "bg-amber-500 shadow-[0_0_10px_rgba(245,158,11,0.5)]"}`} />
+                    </div>
+                </div>
 
                 <motion.p
                     className="subtitle mb-6 mt-2"
