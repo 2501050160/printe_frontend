@@ -6,7 +6,7 @@ import api from "../services/api";
 
 function Login() {
 
-    const [email, setEmail] = useState("");
+    const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
     const [error, setError] = useState("");
     const [dbOffline, setDbOffline] = useState(false);
@@ -38,7 +38,7 @@ function Login() {
 
         try {
 
-            const response = await loginUser(email, password);
+            const response = await loginUser(username, password);
 
             persistUser(response);
 
@@ -49,7 +49,7 @@ function Login() {
             console.error(error);
 
             setError(
-                error.response?.data || "Invalid email or password"
+                error.response?.data || "Invalid username or password"
             );
         }
     };
@@ -136,12 +136,12 @@ function Login() {
                         >
 
                             <input
-                                type="email"
-                                placeholder="Email address"
+                                type="text"
+                                placeholder="Username"
                                 className="field"
-                                value={email}
+                                value={username}
                                 onChange={(e) =>
-                                    setEmail(e.target.value)
+                                    setUsername(e.target.value)
                                 }
                                 disabled={dbOffline}
                             />

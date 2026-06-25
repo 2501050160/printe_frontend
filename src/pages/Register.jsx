@@ -4,8 +4,7 @@ import { motion } from "framer-motion";
 import { registerUser, persistUser } from "../services/auth";
 
 function Register() {
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const navigate = useNavigate();
 
@@ -14,8 +13,7 @@ function Register() {
 
     try {
       const response = await registerUser({
-        name,
-        email,
+        username,
         password
       });
 
@@ -92,21 +90,11 @@ function Register() {
 
               <input
                 type="text"
-                placeholder="Full name"
+                placeholder="Username"
                 className="field"
-                value={name}
+                value={username}
                 onChange={(e) =>
-                  setName(e.target.value)
-                }
-              />
-
-              <input
-                type="email"
-                placeholder="Email address"
-                className="field"
-                value={email}
-                onChange={(e) =>
-                  setEmail(e.target.value)
+                  setUsername(e.target.value)
                 }
               />
 
