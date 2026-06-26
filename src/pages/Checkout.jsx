@@ -3,7 +3,6 @@ import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import api, { RAZORPAY_KEY } from "../services/api";
 import { getStoredWalletBalance, getWalletBalance } from "../services/auth";
-import CustomModal from "../components/CustomModal";
 
 function Checkout() {
     const navigate = useNavigate();
@@ -18,33 +17,14 @@ function Checkout() {
     const [referralCode, setReferralCode] = useState(order?.appliedReferralCode || "");
     const [referralApplied, setReferralApplied] = useState(!!order?.appliedReferralCode);
 
-    // Custom Modal config
-    const [modalConfig, setModalConfig] = useState({
-        isOpen: false,
-        title: "",
-        message: "",
-        type: "info",
-        onConfirm: null
-    });
-
-    const showAlert = (title, message, type = "info") => {
-        setModalConfig({
-            isOpen: true,
-            title,
-            message,
-            type,
-            onConfirm: null
-        });
-    };
-
     const applyReferral = async () => {
         if (referralApplied) {
-            showAlert("Already Applied", "Referral code has already been applied to this order.", "warning");
+            alert("Referral code already applied");
             return;
         }
 
         if (!referralCode.trim()) {
-            showAlert("Required Field", "Please enter a referral code.", "warning");
+            alert("Please enter a referral code");
             return;
         }
 
@@ -61,17 +41,15 @@ function Checkout() {
                 setReferralApplied(true);
                 const updatedOrder = { ...order, appliedReferralCode: referralCode.trim() };
                 localStorage.setItem("order", JSON.stringify(updatedOrder));
-                showAlert("Success", response.data.message || "Referral code applied successfully!", "success");
+                alert(response.data.message || "Referral code applied successfully!");
             } else {
-                showAlert("Failed", response.data.message || "Invalid referral code", "error");
+                alert(response.data.message || "Invalid referral code");
             }
         } catch (error) {
             console.error("Referral application failed:", error);
-            showAlert("Error", error.response?.data?.message || "Failed to apply referral code", "error");
+            alert(error.response?.data?.message || "Failed to apply referral code");
         }
     };
-
-    const [paperCount, setPaperCount] = useState(9999);
 
     useEffect(() => {
         if (userId) {
@@ -79,36 +57,7 @@ function Checkout() {
         }
     }, [userId]);
 
-    useEffect(() => {
-        const fetchPaper = async () => {
-            if (!order?.blockLocation) return;
-            try {
-                const response = await api.get("/printer/paper", {
-                    params: { blockLocation: order.blockLocation }
-                });
-                setPaperCount(response.data != null ? response.data : 0);
-            } catch (err) {
-                console.error("Failed to fetch paper count", err);
-            }
-        };
-        fetchPaper();
-    }, [order]);
-
-    let pagesPerCopy = order?.totalPages || 0;
-    if (order?.selectedPages && order.selectedPages !== "ALL") {
-        const parts = order.selectedPages.split("-").map(Number);
-        if (parts.length === 2 && !isNaN(parts[0]) && !isNaN(parts[1])) {
-            pagesPerCopy = parts[1] - parts[0] + 1;
-        }
-    }
-    const estimatedPagesNeeded = pagesPerCopy * (order?.copies || 1);
-    const paperShortage = estimatedPagesNeeded > paperCount;
-
     const payNow = async () => {
-        if (paperShortage) {
-            showAlert("Low Paper Level", "Print cannot be done due to low paper levels. Please change your block location.", "error");
-            return;
-        }
         try {
             const response = await api.post("/payment/createOrder", null, {
                 params: {
@@ -138,7 +87,7 @@ function Checkout() {
                         navigate(`/payment-success?orderId=${order.orderId}`);
                     } catch (error) {
                         console.error(error);
-                        showAlert("Error", "Unable to update payment status.", "error");
+                        alert("Unable To Update Payment Status");
                     }
                 }
             };
@@ -147,17 +96,13 @@ function Checkout() {
             rzp.open();
         } catch (error) {
             console.error("Payment error:", error);
-            showAlert("Payment Failed", "Payment processing failed.", "error");
+            alert("Payment Failed");
         }
     };
 
     const payWithWallet = async () => {
-        if (paperShortage) {
-            showAlert("Low Paper Level", "Print cannot be done due to low paper levels. Please change your block location.", "error");
-            return;
-        }
         if (walletBalance < finalAmount) {
-            showAlert("Insufficient Funds", "Insufficient wallet balance to place this order.", "warning");
+            alert("Insufficient wallet balance");
             return;
         }
 
@@ -173,18 +118,18 @@ function Checkout() {
             navigate(`/payment-success?orderId=${order.orderId}`);
         } catch (error) {
             console.error(error);
-            showAlert("Error", error.response?.data?.message || "Wallet payment failed", "error");
+            alert(error.response?.data?.message || "Wallet payment failed");
         }
     };
 
     const applyCoupon = async () => {
         if (couponApplied) {
-            showAlert("Already Applied", "Coupon has already been applied.", "warning");
+            alert("Coupon Already Applied");
             return;
         }
 
         if (!couponCode) {
-            showAlert("Required Field", "Please enter coupon code.", "warning");
+            alert("Enter Coupon Code");
             return;
         }
 
@@ -218,10 +163,10 @@ function Checkout() {
                 }
             });
 
-            showAlert("Success", "Coupon Applied Successfully", "success");
+            alert("Coupon Applied Successfully");
         } catch (error) {
             console.error(error);
-            showAlert("Invalid Coupon", "The entered coupon code is invalid or expired.", "error");
+            alert("Invalid Coupon");
         }
     };
 
@@ -375,27 +320,10 @@ function Checkout() {
                             </div>
                         </div>
 
-                        {paperShortage && (
-                            <div style={{
-                                background: "#ef4444",
-                                color: "#ffffff",
-                                padding: "10px 16px",
-                                borderRadius: "10px",
-                                fontSize: "13px",
-                                fontWeight: "bold",
-                                marginTop: "16px",
-                                boxShadow: "0 0 15px rgba(239, 68, 68, 0.3)"
-                            }}>
-                                <marquee scrollamount="4">⚠️ Print cannot be done due to low paper. Go back to change locations.</marquee>
-                            </div>
-                        )}
-
                         {walletBalance >= finalAmount && (
                             <button
                                 onClick={payWithWallet}
                                 className="btn secondary mt-4 w-full"
-                                disabled={paperShortage}
-                                style={paperShortage ? { opacity: 0.5, cursor: "not-allowed", background: "#64748b" } : {}}
                             >
                                 Pay With Wallet
                             </button>
@@ -404,24 +332,12 @@ function Checkout() {
                         <button
                             onClick={payNow}
                             className="btn success mt-4 w-full"
-                            disabled={paperShortage}
-                            style={paperShortage ? { opacity: 0.5, cursor: "not-allowed", background: "#64748b" } : {}}
                         >
                             Pay With Razorpay
                         </button>
                     </motion.section>
                 </div>
             </div>
-
-            {/* Custom Premium Modal */}
-            <CustomModal
-                isOpen={modalConfig.isOpen}
-                onClose={() => setModalConfig(prev => ({ ...prev, isOpen: false }))}
-                title={modalConfig.title}
-                message={modalConfig.message}
-                type={modalConfig.type}
-                onConfirm={modalConfig.onConfirm}
-            />
         </main>
     );
 }

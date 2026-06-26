@@ -7,7 +7,6 @@ import { getBlockTheme } from "../config/blockThemes";
 function DisplayPanel() {
     const [orders, setOrders] = useState([]);
     const [displayBlock, setDisplayBlock] = useState("C Block");
-    const [blocks, setBlocks] = useState([]);
     const [slideIndex, setSlideIndex] = useState(0);
     const [pickupQueue, setPickupQueue] = useState([]);
     const [activePickup, setActivePickup] = useState(null);
@@ -17,24 +16,6 @@ function DisplayPanel() {
 
     const previousStatusesRef = useRef(new Map());
     const timersRef = useRef([]);
-
-    useEffect(() => {
-        const fetchBlocks = async () => {
-            try {
-                const response = await api.get("/blocks/all");
-                setBlocks(response.data);
-                if (response.data.length > 0) {
-                    const names = response.data.map(b => b.name);
-                    if (!names.includes(displayBlock)) {
-                        setDisplayBlock(names[0]);
-                    }
-                }
-            } catch (err) {
-                console.error("Failed to fetch blocks", err);
-            }
-        };
-        fetchBlocks();
-    }, []);
 
     useEffect(() => {
         setSlideIndex(0);
@@ -193,11 +174,12 @@ function DisplayPanel() {
                             onChange={(e) => setDisplayBlock(e.target.value)}
                             className="display-select"
                         >
-                            {blocks.map((block) => (
-                                <option key={block.id} value={block.name}>
-                                    {block.name}
-                                </option>
-                            ))}
+                            <option value="C Block">C Block</option>
+                            <option value="D Block">D Block</option>
+                            <option value="E Block">E Block</option>
+                            <option value="Library">Library</option>
+                            <option value="R Block">R Block</option>
+                            <option value="L Block">L Block</option>
                         </select>
                     </div>
                 </motion.header>

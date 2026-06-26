@@ -1,29 +1,29 @@
-import { useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useState } from "react";
+import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { registerUser, persistUser } from "../services/auth";
+import { registerUser } from "../services/auth";
 
 function Register() {
+
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const navigate = useNavigate();
 
   const handleRegister = async (e) => {
+
     e.preventDefault();
 
     try {
-      const response = await registerUser({
+
+      await registerUser({
         name,
         email,
         password
       });
 
-      persistUser(response);
       alert("Registration Successful");
-      navigate("/blocks");
 
-    } catch (err) {
+    } catch {
       alert("Registration Failed");
     }
   };
@@ -40,22 +40,12 @@ function Register() {
       >
 
         <div className="auth-visual">
-          <video 
-              autoPlay 
-              loop 
-              muted 
-              playsInline
-              className="absolute inset-0 w-full h-full object-cover z-0 pointer-events-none"
-          >
-              <source src="/login_video.mp4" type="video/mp4" />
-          </video>
-          <div className="absolute inset-0 bg-gradient-to-br from-slate-950/85 via-sky-950/75 to-slate-950/85 z-10 pointer-events-none" />
 
-          <div className="z-20 relative">
+          <div>
             <div className="brand-mark">CP</div>
           </div>
 
-          <div className="z-20 relative">
+          <div>
             <p className="text-sm uppercase tracking-[0.18em] text-sky-100 font-bold">
               Customer portal
             </p>
@@ -92,24 +82,22 @@ function Register() {
 
               <input
                 type="text"
-                placeholder="Full Name"
+                placeholder="Full name"
                 className="field"
                 value={name}
                 onChange={(e) =>
                   setName(e.target.value)
                 }
-                required
               />
 
               <input
                 type="email"
-                placeholder="Email Address"
+                placeholder="Email address"
                 className="field"
                 value={email}
                 onChange={(e) =>
                   setEmail(e.target.value)
                 }
-                required
               />
 
               <input
@@ -120,7 +108,6 @@ function Register() {
                 onChange={(e) =>
                   setPassword(e.target.value)
                 }
-                required
               />
 
               <button

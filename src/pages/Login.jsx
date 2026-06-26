@@ -66,22 +66,12 @@ function Login() {
             >
 
                 <div className="auth-visual">
-                    <video 
-                        autoPlay 
-                        loop 
-                        muted 
-                        playsInline
-                        className="absolute inset-0 w-full h-full object-cover z-0 pointer-events-none"
-                    >
-                        <source src="/login_video.mp4" type="video/mp4" />
-                    </video>
-                    <div className="absolute inset-0 bg-gradient-to-br from-slate-950/85 via-sky-950/75 to-slate-950/85 z-10 pointer-events-none" />
 
-                    <div className="z-20 relative">
+                    <div>
                         <div className="brand-mark">CP</div>
                     </div>
 
-                    <div className="z-20 relative">
+                    <div>
                         <p className="text-sm uppercase tracking-[0.18em] text-sky-100 font-bold">
                             Shop print console
                         </p>
@@ -125,8 +115,8 @@ function Login() {
                                 gap: "6px",
                                 boxShadow: "0 0 15px rgba(239, 68, 68, 0.4)"
                             }}>
-                                <span>⚠️</span>
-                                <marquee scrollamount="4">Unable to connect to the print server, please wait...</marquee>
+                                <span style={{ animation: "pulse 1s infinite" }}>⚠️</span>
+                                <marquee scrollamount="4">SYSTEM OFFLINE: Database connection is currently unavailable. Please try again later.</marquee>
                             </div>
                         )}
 
@@ -144,7 +134,6 @@ function Login() {
                                     setEmail(e.target.value)
                                 }
                                 disabled={dbOffline}
-                                required
                             />
 
                             <input

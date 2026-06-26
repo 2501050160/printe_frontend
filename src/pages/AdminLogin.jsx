@@ -1,7 +1,8 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import api from "../services/api";
+import adminVisualBg from "../assets/admin_visual_bg.png";
 
 function AdminLogin() {
 
@@ -58,23 +59,15 @@ function AdminLogin() {
                 transition={{ duration: 0.55, ease: "easeOut" }}
             >
 
-                <div className="auth-visual">
-                    <video 
-                        autoPlay 
-                        loop 
-                        muted 
-                        playsInline
-                        className="absolute inset-0 w-full h-full object-cover z-0 pointer-events-none"
-                    >
-                        <source src="/login_video.mp4" type="video/mp4" />
-                    </video>
-                    <div className="absolute inset-0 bg-gradient-to-br from-slate-950/85 via-fuchsia-950/60 to-slate-950/85 z-10 pointer-events-none" />
+                <div className="auth-visual" style={{
+                    background: `linear-gradient(145deg, rgba(13, 20, 35, 0.8), rgba(9, 13, 22, 0.95)), url(${adminVisualBg}) center/cover`
+                }}>
 
-                    <div className="z-20 relative">
+                    <div>
                         <div className="brand-mark btn-admin-glow">AD</div>
                     </div>
 
-                    <div className="z-20 relative">
+                    <div>
                         <p className="text-sm uppercase tracking-[0.18em] text-pink-300 font-bold">
                             Control Panel
                         </p>
