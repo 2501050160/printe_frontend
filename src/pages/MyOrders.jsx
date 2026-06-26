@@ -18,6 +18,9 @@ function MyOrders() {
         if (userId) {
             getWalletBalance(userId).then(setWalletBalance);
         }
+
+        const interval = setInterval(fetchOrders, 3000);
+        return () => clearInterval(interval);
     }, []);
 
     const fetchOrders = async () => {

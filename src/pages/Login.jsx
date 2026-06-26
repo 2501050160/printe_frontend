@@ -1,17 +1,28 @@
 import { useState, useEffect } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, Link, useLocation } from "react-router-dom";
 import { motion } from "framer-motion";
 import { loginUser, persistUser } from "../services/auth";
 import api from "../services/api";
+import PopupManager from "../components/PopupManager";
 
 function Login() {
-
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [error, setError] = useState("");
+    const [successMessage, setSuccessMessage] = useState("");
     const [dbOffline, setDbOffline] = useState(false);
+    const [resending, setResending] = useState(false);
 
     const navigate = useNavigate();
+    const location = useLocation();
+
+    useEffect(() => {
+        if (location.state?.successMessage) {
+            setSuccessMessage(location.state.successMessage);
+            // Clear location state to avoid showing again on refresh
+            window.history.replaceState({}, document.title);
+        }
+    }, [location]);
 
     useEffect(() => {
         const checkDb = async () => {
@@ -32,31 +43,48 @@ function Login() {
     }, []);
 
     const handleLogin = async (e) => {
-
         e.preventDefault();
         if (dbOffline) return;
+        setError("");
+        setSuccessMessage("");
 
         try {
-
             const response = await loginUser(email, password);
-
             persistUser(response);
-
             navigate("/blocks");
-
         } catch (error) {
-
             console.error(error);
-
             setError(
                 error.response?.data || "Invalid email or password"
             );
         }
     };
 
+    const handleResendLink = async () => {
+        if (!email) {
+            setError("Please type your email address first.");
+            return;
+        }
+        setResending(true);
+        setError("");
+        setSuccessMessage("");
+        try {
+            await api.post("/resend-otp", null, {
+                params: { email }
+            });
+            setSuccessMessage("A new verification OTP has been sent to your email!");
+        } catch (err) {
+            console.error(err);
+            setError(err.response?.data?.message || err.response?.data || "Failed to resend OTP.");
+        } finally {
+            setResending(false);
+        }
+    };
+
     return (
 
         <main className="auth-shell">
+            <PopupManager page="LOGIN" />
 
             <motion.section
                 className="auth-grid"
@@ -66,12 +94,22 @@ function Login() {
             >
 
                 <div className="auth-visual">
+                    <video 
+                        autoPlay 
+                        loop 
+                        muted 
+                        playsInline
+                        className="absolute inset-0 w-full h-full object-cover z-0 pointer-events-none"
+                    >
+                        <source src="/login_video.mp4" type="video/mp4" />
+                    </video>
+                    <div className="absolute inset-0 bg-gradient-to-br from-slate-950/85 via-sky-950/75 to-slate-950/85 z-10 pointer-events-none" />
 
-                    <div>
+                    <div className="z-20 relative">
                         <div className="brand-mark">CP</div>
                     </div>
 
-                    <div>
+                    <div className="z-20 relative">
                         <p className="text-sm uppercase tracking-[0.18em] text-sky-100 font-bold">
                             Shop print console
                         </p>
@@ -147,14 +185,49 @@ function Login() {
                                 disabled={dbOffline}
                             />
 
-                            {error && (
+                            <div className="flex justify-end text-xs font-bold -mt-2 mb-2">
+                                <Link to="/forgot-password" className="text-sky-600 hover:text-sky-700 transition-colors">
+                                    Forgot Password?
+                                </Link>
+                            </div>
+
+                            {successMessage && (
                                 <motion.p
-                                    className="rounded-lg bg-red-50 px-3 py-2 text-sm font-bold text-red-700"
+                                    className="rounded-lg bg-emerald-50 px-3 py-2 text-sm font-bold text-emerald-700"
                                     initial={{ opacity: 0, y: -6 }}
                                     animate={{ opacity: 1, y: 0 }}
                                 >
-                                    {error}
+                                    ✓ {successMessage}
                                 </motion.p>
+                            )}
+
+                             {error && (
+                                <motion.div
+                                    className="rounded-lg bg-red-50 px-3 py-2 text-sm font-bold text-red-700 space-y-1"
+                                    initial={{ opacity: 0, y: -6 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                >
+                                    <p>⚠️ {error}</p>
+                                    {error.includes("Email not verified") && (
+                                        <div className="flex flex-col gap-1.5 mt-1">
+                                            <button
+                                                type="button"
+                                                onClick={() => navigate(`/verify-otp?email=${encodeURIComponent(email)}`)}
+                                                className="text-sky-600 hover:text-sky-700 underline block font-bold text-left bg-transparent border-0 p-0 cursor-pointer"
+                                            >
+                                                Verify Email First. Click here to enter your OTP.
+                                            </button>
+                                            <button
+                                                type="button"
+                                                onClick={handleResendLink}
+                                                disabled={resending}
+                                                className="text-xs text-slate-500 hover:text-slate-700 underline block text-left bg-transparent border-0 p-0 cursor-pointer"
+                                            >
+                                                {resending ? "Resending OTP..." : "Didn't receive code? Resend OTP."}
+                                            </button>
+                                        </div>
+                                    )}
+                                </motion.div>
                             )}
 
                             <button

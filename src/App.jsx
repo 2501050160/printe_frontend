@@ -9,6 +9,10 @@ from "./pages/AdminLogin";
 import AdminDashboard from "./pages/AdminDashboard";
 import DisplayPanel from "./pages/DisplayPanel";
 import BlockSelection from "./pages/BlockSelection";
+import VerifyToken from "./pages/VerifyToken";
+import VerifyOtp from "./pages/VerifyOtp";
+import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword";
 
 
 import MyOrders from "./pages/MyOrders";
@@ -32,6 +36,22 @@ function App() {
         <Route
           path="/register"
           element={<Register />}
+        />
+        <Route
+          path="/verify"
+          element={<VerifyToken />}
+        />
+        <Route
+          path="/verify-otp"
+          element={<VerifyOtp />}
+        />
+        <Route
+          path="/forgot-password"
+          element={<ForgotPassword />}
+        />
+        <Route
+          path="/reset-password"
+          element={<ResetPassword />}
         />
         <Route
           path="/checkout"

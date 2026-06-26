@@ -1,30 +1,27 @@
-import { useState } from "react";
-import { Link } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { registerUser } from "../services/auth";
+import { registerUser, persistUser } from "../services/auth";
 
 function Register() {
-
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const navigate = useNavigate();
 
   const handleRegister = async (e) => {
-
     e.preventDefault();
 
     try {
-
       await registerUser({
         name,
         email,
         password
       });
 
-      alert("Registration Successful");
-
-    } catch {
-      alert("Registration Failed");
+      navigate(`/verify-otp?email=${encodeURIComponent(email)}`);
+    } catch (err) {
+      alert(err.response?.data || "Registration Failed");
     }
   };
 
@@ -40,12 +37,22 @@ function Register() {
       >
 
         <div className="auth-visual">
+          <video 
+              autoPlay 
+              loop 
+              muted 
+              playsInline
+              className="absolute inset-0 w-full h-full object-cover z-0 pointer-events-none"
+          >
+              <source src="/login_video.mp4" type="video/mp4" />
+          </video>
+          <div className="absolute inset-0 bg-gradient-to-br from-slate-950/85 via-sky-950/75 to-slate-950/85 z-10 pointer-events-none" />
 
-          <div>
+          <div className="z-20 relative">
             <div className="brand-mark">CP</div>
           </div>
 
-          <div>
+          <div className="z-20 relative">
             <p className="text-sm uppercase tracking-[0.18em] text-sky-100 font-bold">
               Customer portal
             </p>
@@ -65,69 +72,71 @@ function Register() {
             transition={{ delay: 0.15, duration: 0.45 }}
           >
 
-            <p className="eyebrow">Create Account</p>
+            <>
+              <p className="eyebrow">Create Account</p>
 
-            <h2 className="title">
-              Start printing
-            </h2>
+              <h2 className="title">
+                Start printing
+              </h2>
 
-            <p className="subtitle">
-              Register once, then upload PDFs and pay online.
-            </p>
+              <p className="subtitle">
+                Register once, then upload PDFs and pay online.
+              </p>
 
-            <form
-              onSubmit={handleRegister}
-              className="mt-8 space-y-4"
-            >
-
-              <input
-                type="text"
-                placeholder="Full name"
-                className="field"
-                value={name}
-                onChange={(e) =>
-                  setName(e.target.value)
-                }
-              />
-
-              <input
-                type="email"
-                placeholder="Email address"
-                className="field"
-                value={email}
-                onChange={(e) =>
-                  setEmail(e.target.value)
-                }
-              />
-
-              <input
-                type="password"
-                placeholder="Password"
-                className="field"
-                value={password}
-                onChange={(e) =>
-                  setPassword(e.target.value)
-                }
-              />
-
-              <button
-                type="submit"
-                className="btn w-full"
+              <form
+                onSubmit={handleRegister}
+                className="mt-8 space-y-4"
               >
-                Create Account
-              </button>
 
-            </form>
+                <input
+                  type="text"
+                  placeholder="Full name"
+                  className="field"
+                  value={name}
+                  onChange={(e) =>
+                    setName(e.target.value)
+                  }
+                />
 
-            <p className="mt-6 text-center text-sm text-slate-600">
-              Already registered?{" "}
-              <Link
-                to="/"
-                className="link-action"
-              >
-                Login here
-              </Link>
-            </p>
+                <input
+                  type="email"
+                  placeholder="Email address"
+                  className="field"
+                  value={email}
+                  onChange={(e) =>
+                    setEmail(e.target.value)
+                  }
+                />
+
+                <input
+                  type="password"
+                  placeholder="Password"
+                  className="field"
+                  value={password}
+                  onChange={(e) =>
+                    setPassword(e.target.value)
+                  }
+                />
+
+                <button
+                  type="submit"
+                  className="btn w-full"
+                >
+                  Create Account
+                </button>
+
+              </form>
+
+              <p className="mt-6 text-center text-sm text-slate-600">
+                Already registered?{" "}
+                <Link
+                  to="/"
+                  className="link-action"
+                >
+                  Login here
+                </Link>
+              </p>
+            </>
 
           </motion.div>
 
