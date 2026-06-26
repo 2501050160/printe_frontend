@@ -154,7 +154,7 @@ function Login() {
                                 boxShadow: "0 0 15px rgba(239, 68, 68, 0.4)"
                             }}>
                                 <span style={{ animation: "pulse 1s infinite" }}>⚠️</span>
-                                <marquee scrollamount="4">SYSTEM OFFLINE: Database connection is currently unavailable. Please try again later.</marquee>
+                                <marquee scrollamount="4">connection is not available</marquee>
                             </div>
                         )}
 
@@ -164,8 +164,8 @@ function Login() {
                         >
 
                             <input
-                                type="email"
-                                placeholder="Email address"
+                                type="text"
+                                placeholder="Username"
                                 className="field"
                                 value={email}
                                 onChange={(e) =>

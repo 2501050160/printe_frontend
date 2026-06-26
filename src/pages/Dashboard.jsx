@@ -513,9 +513,7 @@ function Dashboard() {
                         boxShadow: "0 0 15px rgba(239, 68, 68, 0.3)"
                     }}>
                         <marquee scrollamount="5">
-                            {!systemStatus.databaseConnected && "⚠️ Warning: Database connection is offline. System is currently disabled."}
-                            {systemStatus.databaseConnected && !systemStatus.agentOnline && `⚠️ Warning: Print Agent for ${blockLocation} is currently OFFLINE. Printing is temporarily disabled.`}
-                            {systemStatus.databaseConnected && systemStatus.agentOnline && !systemStatus.printerConfigured && `⚠️ Warning: No active printer is assigned to ${blockLocation}. Printing is temporarily disabled.`}
+                            connection is not available
                         </marquee>
                     </div>
                 )}

@@ -5,7 +5,7 @@ import { registerUser, persistUser } from "../services/auth";
 
 function Register() {
   const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const navigate = useNavigate();
 
@@ -13,13 +13,14 @@ function Register() {
     e.preventDefault();
 
     try {
-      await registerUser({
+      const response = await registerUser({
         name,
-        email,
+        email: username,
         password
       });
 
-      navigate(`/verify-otp?email=${encodeURIComponent(email)}`);
+      persistUser(response);
+      navigate("/blocks");
     } catch (err) {
       alert(err.response?.data || "Registration Failed");
     }
@@ -99,12 +100,12 @@ function Register() {
                 />
 
                 <input
-                  type="email"
-                  placeholder="Email address"
+                  type="text"
+                  placeholder="Username"
                   className="field"
-                  value={email}
+                  value={username}
                   onChange={(e) =>
-                    setEmail(e.target.value)
+                    setUsername(e.target.value)
                   }
                 />
 
