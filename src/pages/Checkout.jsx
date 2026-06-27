@@ -1,0 +1,442 @@
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
+import api, { RAZORPAY_KEY } from "../services/api";
+import { getStoredWalletBalance, getWalletBalance } from "../services/auth";
+import CustomModal from "../components/CustomModal";
+
+function Checkout() {
+    const navigate = useNavigate();
+    const order = JSON.parse(localStorage.getItem("order"));
+    const userId = localStorage.getItem("userId");
+
+    const [couponCode, setCouponCode] = useState("");
+    const [discount, setDiscount] = useState(0);
+    const [finalAmount, setFinalAmount] = useState(order?.price || 0);
+    const [couponApplied, setCouponApplied] = useState(false);
+    const [walletBalance, setWalletBalance] = useState(getStoredWalletBalance());
+    const [referralCode, setReferralCode] = useState(order?.appliedReferralCode || "");
+    const [referralApplied, setReferralApplied] = useState(!!order?.appliedReferralCode);
+
+    // Custom Modal config
+    const [modalConfig, setModalConfig] = useState({
+        isOpen: false,
+        title: "",
+        message: "",
+        type: "info",
+        onConfirm: null
+    });
+
+    const showAlert = (title, message, type = "info") => {
+        setModalConfig({
+            isOpen: true,
+            title,
+            message,
+            type,
+            onConfirm: null
+        });
+    };
+
+    const applyReferral = async () => {
+        if (referralApplied) {
+            showAlert("Already Applied", "Referral code has already been applied to this order.", "warning");
+            return;
+        }
+
+        if (!referralCode.trim()) {
+            showAlert("Required Field", "Please enter a referral code.", "warning");
+            return;
+        }
+
+        try {
+            const response = await api.post("/pdf/applyReferral", null, {
+                params: {
+                    orderId: order.orderId,
+                    referralCode: referralCode.trim(),
+                    userId: userId
+                }
+            });
+
+            if (response.data.success) {
+                setReferralApplied(true);
+                const updatedOrder = { ...order, appliedReferralCode: referralCode.trim() };
+                localStorage.setItem("order", JSON.stringify(updatedOrder));
+                showAlert("Success", response.data.message || "Referral code applied successfully!", "success");
+            } else {
+                showAlert("Failed", response.data.message || "Invalid referral code", "error");
+            }
+        } catch (error) {
+            console.error("Referral application failed:", error);
+            showAlert("Error", error.response?.data?.message || "Failed to apply referral code", "error");
+        }
+    };
+
+    const [paperCount, setPaperCount] = useState(9999);
+
+    useEffect(() => {
+        if (userId) {
+            getWalletBalance(userId).then(setWalletBalance);
+        }
+    }, [userId]);
+
+    useEffect(() => {
+        const fetchPaper = async () => {
+            if (!order?.blockLocation) return;
+            try {
+                const response = await api.get("/printer/paper", {
+                    params: { blockLocation: order.blockLocation }
+                });
+                setPaperCount(response.data != null ? response.data : 0);
+            } catch (err) {
+                console.error("Failed to fetch paper count", err);
+            }
+        };
+        fetchPaper();
+    }, [order]);
+
+    let pagesPerCopy = order?.totalPages || 0;
+    if (order?.selectedPages && order.selectedPages !== "ALL") {
+        const parts = order.selectedPages.split("-").map(Number);
+        if (parts.length === 2 && !isNaN(parts[0]) && !isNaN(parts[1])) {
+            pagesPerCopy = parts[1] - parts[0] + 1;
+        }
+    }
+    const estimatedPagesNeeded = pagesPerCopy * (order?.copies || 1);
+    const paperShortage = estimatedPagesNeeded > paperCount;
+
+    const payNow = async () => {
+        if (paperShortage) {
+            showAlert("Low Paper Level", "Print cannot be done due to low paper levels. Please change your block location.", "error");
+            return;
+        }
+        try {
+            const response = await api.post("/payment/createOrder", null, {
+                params: {
+                    amount: finalAmount
+                }
+            });
+
+            const orderData = response.data;
+
+            const options = {
+                key: RAZORPAY_KEY,
+                amount: orderData.amount,
+                currency: "INR",
+                name: "Cloud Print",
+                description: "Print Order Payment",
+                order_id: orderData.id,
+                handler: async function (response) {
+                    try {
+                        await api.post("/pdf/paymentSuccess", null, {
+                            params: {
+                                orderId: order.orderId,
+                                paymentId: response.razorpay_payment_id
+                            }
+                        });
+
+                        localStorage.removeItem("order");
+                        navigate(`/payment-success?orderId=${order.orderId}`);
+                    } catch (error) {
+                        console.error(error);
+                        showAlert("Error", "Unable to update payment status.", "error");
+                    }
+                }
+            };
+
+            const rzp = new window.Razorpay(options);
+            rzp.open();
+        } catch (error) {
+            console.error("Payment error:", error);
+            showAlert("Payment Failed", "Payment processing failed.", "error");
+        }
+    };
+
+    const payWithWallet = async () => {
+        if (paperShortage) {
+            showAlert("Low Paper Level", "Print cannot be done due to low paper levels. Please change your block location.", "error");
+            return;
+        }
+        if (walletBalance < finalAmount) {
+            showAlert("Insufficient Funds", "Insufficient wallet balance to place this order.", "warning");
+            return;
+        }
+
+        try {
+            await api.post("/pdf/payWithWallet", null, {
+                params: {
+                    orderId: order.orderId
+                }
+            });
+
+            await getWalletBalance(userId);
+            localStorage.removeItem("order");
+            navigate(`/payment-success?orderId=${order.orderId}`);
+        } catch (error) {
+            console.error(error);
+            showAlert("Error", error.response?.data?.message || "Wallet payment failed", "error");
+        }
+    };
+
+    const applyCoupon = async () => {
+        if (couponApplied) {
+            showAlert("Already Applied", "Coupon has already been applied.", "warning");
+            return;
+        }
+
+        if (!couponCode) {
+            showAlert("Required Field", "Please enter coupon code.", "warning");
+            return;
+        }
+
+        try {
+            const response = await api.get("/coupon/validate", {
+                params: {
+                    couponCode
+                }
+            });
+
+            const coupon = response.data;
+            const discountAmount = (order.price * coupon.discountPercentage) / 100;
+            const finalPrice = order.price - discountAmount;
+
+            setDiscount(discountAmount);
+            setFinalAmount(finalPrice);
+            setCouponApplied(true);
+
+            await api.post("/pdf/updatePrice", null, {
+                params: {
+                    orderId: order.orderId,
+                    price: finalPrice,
+                    originalPrice: order.price,
+                    discountAmount: discountAmount
+                }
+            });
+
+            await api.post("/coupon/use", null, {
+                params: {
+                    couponCode
+                }
+            });
+
+            showAlert("Success", "Coupon Applied Successfully", "success");
+        } catch (error) {
+            console.error(error);
+            showAlert("Invalid Coupon", "The entered coupon code is invalid or expired.", "error");
+        }
+    };
+
+    if (!order) {
+        return (
+            <main className="page-shell">
+                <div className="content-wrap">
+                    <div className="panel p-8 text-center">
+                        <p className="eyebrow">Checkout</p>
+                        <h1 className="title">No active order</h1>
+                        <button
+                            onClick={() => navigate("/dashboard")}
+                            className="btn mt-6"
+                        >
+                            Back To Dashboard
+                        </button>
+                    </div>
+                </div>
+            </main>
+        );
+    }
+
+    return (
+        <main className="page-shell page-shell-decorated">
+            <div className="content-wrap">
+                <motion.div
+                    className="top-bar panel top-bar-glass px-6 py-5"
+                    initial={{ opacity: 0, y: 18 }}
+                    animate={{ opacity: 1, y: 0 }}
+                >
+                    <div>
+                        <p className="eyebrow">Secure Payment</p>
+                        <h1 className="title">Checkout</h1>
+                        <p className="subtitle">
+                            Review the order and complete payment through Razorpay or wallet.
+                        </p>
+                    </div>
+
+                    <button
+                        onClick={() => navigate("/dashboard")}
+                        className="btn secondary"
+                    >
+                        Edit Order
+                    </button>
+                </motion.div>
+
+                <div className="grid gap-6 lg:grid-cols-[0.9fr_1.1fr]">
+                    <motion.section
+                        className="panel p-6"
+                        initial={{ opacity: 0, x: -18 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ duration: 0.45 }}
+                    >
+                        <p className="eyebrow">Order Summary</p>
+
+                        <div className="mt-5 space-y-4">
+                            {[
+                                ["Order ID", order.orderId],
+                                ["Customer", localStorage.getItem("userName") || "Customer"],
+                                ["Location", order.blockLocation || "C Block"],
+                                ["Pages", order.selectedPages],
+                                ["Copies", order.copies],
+                                ["Print Type", order.printType],
+                                ["Total Pages", order.totalPages]
+                            ].map(([label, value]) => (
+                                <div
+                                    key={label}
+                                    className="flex items-center justify-between border-b border-slate-100 pb-3"
+                                >
+                                    <span className="font-bold text-slate-500">{label}</span>
+                                    <span className="font-black text-slate-900">{value}</span>
+                                </div>
+                            ))}
+                        </div>
+
+                        {/* Payment Animation Loop */}
+                        <div className="mt-6 flex justify-center">
+                            <video 
+                                autoPlay 
+                                loop 
+                                muted 
+                                playsInline 
+                                className="w-40 h-40 object-contain rounded-xl bg-slate-50 border border-slate-100 p-2"
+                            >
+                                <source src="/assets/payment_swipe.mp4" type="video/mp4" />
+                            </video>
+                        </div>
+                    </motion.section>
+
+                    <motion.section
+                        className="panel p-6"
+                        initial={{ opacity: 0, x: 18 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ duration: 0.45 }}
+                    >
+                        <p className="eyebrow">Payment</p>
+
+                        <div className="mt-5 rounded-lg bg-slate-900 p-6 text-white">
+                            <div className="flex items-center justify-between">
+                                <span className="font-bold text-slate-300">Wallet Balance</span>
+                                <span className="text-xl font-black text-cyan-300">Rs. {walletBalance}</span>
+                            </div>
+
+                            <div className="mt-4 flex items-center justify-between">
+                                <span className="font-bold text-slate-300">Price</span>
+                                <span className="text-2xl font-black">Rs. {order.price}</span>
+                            </div>
+
+                            <div className="mt-4 flex items-center justify-between">
+                                <span className="font-bold text-slate-300">Discount</span>
+                                <span className="text-xl font-black text-green-300">Rs. {discount}</span>
+                            </div>
+
+                            <div className="mt-6 border-t border-white/15 pt-5">
+                                <p className="text-sm font-bold text-slate-300">Final Amount</p>
+                                <motion.p
+                                    key={finalAmount}
+                                    className="mt-1 text-5xl font-black"
+                                    initial={{ scale: 0.96, opacity: 0.6 }}
+                                    animate={{ scale: 1, opacity: 1 }}
+                                >
+                                    Rs. {finalAmount}
+                                </motion.p>
+                            </div>
+                        </div>
+
+                        <div className="mt-5 grid gap-3 sm:grid-cols-[1fr_auto]">
+                            <input
+                                type="text"
+                                placeholder="Coupon code"
+                                value={couponCode}
+                                onChange={(e) => setCouponCode(e.target.value)}
+                                className="field"
+                            />
+
+                            <button
+                                onClick={applyCoupon}
+                                disabled={couponApplied}
+                                className={couponApplied ? "btn secondary" : "btn"}
+                            >
+                                {couponApplied ? "Applied" : "Apply"}
+                            </button>
+                        </div>
+
+                        <div className="mt-4 border-t border-slate-100 pt-4">
+                            <p className="text-sm font-bold text-slate-500 mb-2">Refer & Earn (Referee gets Rs. 5 & Referrer gets Rs. 10)</p>
+                            <div className="grid gap-3 sm:grid-cols-[1fr_auto]">
+                                <input
+                                    type="text"
+                                    placeholder="Enter referral code"
+                                    value={referralCode}
+                                    onChange={(e) => setReferralCode(e.target.value)}
+                                    className="field uppercase"
+                                    disabled={referralApplied}
+                                />
+
+                                <button
+                                    onClick={applyReferral}
+                                    disabled={referralApplied}
+                                    className={referralApplied ? "btn secondary" : "btn"}
+                                >
+                                    {referralApplied ? "Applied" : "Apply Code"}
+                                </button>
+                            </div>
+                        </div>
+
+                        {paperShortage && (
+                            <div style={{
+                                background: "#ef4444",
+                                color: "#ffffff",
+                                padding: "10px 16px",
+                                borderRadius: "10px",
+                                fontSize: "13px",
+                                fontWeight: "bold",
+                                marginTop: "16px",
+                                boxShadow: "0 0 15px rgba(239, 68, 68, 0.3)"
+                            }}>
+                                <marquee scrollamount="4">⚠️ Print cannot be done due to low paper. Go back to change locations.</marquee>
+                            </div>
+                        )}
+
+                        {walletBalance >= finalAmount && (
+                            <button
+                                onClick={payWithWallet}
+                                className="btn secondary mt-4 w-full"
+                                disabled={paperShortage}
+                                style={paperShortage ? { opacity: 0.5, cursor: "not-allowed", background: "#64748b" } : {}}
+                            >
+                                Pay With Wallet
+                            </button>
+                        )}
+
+                        <button
+                            onClick={payNow}
+                            className="btn success mt-4 w-full"
+                            disabled={paperShortage}
+                            style={paperShortage ? { opacity: 0.5, cursor: "not-allowed", background: "#64748b" } : {}}
+                        >
+                            Pay With Razorpay
+                        </button>
+                    </motion.section>
+                </div>
+            </div>
+
+            {/* Custom Premium Modal */}
+            <CustomModal
+                isOpen={modalConfig.isOpen}
+                onClose={() => setModalConfig(prev => ({ ...prev, isOpen: false }))}
+                title={modalConfig.title}
+                message={modalConfig.message}
+                type={modalConfig.type}
+                onConfirm={modalConfig.onConfirm}
+            />
+        </main>
+    );
+}
+
+export default Checkout;

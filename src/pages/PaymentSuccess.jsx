@@ -1,0 +1,199 @@
+import { useEffect, useState } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import { motion } from "framer-motion";
+import api from "../services/api";
+import { getWalletBalance } from "../services/auth";
+
+function PaymentSuccess() {
+    const navigate = useNavigate();
+    const [searchParams] = useSearchParams();
+    const orderId = searchParams.get("orderId");
+    const userId = localStorage.getItem("userId");
+
+    const [secondsLeft, setSecondsLeft] = useState(30);
+    const [totalSeconds, setTotalSeconds] = useState(30);
+    const [status, setStatus] = useState("CANCEL_WINDOW");
+    const [cancelling, setCancelling] = useState(false);
+    const [proceeding, setProceeding] = useState(false);
+
+    const proceedOrder = async () => {
+        if (proceeding) return;
+        setProceeding(true);
+        try {
+            await api.post("/queue/proceed", null, {
+                params: { orderId }
+            });
+            navigate("/my-orders");
+        } catch (error) {
+            console.error("Failed to proceed order:", error);
+            navigate("/my-orders");
+        } finally {
+            setProceeding(false);
+        }
+    };
+
+    useEffect(() => {
+        if (!orderId) {
+            navigate("/my-orders");
+            return;
+        }
+
+        fetchWindowInfo();
+
+        const interval = setInterval(() => {
+            setSecondsLeft((current) => {
+                if (current <= 1) {
+                    clearInterval(interval);
+                    navigate("/my-orders");
+                    return 0;
+                }
+                return current - 1;
+            });
+        }, 1000);
+
+        const poll = setInterval(fetchWindowInfo, 2000);
+
+        return () => {
+            clearInterval(interval);
+            clearInterval(poll);
+        };
+    }, [orderId]);
+
+    const fetchWindowInfo = async () => {
+        try {
+            const response = await api.get("/pdf/cancelWindow", {
+                params: { orderId }
+            });
+
+            if (response.data.found) {
+                setStatus(response.data.status);
+
+                if (response.data.secondsLeft != null) {
+                    setSecondsLeft(response.data.secondsLeft);
+                }
+
+                if (response.data.cancelWindowSeconds) {
+                    setTotalSeconds(response.data.cancelWindowSeconds);
+                }
+
+                if (response.data.status !== "CANCEL_WINDOW") {
+                    navigate("/my-orders");
+                }
+            }
+        } catch (error) {
+            console.error(error);
+        }
+    };
+
+    const cancelOrder = async () => {
+        if (cancelling) return;
+
+        setCancelling(true);
+
+        try {
+            const response = await api.post("/pdf/cancelOrder", null, {
+                params: { orderId, userId }
+            });
+
+            if (response.data.success) {
+                await getWalletBalance(userId);
+                alert(response.data.message);
+                navigate("/my-orders");
+                return;
+            }
+
+            alert(response.data.message || "Unable to cancel order");
+        } catch (error) {
+            console.error(error);
+            alert("Unable to cancel order");
+        } finally {
+            setCancelling(false);
+        }
+    };
+
+    const progress =
+        totalSeconds > 0
+            ? ((totalSeconds - secondsLeft) / totalSeconds) * 100
+            : 0;
+
+    return (
+        <main className="page-shell page-shell-decorated">
+            <div className="content-wrap">
+                <motion.div
+                    className="panel success-panel mx-auto max-w-2xl p-8 text-center"
+                    initial={{ opacity: 0, y: 24, scale: 0.98 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    transition={{ duration: 0.5 }}
+                >
+                    <motion.div
+                        className="success-check-wrapper flex justify-center mb-6"
+                        initial={{ scale: 0 }}
+                        animate={{ scale: 1 }}
+                        transition={{ type: "spring", stiffness: 220, delay: 0.1 }}
+                    >
+                        <video 
+                            autoPlay 
+                            loop 
+                            muted 
+                            playsInline 
+                            className="w-32 h-32 object-contain"
+                        >
+                            <source src="/assets/countdown_timer.mp4" type="video/mp4" />
+                        </video>
+                    </motion.div>
+
+                    <p className="eyebrow">Payment Successful</p>
+                    <h1 className="title">Order Confirmed</h1>
+                    <p className="subtitle mx-auto max-w-lg">
+                        Order <strong>{orderId}</strong> is paid. You can cancel
+                        within the countdown and the amount will be credited to your
+                        wallet.
+                    </p>
+
+                    <div className="mx-auto mt-8 flex flex-col items-center">
+                        <div
+                            className="countdown-ring"
+                            style={{
+                                background: `conic-gradient(#16865b ${progress}%, #e2e8f0 0)`
+                            }}
+                        >
+                            <div className="countdown-ring-inner">
+                                <motion.span
+                                    key={secondsLeft}
+                                    className="countdown-number"
+                                    initial={{ scale: 0.88, opacity: 0.5 }}
+                                    animate={{ scale: 1, opacity: 1 }}
+                                >
+                                    {secondsLeft}
+                                </motion.span>
+                                <span className="countdown-label">seconds left</span>
+                            </div>
+                        </div>
+                        <p className="mt-4 text-sm font-bold text-slate-500">
+                            Status: {status}
+                        </p>
+                    </div>
+
+                    <div className="mt-8 grid gap-3 sm:grid-cols-2">
+                        <button
+                            onClick={cancelOrder}
+                            disabled={cancelling || proceeding}
+                            className="btn danger"
+                        >
+                            {cancelling ? "Cancelling..." : "Cancel Print"}
+                        </button>
+                        <button
+                            onClick={proceedOrder}
+                            disabled={proceeding || cancelling}
+                            className="btn success"
+                        >
+                            {proceeding ? "Proceeding..." : "Proceed to Print"}
+                        </button>
+                    </div>
+                </motion.div>
+            </div>
+        </main>
+    );
+}
+
+export default PaymentSuccess;
