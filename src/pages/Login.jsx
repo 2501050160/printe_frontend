@@ -5,7 +5,7 @@ import { loginUser, persistUser } from "../services/auth";
 import api from "../services/api";
 import PopupManager from "../components/PopupManager";
 import loginHero from "../assets/login_hero.mp4";
-import introVideo from "../assets/intro_video.mp4";
+import introVideo from "../assets/intro_video1.mp4";
 
 function Login() {
     const [email, setEmail] = useState("");
@@ -98,7 +98,21 @@ function Login() {
 
     return (
 
-        <main className="auth-shell">
+        <main className="auth-shell relative">
+            {/* Mobile/Tablet Fullscreen Background Video Fallback */}
+            <div className="absolute inset-0 z-0 lg:hidden pointer-events-none overflow-hidden">
+                <video 
+                    autoPlay 
+                    loop 
+                    muted 
+                    playsInline 
+                    className="w-full h-full object-cover opacity-25"
+                >
+                    <source src={loginHero} type="video/mp4" />
+                </video>
+                <div className="absolute inset-0 bg-gradient-to-b from-slate-950/40 to-slate-950/80" />
+            </div>
+
             <PopupManager page="LOGIN" />
 
             <motion.section

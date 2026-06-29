@@ -29,7 +29,20 @@ function Register() {
 
   return (
 
-    <main className="auth-shell">
+    <main className="auth-shell relative">
+      {/* Mobile/Tablet Fullscreen Background Video Fallback */}
+      <div className="absolute inset-0 z-0 lg:hidden pointer-events-none overflow-hidden">
+          <video 
+              autoPlay 
+              loop 
+              muted 
+              playsInline 
+              className="w-full h-full object-cover opacity-25"
+          >
+              <source src={loginHero} type="video/mp4" />
+          </video>
+          <div className="absolute inset-0 bg-gradient-to-b from-slate-950/40 to-slate-950/80" />
+      </div>
 
       <motion.section
         className="auth-grid"
