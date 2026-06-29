@@ -1,10 +1,11 @@
 import { useState, useEffect } from "react";
 import { useNavigate, Link, useLocation } from "react-router-dom";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { loginUser, persistUser } from "../services/auth";
 import api from "../services/api";
 import PopupManager from "../components/PopupManager";
 import loginHero from "../assets/login_hero.mp4";
+import introVideo from "../assets/intro_video.mp4";
 
 function Login() {
     const [email, setEmail] = useState("");
@@ -16,6 +17,19 @@ function Login() {
 
     const navigate = useNavigate();
     const location = useLocation();
+    const [showIntro, setShowIntro] = useState(false);
+
+    useEffect(() => {
+        const introShown = sessionStorage.getItem("introShown");
+        if (!introShown) {
+            setShowIntro(true);
+        }
+    }, []);
+
+    const handleSkipIntro = () => {
+        sessionStorage.setItem("introShown", "true");
+        setShowIntro(false);
+    };
 
     useEffect(() => {
         if (location.state?.successMessage) {
@@ -268,6 +282,34 @@ function Login() {
                 </div>
 
             </motion.section>
+
+            {/* Intro Video Overlay with Skip Button */}
+            <AnimatePresence>
+                {showIntro && (
+                    <motion.div 
+                        className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-950"
+                        initial={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        transition={{ duration: 0.5 }}
+                    >
+                        <video 
+                            autoPlay 
+                            playsInline 
+                            className="w-full h-full object-cover absolute inset-0 z-0"
+                            onEnded={handleSkipIntro}
+                        >
+                            <source src={introVideo} type="video/mp4" />
+                        </video>
+                        
+                        <button
+                            onClick={handleSkipIntro}
+                            className="absolute bottom-10 right-10 z-10 px-6 py-3 bg-white/10 hover:bg-white/20 text-white font-bold text-sm tracking-wider uppercase rounded-full border border-white/25 backdrop-blur-md transition-all shadow-2xl hover:scale-105 active:scale-95"
+                        >
+                            Skip Intro
+                        </button>
+                    </motion.div>
+                )}
+            </AnimatePresence>
 
         </main>
     );

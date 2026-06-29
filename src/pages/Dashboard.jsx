@@ -7,6 +7,9 @@ import Navbar from "../components/Navbar";
 import { getWalletBalance, clearUserSession } from "../services/auth";
 import CustomModal from "../components/CustomModal";
 import fileUploading from "../assets/file_uploading.mp4";
+import howToUpload from "../assets/how_to_upload.mp4";
+import walletVideo from "../assets/wallet_video.mp4";
+import myOrdersVideo from "../assets/my_orders_video.mp4";
 
 function Dashboard() {
     const [bwPrice, setBwPrice] = useState(2);
@@ -37,6 +40,7 @@ function Dashboard() {
     // Additional States
     const [uploading, setUploading] = useState(false);
     const [walletBalance, setWalletBalance] = useState(0);
+    const [showWalletModal, setShowWalletModal] = useState(false);
     
     // Support Desk
     const [supportName, setSupportName] = useState(userName || "");
@@ -473,7 +477,7 @@ function Dashboard() {
                     activeTab={activeTab}
                     onTabChange={setActiveTab}
                     actions={[
-                        { label: `Wallet: ₹${walletBalance}`, path: "#", className: "btn success cursor-default !border-emerald-500 !bg-emerald-600/20 !text-emerald-400" },
+                        { label: `Wallet: ₹${walletBalance}`, onClick: () => setShowWalletModal(true), className: "btn success cursor-pointer !border-emerald-500 !bg-emerald-600/20 !text-emerald-400" },
                         { label: "Change Location", path: "/blocks", className: "btn secondary" }
                     ]}
                 />
@@ -549,46 +553,66 @@ function Dashboard() {
                                 </span>
                             </div>
 
-                            <label 
-                                className="upload-zone block" 
-                                style={(!systemStatus.databaseConnected || !systemStatus.agentOnline || !systemStatus.printerConfigured) ? { opacity: 0.5, cursor: "not-allowed" } : {}}
-                            >
-                                <div className="mb-5 text-left">
-                                    <span className="mb-2 block text-sm font-black text-slate-700">
-                                        Printing Location
-                                    </span>
-                                    <div className="field">
-                                        {blockLocation}
+                            <div className="mb-4 text-left">
+                                <span className="mb-2 block text-sm font-black text-slate-700">
+                                    Printing Location
+                                </span>
+                                <div className="field">
+                                    {blockLocation}
+                                </div>
+                            </div>
+
+                            <div className="grid md:grid-cols-2 gap-6 mt-4">
+                                {/* Left side: How to Upload Video */}
+                                <div className="rounded-xl border border-slate-200/60 overflow-hidden bg-slate-50 relative flex items-center justify-center p-1.5 h-[220px]">
+                                    <video 
+                                        autoPlay 
+                                        loop 
+                                        muted 
+                                        playsInline 
+                                        className="w-full h-full object-cover rounded-lg shadow-sm"
+                                    >
+                                        <source src={howToUpload} type="video/mp4" />
+                                    </video>
+                                    <div className="absolute bottom-4 left-4 right-4 bg-slate-900/75 backdrop-blur-sm px-3 py-1.5 rounded-lg text-white text-[10px] font-black uppercase tracking-wider text-center">
+                                        🎬 Tutorial: How to Upload
                                     </div>
                                 </div>
-                                <input
-                                    type="file"
-                                    accept=".pdf,.jpg,.jpeg,.png"
-                                    multiple
-                                    onChange={handleFileSelect}
-                                    className="hidden"
-                                    disabled={(!systemStatus.databaseConnected || !systemStatus.agentOnline || !systemStatus.printerConfigured) || uploading}
-                                />
 
-                                <div className="flex flex-col items-center gap-2 text-center">
-                                    {selectedFiles.length === 0 && (
-                                        <div className="w-20 h-20 mb-3 flex items-center justify-center bg-slate-100 text-sky-500 rounded-2xl border border-slate-200/50 shadow-sm animate-bounce" style={{ animationDuration: '2.5s' }}>
-                                            <svg className="w-12 h-12" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                                                <path strokeLinecap="round" strokeLinejoin="round" d="M12 16.5V9.75m0 0l3 3m-3-3l-3 3M6.75 19.5a4.5 4.5 0 01-1.41-8.775 5.25 5.25 0 0110.233-2.33 3 3 0 013.758 3.848A3.752 3.752 0 0118 19.5H6.75z" />
-                                            </svg>
-                                        </div>
-                                    )}
-                                    <span className="text-lg font-black text-slate-900">
-                                        {selectedFiles.length > 0 
-                                            ? `${selectedFiles.length} file(s) selected: ${selectedFiles.map(f => f.name).join(", ").substring(0, 60)}...`
-                                            : "Choose files (PDF, PNG, JPG)"
-                                        }
-                                    </span>
-                                    <span className="text-sm font-semibold text-slate-500">
-                                        Click here to select multiple PDF/Image files. They will be merged automatically.
-                                    </span>
-                                </div>
-                            </label>
+                                {/* Right side: Existing Upload Dropzone */}
+                                <label 
+                                    className="upload-zone block !mt-0 h-[220px] flex flex-col items-center justify-center p-4 cursor-pointer" 
+                                    style={(!systemStatus.databaseConnected || !systemStatus.agentOnline || !systemStatus.printerConfigured) ? { opacity: 0.5, cursor: "not-allowed" } : {}}
+                                >
+                                    <input
+                                        type="file"
+                                        accept=".pdf,.jpg,.jpeg,.png"
+                                        multiple
+                                        onChange={handleFileSelect}
+                                        className="hidden"
+                                        disabled={(!systemStatus.databaseConnected || !systemStatus.agentOnline || !systemStatus.printerConfigured) || uploading}
+                                    />
+
+                                    <div className="flex flex-col items-center gap-2 text-center">
+                                        {selectedFiles.length === 0 && (
+                                            <div className="w-14 h-14 mb-2 flex items-center justify-center bg-slate-100 text-sky-500 rounded-2xl border border-slate-200/50 shadow-sm animate-bounce" style={{ animationDuration: '2.5s' }}>
+                                                <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                                                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 16.5V9.75m0 0l3 3m-3-3l-3 3M6.75 19.5a4.5 4.5 0 01-1.41-8.775 5.25 5.25 0 0110.233-2.33 3 3 0 013.758 3.848A3.752 3.752 0 0118 19.5H6.75z" />
+                                                </svg>
+                                            </div>
+                                        )}
+                                        <span className="text-sm font-black text-slate-900 leading-tight">
+                                            {selectedFiles.length > 0 
+                                                ? `${selectedFiles.length} file(s) selected`
+                                                : "Choose files (PDF, PNG, JPG)"
+                                            }
+                                        </span>
+                                        <span className="text-xs font-semibold text-slate-500 leading-normal">
+                                            Click here to select multiple files.
+                                        </span>
+                                    </div>
+                                </label>
+                            </div>
 
                             <button
                                 onClick={uploadPdf}
@@ -909,94 +933,124 @@ function Dashboard() {
 
                 {/* TAB CONTENT: MY ORDERS */}
                 {activeTab === "orders" && (
-                    <motion.section
-                        className="panel p-6 overflow-x-auto"
-                        initial={{ opacity: 0, y: 18 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.4 }}
-                    >
-                        <div className="section-header mb-6">
-                            <div>
-                                <p className="eyebrow">Track Status</p>
-                                <h2 className="text-2xl font-black text-slate-900">Order History</h2>
+                    <div className="grid lg:grid-cols-[1.45fr_0.55fr] gap-6 items-start">
+                        {/* Left Side: Order History Table */}
+                        <motion.section
+                            className="panel p-6 overflow-x-auto !mb-0"
+                            initial={{ opacity: 0, y: 18 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.4 }}
+                        >
+                            <div className="section-header mb-6">
+                                <div>
+                                    <p className="eyebrow">Track Status</p>
+                                    <h2 className="text-2xl font-black text-slate-900">Order History</h2>
+                                </div>
+                                <span className="text-xs font-bold text-slate-400 bg-slate-100 px-3 py-1.5 rounded-lg border border-slate-200">
+                                    Auto-refreshing every 3s
+                                </span>
                             </div>
-                            <span className="text-xs font-bold text-slate-400 bg-slate-100 px-3 py-1.5 rounded-lg border border-slate-200">
-                                Auto-refreshing every 3s
-                            </span>
-                        </div>
 
-                        <table className="data-table">
-                            <thead>
-                                <tr>
-                                    <th>Order ID</th>
-                                    <th>Location</th>
-                                    <th>Pages</th>
-                                    <th>Copies</th>
-                                    <th>Price</th>
-                                    <th>Status</th>
-                                    <th>Action</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {orders.map((order, index) => (
-                                    <motion.tr
-                                        key={order.id}
-                                        initial={{ opacity: 0, y: 10 }}
-                                        animate={{ opacity: 1, y: 0 }}
-                                        transition={{ delay: index * 0.03 }}
-                                    >
-                                        <td className="font-black">{order.orderId}</td>
-                                        <td>{order.blockLocation || "C Block"}</td>
-                                        <td>{order.selectedPages}</td>
-                                        <td>{order.copies}</td>
-                                        <td className="font-black">Rs. {order.price}</td>
-                                        <td className="flex items-center gap-2">
-                                             <span className={orderStatusClass(order.status)}>
-                                                 {order.status}
-                                             </span>
-                                             {order.status === "PRINTING" && (
-                                                 <div className="flex items-center justify-center gap-1.5 text-emerald-600">
-                                                     <svg className="animate-spin h-3.5 w-3.5" fill="none" viewBox="0 0 24 24">
-                                                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                                                         <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
-                                                     </svg>
-                                                     <span className="text-[10px] font-black uppercase tracking-widest animate-pulse">printing</span>
-                                                 </div>
-                                             )}
-                                         </td>
-                                        <td>
-                                            {order.status === "CANCEL_WINDOW" && (
-                                                <button
-                                                    onClick={() => handleCancelOrder(order.orderId)}
-                                                    className="btn danger"
-                                                    style={{ padding: "4px 8px", fontSize: "12px", minHeight: "28px" }}
-                                                >
-                                                    Cancel Print
-                                                </button>
-                                            )}
-                                        </td>
-                                    </motion.tr>
-                                ))}
-
-                                {orders.length === 0 && (
+                            <table className="data-table">
+                                <thead>
                                     <tr>
-                                        <td colSpan="7">
-                                            <div className="empty-state">
-                                                <div className="empty-state-icon">📄</div>
-                                                <p>No orders yet</p>
-                                                <button
-                                                    onClick={() => setActiveTab("print")}
-                                                    className="btn mt-4"
-                                                >
-                                                    Start Printing
-                                                </button>
-                                            </div>
-                                        </td>
+                                        <th>Order ID</th>
+                                        <th>Location</th>
+                                        <th>Pages</th>
+                                        <th>Copies</th>
+                                        <th>Price</th>
+                                        <th>Status</th>
+                                        <th>Action</th>
                                     </tr>
-                                )}
-                            </tbody>
-                        </table>
-                    </motion.section>
+                                </thead>
+                                <tbody>
+                                    {orders.map((order, index) => (
+                                        <motion.tr
+                                            key={order.id}
+                                            initial={{ opacity: 0, y: 10 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            transition={{ delay: index * 0.03 }}
+                                        >
+                                            <td className="font-black">{order.orderId}</td>
+                                            <td>{order.blockLocation || "C Block"}</td>
+                                            <td>{order.selectedPages}</td>
+                                            <td>{order.copies}</td>
+                                            <td className="font-black">Rs. {order.price}</td>
+                                            <td className="flex items-center gap-2">
+                                                 <span className={orderStatusClass(order.status)}>
+                                                     {order.status}
+                                                 </span>
+                                                 {order.status === "PRINTING" && (
+                                                     <div className="flex items-center justify-center gap-1.5 text-emerald-600">
+                                                         <svg className="animate-spin h-3.5 w-3.5" fill="none" viewBox="0 0 24 24">
+                                                             <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                                                             <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
+                                                         </svg>
+                                                         <span className="text-[10px] font-black uppercase tracking-widest animate-pulse">printing</span>
+                                                     </div>
+                                                 )}
+                                             </td>
+                                            <td>
+                                                {order.status === "CANCEL_WINDOW" && (
+                                                    <button
+                                                        onClick={() => handleCancelOrder(order.orderId)}
+                                                        className="btn danger"
+                                                        style={{ padding: "4px 8px", fontSize: "12px", minHeight: "28px" }}
+                                                    >
+                                                        Cancel Print
+                                                    </button>
+                                                )}
+                                            </td>
+                                        </motion.tr>
+                                    ))}
+
+                                    {orders.length === 0 && (
+                                        <tr>
+                                            <td colSpan="7">
+                                                <div className="empty-state">
+                                                    <div className="empty-state-icon">📄</div>
+                                                    <p>No orders yet</p>
+                                                    <button
+                                                        onClick={() => setActiveTab("print")}
+                                                        className="btn mt-4"
+                                                    >
+                                                        Start Printing
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    )}
+                                </tbody>
+                            </table>
+                        </motion.section>
+
+                        {/* Right Side: Visual Queue tracking video panel */}
+                        <motion.section 
+                            className="panel p-6 flex flex-col items-center justify-center text-center !mb-0"
+                            initial={{ opacity: 0, x: 18 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ duration: 0.4, delay: 0.15 }}
+                        >
+                            <p className="eyebrow">Realtime Queue</p>
+                            <h3 className="text-lg font-black text-slate-900 mb-4">Print Hub Status</h3>
+                            
+                            <div className="w-full max-w-[200px] h-[200px] rounded-xl overflow-hidden shadow-lg border border-slate-100 bg-slate-50 relative flex items-center justify-center p-1">
+                                <video 
+                                    autoPlay 
+                                    loop 
+                                    muted 
+                                    playsInline 
+                                    className="w-full h-full object-cover rounded-lg shadow-sm"
+                                >
+                                    <source src={myOrdersVideo} type="video/mp4" />
+                                </video>
+                            </div>
+                            
+                            <p className="text-xs font-bold text-slate-500 mt-4 leading-relaxed">
+                                Your orders are automatically sent to the physical print spooler queue. Refresh status occurs automatically.
+                            </p>
+                        </motion.section>
+                    </div>
                 )}
 
                 {/* TAB CONTENT: COUPONS & REWARDS */}
@@ -1317,6 +1371,71 @@ function Dashboard() {
                             {/* Animated Loading Bar */}
                             <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden relative">
                                 <div className="absolute top-0 bottom-0 left-0 bg-sky-500 rounded-full animate-pulse" style={{ width: '100%' }} />
+                            </div>
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
+
+            {/* Wallet Details Popup Modal */}
+            <AnimatePresence>
+                {showWalletModal && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-sm">
+                        <motion.div 
+                            className="bg-white rounded-2xl p-8 max-w-md w-full mx-4 shadow-2xl border border-slate-100 flex flex-col items-center text-center relative"
+                            initial={{ opacity: 0, scale: 0.95, y: 15 }}
+                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.95, y: 15 }}
+                            transition={{ duration: 0.3 }}
+                        >
+                            <button 
+                                onClick={() => setShowWalletModal(false)}
+                                className="absolute top-4 right-4 text-slate-400 hover:text-slate-600 transition-colors cursor-pointer text-xl font-bold"
+                            >
+                                ✕
+                            </button>
+
+                            {/* Wallet Coins Video Loop */}
+                            <div className="w-32 h-32 mb-6 relative rounded-2xl overflow-hidden shadow-lg border border-slate-100 bg-slate-50 flex items-center justify-center">
+                                <video 
+                                    autoPlay 
+                                    loop 
+                                    muted 
+                                    playsInline 
+                                    className="w-full h-full object-cover"
+                                >
+                                    <source src={walletVideo} type="video/mp4" />
+                                </video>
+                            </div>
+                            
+                            <h3 className="text-xl font-black text-slate-955 mb-2">My Printing Wallet</h3>
+                            <p className="text-sm font-semibold text-slate-500 mb-6 leading-relaxed">
+                                Deposit funds to pay for your print orders instantly.
+                            </p>
+                            
+                            {/* Balance Card */}
+                            <div className="w-full bg-emerald-50 border border-emerald-100 rounded-xl p-4 mb-6 flex flex-col items-center">
+                                <span className="text-xs font-black uppercase tracking-widest text-emerald-700">Available Balance</span>
+                                <span className="text-3xl font-black text-emerald-950 mt-1">₹{walletBalance}</span>
+                            </div>
+
+                            {/* Add Balance Mockup Action */}
+                            <div className="w-full space-y-3">
+                                <button
+                                    onClick={() => {
+                                        setShowWalletModal(false);
+                                        setActiveTab("coupons");
+                                    }}
+                                    className="btn w-full"
+                                >
+                                    Redeem Reward Vouchers
+                                </button>
+                                <button 
+                                    onClick={() => setShowWalletModal(false)}
+                                    className="btn secondary w-full"
+                                >
+                                    Close Wallet
+                                </button>
                             </div>
                         </motion.div>
                     </div>
