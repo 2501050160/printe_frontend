@@ -10,6 +10,7 @@ import fileUploading from "../assets/file_uploading.mp4";
 import howToUpload from "../assets/how_to_upload.mp4";
 import walletVideo from "../assets/wallet_video.mp4";
 import myOrdersVideo from "../assets/my_orders_video.mp4";
+import ordersLoading from "../assets/orders_loading.mp4";
 
 function Dashboard() {
     const [bwPrice, setBwPrice] = useState(2);
@@ -56,6 +57,7 @@ function Dashboard() {
     const [paperCount, setPaperCount] = useState(0);
     const [sections, setSections] = useState([]);
     const [orders, setOrders] = useState([]);
+    const [loadingOrders, setLoadingOrders] = useState(true);
     const [settings, setSettings] = useState({
         referralEnabled: true,
         referrerAmount: 10.0,
@@ -122,7 +124,10 @@ function Dashboard() {
 
     // Orders Polling (Every 3 seconds)
     const fetchOrders = async () => {
-        if (!userId) return;
+        if (!userId) {
+            setLoadingOrders(false);
+            return;
+        }
         try {
             const response = await api.get("/pdf/userOrders", {
                 params: { userId }
@@ -130,6 +135,8 @@ function Dashboard() {
             setOrders(response.data || []);
         } catch (error) {
             console.error("Error fetching orders:", error);
+        } finally {
+            setLoadingOrders(false);
         }
     };
 
@@ -933,123 +940,137 @@ function Dashboard() {
 
                 {/* TAB CONTENT: MY ORDERS */}
                 {activeTab === "orders" && (
-                    <div className="grid lg:grid-cols-[1.45fr_0.55fr] gap-6 items-start">
-                        {/* Left Side: Order History Table */}
-                        <motion.section
-                            className="panel p-6 overflow-x-auto !mb-0"
-                            initial={{ opacity: 0, y: 18 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ duration: 0.4 }}
-                        >
-                            <div className="section-header mb-6">
-                                <div>
-                                    <p className="eyebrow">Track Status</p>
-                                    <h2 className="text-2xl font-black text-slate-900">Order History</h2>
+                    <div className="relative">
+                        {loadingOrders && (
+                            <div className="absolute inset-0 z-30 min-h-[300px] flex flex-col items-center justify-center bg-white/95 rounded-2xl border border-slate-100 flex-1 py-12">
+                                <div className="w-24 h-24 mb-4 relative rounded-xl overflow-hidden shadow-md border border-slate-100 bg-slate-50 flex items-center justify-center">
+                                    <video autoPlay loop muted playsInline className="w-full h-full object-cover">
+                                        <source src={ordersLoading} type="video/mp4" />
+                                    </video>
                                 </div>
-                                <span className="text-xs font-bold text-slate-400 bg-slate-100 px-3 py-1.5 rounded-lg border border-slate-200">
-                                    Auto-refreshing every 3s
-                                </span>
+                                <h3 className="text-lg font-black text-slate-900 mb-1">Loading Order History...</h3>
+                                <p className="text-xs font-semibold text-slate-500">Checking physical queue spooler status</p>
                             </div>
+                        )}
+                        
+                        <div className="grid lg:grid-cols-[1.45fr_0.55fr] gap-6 items-start" style={loadingOrders ? { filter: 'blur(3px)', opacity: 0.65, pointerEvents: 'none' } : {}}>
+                            {/* Left Side: Order History Table */}
+                            <motion.section
+                                className="panel p-6 overflow-x-auto !mb-0"
+                                initial={{ opacity: 0, y: 18 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ duration: 0.4 }}
+                            >
+                                <div className="section-header mb-6">
+                                    <div>
+                                        <p className="eyebrow">Track Status</p>
+                                        <h2 className="text-2xl font-black text-slate-900">Order History</h2>
+                                    </div>
+                                    <span className="text-xs font-bold text-slate-400 bg-slate-100 px-3 py-1.5 rounded-lg border border-slate-200">
+                                        Auto-refreshing every 3s
+                                    </span>
+                                </div>
 
-                            <table className="data-table">
-                                <thead>
-                                    <tr>
-                                        <th>Order ID</th>
-                                        <th>Location</th>
-                                        <th>Pages</th>
-                                        <th>Copies</th>
-                                        <th>Price</th>
-                                        <th>Status</th>
-                                        <th>Action</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {orders.map((order, index) => (
-                                        <motion.tr
-                                            key={order.id}
-                                            initial={{ opacity: 0, y: 10 }}
-                                            animate={{ opacity: 1, y: 0 }}
-                                            transition={{ delay: index * 0.03 }}
-                                        >
-                                            <td className="font-black">{order.orderId}</td>
-                                            <td>{order.blockLocation || "C Block"}</td>
-                                            <td>{order.selectedPages}</td>
-                                            <td>{order.copies}</td>
-                                            <td className="font-black">Rs. {order.price}</td>
-                                            <td className="flex items-center gap-2">
-                                                 <span className={orderStatusClass(order.status)}>
-                                                     {order.status}
-                                                 </span>
-                                                 {order.status === "PRINTING" && (
-                                                     <div className="flex items-center justify-center gap-1.5 text-emerald-600">
-                                                         <svg className="animate-spin h-3.5 w-3.5" fill="none" viewBox="0 0 24 24">
-                                                             <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                                                             <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
-                                                         </svg>
-                                                         <span className="text-[10px] font-black uppercase tracking-widest animate-pulse">printing</span>
-                                                     </div>
-                                                 )}
-                                             </td>
-                                            <td>
-                                                {order.status === "CANCEL_WINDOW" && (
-                                                    <button
-                                                        onClick={() => handleCancelOrder(order.orderId)}
-                                                        className="btn danger"
-                                                        style={{ padding: "4px 8px", fontSize: "12px", minHeight: "28px" }}
-                                                    >
-                                                        Cancel Print
-                                                    </button>
-                                                )}
-                                            </td>
-                                        </motion.tr>
-                                    ))}
-
-                                    {orders.length === 0 && (
+                                <table className="data-table">
+                                    <thead>
                                         <tr>
-                                            <td colSpan="7">
-                                                <div className="empty-state">
-                                                    <div className="empty-state-icon">📄</div>
-                                                    <p>No orders yet</p>
-                                                    <button
-                                                        onClick={() => setActiveTab("print")}
-                                                        className="btn mt-4"
-                                                    >
-                                                        Start Printing
-                                                    </button>
-                                                </div>
-                                            </td>
+                                            <th>Order ID</th>
+                                            <th>Location</th>
+                                            <th>Pages</th>
+                                            <th>Copies</th>
+                                            <th>Price</th>
+                                            <th>Status</th>
+                                            <th>Action</th>
                                         </tr>
-                                    )}
-                                </tbody>
-                            </table>
-                        </motion.section>
+                                    </thead>
+                                    <tbody>
+                                        {orders.map((order, index) => (
+                                            <motion.tr
+                                                key={order.id}
+                                                initial={{ opacity: 0, y: 10 }}
+                                                animate={{ opacity: 1, y: 0 }}
+                                                transition={{ delay: index * 0.03 }}
+                                            >
+                                                <td className="font-black">{order.orderId}</td>
+                                                <td>{order.blockLocation || "C Block"}</td>
+                                                <td>{order.selectedPages}</td>
+                                                <td>{order.copies}</td>
+                                                <td className="font-black">Rs. {order.price}</td>
+                                                <td className="flex items-center gap-2">
+                                                     <span className={orderStatusClass(order.status)}>
+                                                         {order.status}
+                                                     </span>
+                                                     {order.status === "PRINTING" && (
+                                                         <div className="flex items-center justify-center gap-1.5 text-emerald-600">
+                                                             <svg className="animate-spin h-3.5 w-3.5" fill="none" viewBox="0 0 24 24">
+                                                                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                                                                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
+                                                             </svg>
+                                                             <span className="text-[10px] font-black uppercase tracking-widest animate-pulse">printing</span>
+                                                         </div>
+                                                     )}
+                                                 </td>
+                                                <td>
+                                                    {order.status === "CANCEL_WINDOW" && (
+                                                        <button
+                                                            onClick={() => handleCancelOrder(order.orderId)}
+                                                            className="btn danger"
+                                                            style={{ padding: "4px 8px", fontSize: "12px", minHeight: "28px" }}
+                                                        >
+                                                            Cancel Print
+                                                        </button>
+                                                    )}
+                                                </td>
+                                            </motion.tr>
+                                        ))}
 
-                        {/* Right Side: Visual Queue tracking video panel */}
-                        <motion.section 
-                            className="panel p-6 flex flex-col items-center justify-center text-center !mb-0"
-                            initial={{ opacity: 0, x: 18 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            transition={{ duration: 0.4, delay: 0.15 }}
-                        >
-                            <p className="eyebrow">Realtime Queue</p>
-                            <h3 className="text-lg font-black text-slate-900 mb-4">Print Hub Status</h3>
-                            
-                            <div className="w-full max-w-[200px] h-[200px] rounded-xl overflow-hidden shadow-lg border border-slate-100 bg-slate-50 relative flex items-center justify-center p-1">
-                                <video 
-                                    autoPlay 
-                                    loop 
-                                    muted 
-                                    playsInline 
-                                    className="w-full h-full object-cover rounded-lg shadow-sm"
-                                >
-                                    <source src={myOrdersVideo} type="video/mp4" />
-                                </video>
-                            </div>
-                            
-                            <p className="text-xs font-bold text-slate-500 mt-4 leading-relaxed">
-                                Your orders are automatically sent to the physical print spooler queue. Refresh status occurs automatically.
-                            </p>
-                        </motion.section>
+                                        {orders.length === 0 && (
+                                            <tr>
+                                                <td colSpan="7">
+                                                    <div className="empty-state">
+                                                        <div className="empty-state-icon">📄</div>
+                                                        <p>No orders yet</p>
+                                                        <button
+                                                            onClick={() => setActiveTab("print")}
+                                                            className="btn mt-4"
+                                                        >
+                                                            Start Printing
+                                                        </button>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        )}
+                                    </tbody>
+                                </table>
+                            </motion.section>
+
+                            {/* Right Side: Visual Queue tracking video panel */}
+                            <motion.section 
+                                className="panel p-6 flex flex-col items-center justify-center text-center !mb-0"
+                                initial={{ opacity: 0, x: 18 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                transition={{ duration: 0.4, delay: 0.15 }}
+                            >
+                                <p className="eyebrow">Realtime Queue</p>
+                                <h3 className="text-lg font-black text-slate-900 mb-4">Print Hub Status</h3>
+                                
+                                <div className="w-full max-w-[200px] h-[200px] rounded-xl overflow-hidden shadow-lg border border-slate-100 bg-slate-50 relative flex items-center justify-center p-1">
+                                    <video 
+                                        autoPlay 
+                                        loop 
+                                        muted 
+                                        playsInline 
+                                        className="w-full h-full object-cover rounded-lg shadow-sm"
+                                    >
+                                        <source src={myOrdersVideo} type="video/mp4" />
+                                    </video>
+                                </div>
+                                
+                                <p className="text-xs font-bold text-slate-500 mt-4 leading-relaxed">
+                                    Your orders are automatically sent to the physical print spooler queue. Refresh status occurs automatically.
+                                </p>
+                            </motion.section>
+                        </div>
                     </div>
                 )}
 
