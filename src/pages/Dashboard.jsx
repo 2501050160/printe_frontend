@@ -6,6 +6,7 @@ import api from "../services/api";
 import Navbar from "../components/Navbar";
 import { getWalletBalance, clearUserSession } from "../services/auth";
 import CustomModal from "../components/CustomModal";
+import fileUploading from "../assets/file_uploading.mp4";
 
 function Dashboard() {
     const [bwPrice, setBwPrice] = useState(2);
@@ -1278,6 +1279,44 @@ function Dashboard() {
                                 >
                                     Dismiss
                                 </button>
+                            </div>
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
+
+            {/* Uploading Status Popup Modal */}
+            <AnimatePresence>
+                {uploading && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-sm">
+                        <motion.div 
+                            className="bg-white rounded-2xl p-8 max-w-md w-full mx-4 shadow-2xl border border-slate-100 flex flex-col items-center text-center"
+                            initial={{ opacity: 0, scale: 0.95, y: 15 }}
+                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.95, y: 15 }}
+                            transition={{ duration: 0.3 }}
+                        >
+                            {/* Uploading Video Loop */}
+                            <div className="w-32 h-32 mb-6 relative rounded-2xl overflow-hidden shadow-lg border border-slate-100 bg-slate-50 flex items-center justify-center">
+                                <video 
+                                    autoPlay 
+                                    loop 
+                                    muted 
+                                    playsInline 
+                                    className="w-full h-full object-cover"
+                                >
+                                    <source src={fileUploading} type="video/mp4" />
+                                </video>
+                            </div>
+                            
+                            <h3 className="text-xl font-black text-slate-950 mb-2">Processing & Uploading...</h3>
+                            <p className="text-sm font-semibold text-slate-500 mb-6 leading-relaxed">
+                                Please wait while your files are uploaded, compiled, and merged. Do not close or refresh this tab.
+                            </p>
+                            
+                            {/* Animated Loading Bar */}
+                            <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden relative">
+                                <div className="absolute top-0 bottom-0 left-0 bg-sky-500 rounded-full animate-pulse" style={{ width: '100%' }} />
                             </div>
                         </motion.div>
                     </div>
