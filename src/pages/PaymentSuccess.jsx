@@ -131,15 +131,11 @@ function PaymentSuccess() {
                         animate={{ scale: 1 }}
                         transition={{ type: "spring", stiffness: 220, delay: 0.1 }}
                     >
-                        <video 
-                            autoPlay 
-                            loop 
-                            muted 
-                            playsInline 
-                            className="w-32 h-32 object-contain"
-                        >
-                            <source src="/assets/countdown_timer.mp4" type="video/mp4" />
-                        </video>
+                        <div className="w-24 h-24 mx-auto mb-6 relative flex items-center justify-center bg-emerald-50 text-emerald-500 rounded-full border border-emerald-100/50 shadow-[0_8px_24px_rgba(16,185,129,0.2)] animate-bounce" style={{ animationDuration: '2s' }}>
+                            <svg className="w-14 h-14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                        </div>
                     </motion.div>
 
                     <p className="eyebrow">Payment Successful</p>

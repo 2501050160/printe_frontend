@@ -299,15 +299,13 @@ function Checkout() {
 
                         {/* Payment Animation Loop */}
                         <div className="mt-6 flex justify-center">
-                            <video 
-                                autoPlay 
-                                loop 
-                                muted 
-                                playsInline 
-                                className="w-40 h-40 object-contain rounded-xl bg-slate-50 border border-slate-100 p-2"
-                            >
-                                <source src="/assets/payment_swipe.mp4" type="video/mp4" />
-                            </video>
+                            <div className="w-full max-w-[240px] rounded-xl border border-slate-100 bg-slate-50 p-4 flex flex-col items-center">
+                                <div className="relative w-16 h-10 bg-slate-800 rounded-md border border-slate-700 p-2 flex flex-col justify-between animate-pulse">
+                                    <div className="w-4 h-3 bg-yellow-400 rounded-sm" />
+                                    <div className="w-8 h-1 bg-slate-600 rounded-sm" />
+                                </div>
+                                <p className="text-xs text-slate-500 font-bold mt-3 animate-pulse">Waiting for Payment...</p>
+                            </div>
                         </div>
                     </motion.section>
 

@@ -70,15 +70,29 @@ function BlockSelection() {
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ delay: 0.15, duration: 0.5 }}
                 >
-                    <video 
-                        autoPlay 
-                        loop 
-                        muted 
-                        playsInline
-                        className="w-full h-48 sm:h-64 object-cover z-0"
-                    >
-                        <source src="/assets/map_pin.mp4" type="video/mp4" />
-                    </video>
+                    <div className="w-full h-48 sm:h-64 bg-slate-950 flex flex-col items-center justify-center p-6 relative overflow-hidden">
+                        {/* Map Grid Gridlines */}
+                        <div className="absolute inset-0 bg-[linear-gradient(to_right,#1e293b_1px,transparent_1px),linear-gradient(to_bottom,#1e293b_1px,transparent_1px)] bg-[size:30px_30px] opacity-20" />
+                        
+                        {/* Glowing Radar Waves */}
+                        <div className="absolute w-72 h-72 rounded-full border border-sky-500/20 animate-ping opacity-20" style={{ animationDuration: '3s' }} />
+                        <div className="absolute w-48 h-48 rounded-full border border-sky-500/10 animate-ping opacity-15" style={{ animationDuration: '4s' }} />
+
+                        {/* Connected Pins */}
+                        <div className="relative z-10 flex items-center gap-12 sm:gap-20">
+                            {['C Block', 'R Block', 'L Block'].map((block, idx) => (
+                                <div key={block} className="flex flex-col items-center gap-2">
+                                    <div className="relative flex items-center justify-center">
+                                        <div className="absolute w-8 h-8 rounded-full bg-sky-500/30 animate-pulse" />
+                                        <div className="w-4 h-4 rounded-full bg-sky-500 border-2 border-white shadow-[0_0_12px_#0ea5e9]" />
+                                    </div>
+                                    <span className="text-xs font-black text-slate-300 bg-slate-900/85 px-2.5 py-1 rounded-full border border-slate-800 shadow-md">
+                                        {block}
+                                    </span>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
                     <div className="p-4 bg-gradient-to-r from-slate-900 to-slate-800 text-white flex items-center justify-between gap-4">
                         <div>
                             <h4 className="font-black text-sm">Autonomous Print Counters</h4>

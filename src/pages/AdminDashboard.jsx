@@ -1729,15 +1729,11 @@ function AdminDashboard() {
                                 <h3 className="text-lg font-black text-slate-900">System Gateway Check</h3>
                                 <p className="text-xs text-slate-500 font-bold mt-1">Live background ping check monitoring all database, API routes, and local print agents.</p>
                             </div>
-                            <video 
-                                autoPlay 
-                                loop 
-                                muted 
-                                playsInline 
-                                className="w-16 h-16 object-contain"
-                            >
-                                <source src="/assets/health_check.mp4" type="video/mp4" />
-                            </video>
+                            <div className="w-16 h-16 flex items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600 border border-emerald-100/50 shadow-sm animate-pulse" style={{ animationDuration: '2s' }}>
+                                <svg className="w-10 h-10" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                            </div>
                         </div>
 
                         <div className="grid gap-6 lg:grid-cols-2">

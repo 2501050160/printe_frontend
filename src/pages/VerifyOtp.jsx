@@ -70,17 +70,16 @@ function VerifyOtp() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, ease: "easeOut" }}
             >
-                <div className="auth-visual">
-                    <video 
-                        autoPlay 
-                        loop 
-                        muted 
-                        playsInline
-                        className="absolute inset-0 w-full h-full object-cover z-0 pointer-events-none"
-                    >
-                        <source src="/assets/login_hero.mp4" type="video/mp4" />
-                    </video>
-                    <div className="absolute inset-0 bg-gradient-to-br from-slate-950/85 via-sky-950/75 to-slate-950/85 z-10 pointer-events-none" />
+                <div className="auth-visual overflow-hidden relative">
+                    {/* Premium Animated Aurora Gradient Background */}
+                    <div className="absolute inset-0 bg-slate-950 z-0" />
+                    <div className="absolute inset-0 z-10 opacity-45 blur-[100px] animate-[pulse_6s_infinite_alternate]" style={{
+                        background: "radial-gradient(circle at 10% 20%, #7c3aed 0%, transparent 45%), radial-gradient(circle at 90% 80%, #0284c7 0%, transparent 45%)"
+                    }} />
+                    <div className="absolute inset-0 z-10 opacity-35 blur-[80px] animate-[pulse_10s_infinite_alternate_reverse]" style={{
+                        background: "radial-gradient(circle at 80% 10%, #db2777 0%, transparent 40%), radial-gradient(circle at 20% 90%, #0f766e 0%, transparent 40%)"
+                    }} />
+                    <div className="absolute inset-0 bg-gradient-to-br from-slate-950/90 via-slate-950/60 to-slate-950/90 z-20 pointer-events-none" />
 
                     <div className="z-20 relative">
                         <div className="brand-mark">CP</div>
@@ -104,16 +103,10 @@ function VerifyOtp() {
                         transition={{ delay: 0.15, duration: 0.45 }}
                         className="w-full text-center"
                     >
-                        <div className="w-28 h-28 mx-auto mb-4 relative flex items-center justify-center">
-                            <video 
-                                autoPlay 
-                                loop 
-                                muted 
-                                playsInline
-                                className="w-full h-full object-contain drop-shadow-[0_8px_24px_rgba(14,165,233,0.3)]"
-                            >
-                                <source src="/assets/otp_loading.mp4" type="video/mp4" />
-                            </video>
+                        <div className="w-28 h-28 mx-auto mb-4 relative flex items-center justify-center bg-sky-50 text-sky-500 rounded-full shadow-[0_8px_24px_rgba(14,165,233,0.2)] animate-pulse" style={{ animationDuration: '2s' }}>
+                            <svg className="w-16 h-16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.57-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" />
+                            </svg>
                         </div>
 
                         <p className="eyebrow mx-auto">Verify Account</p>

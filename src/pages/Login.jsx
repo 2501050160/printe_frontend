@@ -93,17 +93,16 @@ function Login() {
                 transition={{ duration: 0.55, ease: "easeOut" }}
             >
 
-                <div className="auth-visual">
-                    <video 
-                        autoPlay 
-                        loop 
-                        muted 
-                        playsInline
-                        className="absolute inset-0 w-full h-full object-cover z-0 pointer-events-none"
-                    >
-                        <source src="/assets/login_hero.mp4" type="video/mp4" />
-                    </video>
-                    <div className="absolute inset-0 bg-gradient-to-br from-slate-950/85 via-sky-950/75 to-slate-950/85 z-10 pointer-events-none" />
+                <div className="auth-visual overflow-hidden relative">
+                    {/* Premium Animated Aurora Gradient Background */}
+                    <div className="absolute inset-0 bg-slate-950 z-0" />
+                    <div className="absolute inset-0 z-10 opacity-45 blur-[100px] animate-[pulse_6s_infinite_alternate]" style={{
+                        background: "radial-gradient(circle at 10% 20%, #7c3aed 0%, transparent 45%), radial-gradient(circle at 90% 80%, #0284c7 0%, transparent 45%)"
+                    }} />
+                    <div className="absolute inset-0 z-10 opacity-35 blur-[80px] animate-[pulse_10s_infinite_alternate_reverse]" style={{
+                        background: "radial-gradient(circle at 80% 10%, #db2777 0%, transparent 40%), radial-gradient(circle at 20% 90%, #0f766e 0%, transparent 40%)"
+                    }} />
+                    <div className="absolute inset-0 bg-gradient-to-br from-slate-950/90 via-slate-950/60 to-slate-950/90 z-20 pointer-events-none" />
 
                     <div className="z-20 relative">
                         <div className="brand-mark">CP</div>

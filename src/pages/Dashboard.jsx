@@ -571,15 +571,11 @@ function Dashboard() {
 
                                 <div className="flex flex-col items-center gap-2 text-center">
                                     {selectedFiles.length === 0 && (
-                                        <video 
-                                            autoPlay 
-                                            loop 
-                                            muted 
-                                            playsInline 
-                                            className="w-24 h-24 mb-2 object-contain pointer-events-none"
-                                        >
-                                            <source src="/assets/file_upload.mp4" type="video/mp4" />
-                                        </video>
+                                        <div className="w-20 h-20 mb-3 flex items-center justify-center bg-slate-100 text-sky-500 rounded-2xl border border-slate-200/50 shadow-sm animate-bounce" style={{ animationDuration: '2.5s' }}>
+                                            <svg className="w-12 h-12" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                                                <path strokeLinecap="round" strokeLinejoin="round" d="M12 16.5V9.75m0 0l3 3m-3-3l-3 3M6.75 19.5a4.5 4.5 0 01-1.41-8.775 5.25 5.25 0 0110.233-2.33 3 3 0 013.758 3.848A3.752 3.752 0 0118 19.5H6.75z" />
+                                            </svg>
+                                        </div>
                                     )}
                                     <span className="text-lg font-black text-slate-900">
                                         {selectedFiles.length > 0 
@@ -600,16 +596,11 @@ function Dashboard() {
                                 style={((!systemStatus.databaseConnected || !systemStatus.agentOnline || !systemStatus.printerConfigured) || uploading || selectedFiles.length === 0) ? { opacity: 0.5, cursor: "not-allowed", background: "#64748b" } : {}}
                             >
                                 {uploading ? (
-                                    <div className="flex items-center justify-center gap-2">
-                                        <video 
-                                            autoPlay 
-                                            loop 
-                                            muted 
-                                            playsInline 
-                                            className="w-5 h-5 object-contain"
-                                        >
-                                            <source src="/assets/processing_loop.mp4" type="video/mp4" />
-                                        </video>
+                                    <div className="flex items-center justify-center gap-3">
+                                        <svg className="animate-spin h-5 w-5 text-white" fill="none" viewBox="0 0 24 24">
+                                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                                        </svg>
                                         <span>Processing and merging files, please wait...</span>
                                     </div>
                                 ) : "Upload & Merge Files"}
@@ -700,15 +691,12 @@ function Dashboard() {
 
                             {/* Wallet Visual Card */}
                             <div className="mt-6 rounded-xl border border-slate-100 bg-slate-50 p-4 flex items-center gap-4">
-                                <video 
-                                    autoPlay 
-                                    loop 
-                                    muted 
-                                    playsInline 
-                                    className="w-16 h-16 rounded-lg object-contain bg-slate-200"
-                                >
-                                    <source src="/assets/wallet_coins.mp4" type="video/mp4" />
-                                </video>
+                                <div className="w-12 h-12 flex items-center justify-center rounded-xl bg-emerald-50 text-emerald-600 border border-emerald-100/50 shadow-sm animate-pulse" style={{ animationDuration: '2s' }}>
+                                    <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M9 10h1a2 2 0 012 2v2a2 2 0 01-2 2h-1m2-6h1a2 2 0 012 2v2a2 2 0 01-2 2h-1m-4-6v10m-3-3h12" />
+                                    </svg>
+                                </div>
                                 <div>
                                     <p className="eyebrow">Your Wallet</p>
                                     <p className="text-xl font-black text-slate-900">₹{walletBalance}</p>
@@ -966,15 +954,13 @@ function Dashboard() {
                                                  {order.status}
                                              </span>
                                              {order.status === "PRINTING" && (
-                                                 <video 
-                                                     autoPlay 
-                                                     loop 
-                                                     muted 
-                                                     playsInline 
-                                                     className="w-5 h-5 object-contain"
-                                                 >
-                                                     <source src="/assets/printer_rollers.mp4" type="video/mp4" />
-                                                 </video>
+                                                 <div className="flex items-center justify-center gap-1.5 text-emerald-600">
+                                                     <svg className="animate-spin h-3.5 w-3.5" fill="none" viewBox="0 0 24 24">
+                                                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                                                         <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
+                                                     </svg>
+                                                     <span className="text-[10px] font-black uppercase tracking-widest animate-pulse">printing</span>
+                                                 </div>
                                              )}
                                          </td>
                                         <td>
@@ -1071,16 +1057,12 @@ function Dashboard() {
                                 Received a promo card, code, or special administrator voucher? Enter the claim code below to deposit reward balance directly into your wallet.
                             </p>
 
-                             <div className="flex justify-center mb-4">
-                                 <video 
-                                     autoPlay 
-                                     loop 
-                                     muted 
-                                     playsInline 
-                                     className="w-32 h-32 object-contain"
-                                 >
-                                     <source src="/assets/rewards_box.mp4" type="video/mp4" />
-                                 </video>
+                             <div className="flex justify-center mb-5">
+                                 <div className="w-16 h-16 flex items-center justify-center bg-purple-50 text-purple-600 rounded-2xl border border-purple-100/50 shadow-sm animate-bounce" style={{ animationDuration: '2s' }}>
+                                     <svg className="w-10 h-10" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                                         <path strokeLinecap="round" strokeLinejoin="round" d="M21 11.25v8.25a1.5 1.5 0 01-1.5 1.5H5.25a1.5 1.5 0 01-1.5-1.5v-8.25M12 4.875A2.625 2.625 0 109.375 7.5H12m0-2.625V7.5m0-2.625A2.625 2.625 0 1114.625 7.5H12m0 0V21m-8.625-9.75h17.25c.621 0 1.125-.504 1.125-1.125V8.625c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z" />
+                                     </svg>
+                                 </div>
                              </div>
 
                              <form onSubmit={handleClaimReward} className="space-y-4">
