@@ -10,7 +10,7 @@ const api = axios.create({
 
 export const RAZORPAY_KEY =
     import.meta.env.VITE_RAZORPAY_KEY ||
-    "rzp_test_T4Y22L3msbuqYr";
+    "rzp_live_T87am8Vgt9W2O9";
 
 export const getPdfDownloadUrl = (id) =>
     `${API_BASE}/api/pdf/download/${id}`;
