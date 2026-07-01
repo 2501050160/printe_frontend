@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import Navbar from "../components/Navbar";
 import api from "../services/api";
 import { clearUserSession } from "../services/auth";
 import PopupManager from "../components/PopupManager";
 import mapPin from "../assets/map_pin.mp4";
+import CustomModal from "../components/CustomModal";
 
 const defaultIcons = ["🏛️", "⚡", "📘", "🏛️", "⚡", "📘"];
 const defaultAccents = ["#0891b2", "#059669", "#7c3aed", "#e11d48", "#ea580c", "#db2777"];
@@ -14,6 +15,32 @@ function BlockSelection() {
     const navigate = useNavigate();
     const [blocks, setBlocks] = useState([]);
     const [loading, setLoading] = useState(true);
+
+    // Direct OTP Release State
+    const [showOtpModal, setShowOtpModal] = useState(false);
+    const [inputOrderId, setInputOrderId] = useState("");
+    const [inputOtp, setInputOtp] = useState("");
+    const [otpError, setOtpError] = useState("");
+    const [releasing, setReleasing] = useState(false);
+
+    // Custom Modal config
+    const [modalConfig, setModalConfig] = useState({
+        isOpen: false,
+        title: "",
+        message: "",
+        type: "info",
+        onConfirm: null
+    });
+
+    const showAlert = (title, message, type = "info", onConfirm = null) => {
+        setModalConfig({
+            isOpen: true,
+            title,
+            message,
+            type,
+            onConfirm
+        });
+    };
 
     useEffect(() => {
         const fetchBlocks = async () => {
@@ -43,6 +70,28 @@ function BlockSelection() {
     const selectBlock = (blockName) => {
         localStorage.setItem("selectedBlock", blockName);
         navigate("/dashboard");
+    };
+
+    const handleDirectRelease = async () => {
+        if (!inputOrderId || inputOtp.length !== 4) {
+            setOtpError("Please enter a valid order number and 4-digit OTP.");
+            return;
+        }
+        setReleasing(true);
+        try {
+            await api.post("/pdf/releasePrint", null, {
+                params: { orderId: inputOrderId.trim(), otp: inputOtp.trim() }
+            });
+            setOtpError("");
+            setShowOtpModal(false);
+            setInputOrderId("");
+            setInputOtp("");
+            showAlert("Printing Started! 🖨️", "Successfully released your print job. Please collect your pages from the printer tray.", "success");
+        } catch (err) {
+            setOtpError(err.response?.data?.message || "Invalid Order Number or OTP.");
+        } finally {
+            setReleasing(false);
+        }
     };
 
     return (
@@ -95,6 +144,26 @@ function BlockSelection() {
                     <div className="text-center font-bold text-slate-500 py-12">Loading locations...</div>
                 ) : (
                     <div className="block-grid">
+                        {/* Static OTP Block */}
+                        <motion.button
+                            type="button"
+                            className="block-card"
+                            style={{ "--block-accent": "#f59e0b" }}
+                            onClick={() => setShowOtpModal(true)}
+                            initial={{ opacity: 0, y: 22 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0, duration: 0.45 }}
+                            whileHover={{ y: -6, scale: 1.02 }}
+                            whileTap={{ scale: 0.98 }}
+                        >
+                            <span className="block-card-glow" />
+                            <span className="block-card-icon">🔑</span>
+                            <h3 className="block-card-title">Enter the OTP</h3>
+                            <p className="block-card-text">enter otp to print</p>
+                            <span className="block-card-cta">Release Print →</span>
+                        </motion.button>
+
+                        {/* Dynamic Blocks */}
                         {blocks.map((block, index) => (
                             <motion.button
                                 key={block.name}
@@ -104,7 +173,7 @@ function BlockSelection() {
                                 onClick={() => selectBlock(block.name)}
                                 initial={{ opacity: 0, y: 22 }}
                                 animate={{ opacity: 1, y: 0 }}
-                                transition={{ delay: 0.08 * index, duration: 0.45 }}
+                                transition={{ delay: 0.08 * (index + 1), duration: 0.45 }}
                                 whileHover={{ y: -6, scale: 1.02 }}
                                 whileTap={{ scale: 0.98 }}
                             >
@@ -118,6 +187,91 @@ function BlockSelection() {
                     </div>
                 )}
             </div>
+
+            <CustomModal
+                isOpen={modalConfig.isOpen}
+                onClose={() => setModalConfig(prev => ({ ...prev, isOpen: false }))}
+                title={modalConfig.title}
+                message={modalConfig.message}
+                type={modalConfig.type}
+                onConfirm={modalConfig.onConfirm}
+            />
+
+            <AnimatePresence>
+                {showOtpModal && (
+                    <motion.div 
+                        className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-sm p-4"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                    >
+                        <motion.div 
+                            className="w-full max-w-sm rounded-2xl border border-slate-700 bg-slate-900 p-6 text-center shadow-2xl"
+                            initial={{ scale: 0.95, y: 15 }}
+                            animate={{ scale: 1, y: 0 }}
+                            exit={{ scale: 0.95, y: 15 }}
+                        >
+                            <p className="text-xs font-black uppercase tracking-widest text-sky-400">
+                                Direct Print Release
+                            </p>
+                            <h3 className="mt-2 text-xl font-black text-white">
+                                Enter Order & OTP
+                            </h3>
+                            
+                            <div className="mt-6 space-y-4">
+                                <input
+                                    type="text"
+                                    placeholder="Order Number (e.g. 1045)"
+                                    value={inputOrderId}
+                                    onChange={(e) => {
+                                        setOtpError("");
+                                        setInputOrderId(e.target.value);
+                                    }}
+                                    className="w-full h-12 rounded-xl bg-slate-800 border border-slate-700 text-center text-lg font-bold text-white placeholder-slate-500 focus:border-sky-500 focus:outline-none"
+                                />
+                                <input
+                                    type="text"
+                                    maxLength={4}
+                                    placeholder="4-Digit OTP"
+                                    value={inputOtp}
+                                    onChange={(e) => {
+                                        setOtpError("");
+                                        setInputOtp(e.target.value);
+                                    }}
+                                    className="w-full h-12 rounded-xl bg-slate-800 border border-slate-700 text-center text-lg font-bold text-white placeholder-slate-500 tracking-[0.5em] focus:border-sky-500 focus:outline-none"
+                                />
+                            </div>
+
+                            {otpError && (
+                                <p className="text-xs font-bold text-rose-500 mt-4 bg-rose-500/10 border border-rose-500/20 py-2 rounded-lg">
+                                    ⚠️ {otpError}
+                                </p>
+                            )}
+
+                            <div className="mt-6 grid grid-cols-2 gap-3">
+                                <button
+                                    onClick={() => {
+                                        setShowOtpModal(false);
+                                        setOtpError("");
+                                        setInputOrderId("");
+                                        setInputOtp("");
+                                    }}
+                                    className="h-11 rounded-xl border border-slate-700 bg-slate-800 hover:bg-slate-700 text-xs font-bold text-white transition-colors"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    onClick={handleDirectRelease}
+                                    disabled={releasing}
+                                    className="h-11 rounded-xl bg-sky-500 hover:bg-sky-600 text-xs font-black text-white transition-colors disabled:opacity-50"
+                                >
+                                    {releasing ? "Releasing..." : "Verify & Print"}
+                                </button>
+                            </div>
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </main>
     );
 }
