@@ -19,6 +19,7 @@ import MyOrders from "./pages/MyOrders";
 import Checkout from "./pages/Checkout";
 import PaymentSuccess from "./pages/PaymentSuccess";
 import PrinterSettings from "./pages/PrinterSettings";
+import ScanToPrint from "./pages/ScanToPrint";
 
 function App() {
 
@@ -93,9 +94,14 @@ function App() {
           element={<DisplayPanel />}
         />
       <Route
-    path="/blocks"
-    element={<BlockSelection />}
-/>
+          path="/blocks"
+          element={<BlockSelection />}
+      />
+
+      <Route
+          path="/scan-to-print"
+          element={<ScanToPrint />}
+      />
 
       </Routes>
 

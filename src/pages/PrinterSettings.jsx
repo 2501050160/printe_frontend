@@ -14,6 +14,7 @@ function PrinterSettings() {
     const [printerIp, setPrinterIp] = useState("");
     const [active, setActive] = useState(true);
     const [maintenance, setMaintenance] = useState(false);
+    const [qrScanToPrint, setQrScanToPrint] = useState(false);
 
     useEffect(() => {
         const adminId = localStorage.getItem("adminId");
@@ -48,13 +49,15 @@ function PrinterSettings() {
                 printerName,
                 printerIp,
                 active,
-                maintenance
+                maintenance,
+                qrScanToPrint
             });
 
             setPrinterName("");
             setPrinterIp("");
             setActive(true);
             setMaintenance(false);
+            setQrScanToPrint(false);
             fetchPrinters();
             alert("Printer saved");
         } catch (error) {
@@ -109,7 +112,7 @@ function PrinterSettings() {
                         Block Printer Mapping
                     </h2>
 
-                    <div className="mt-5 grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
+                    <div className="mt-5 grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-7">
                         <select
                             value={blockLocation}
                             onChange={(e) => setBlockLocation(e.target.value)}
@@ -155,6 +158,15 @@ function PrinterSettings() {
                         >
                             <option value="false">Normal Operation</option>
                             <option value="true">Under Maintenance 🛠️</option>
+                        </select>
+
+                        <select
+                            value={qrScanToPrint ? "true" : "false"}
+                            onChange={(e) => setQrScanToPrint(e.target.value === "true")}
+                            className="field font-bold text-sky-600 bg-sky-50/50"
+                        >
+                            <option value="false">Direct Printing</option>
+                            <option value="true">Scan-to-Print 🔐</option>
                         </select>
 
                         <button onClick={savePrinter} className="btn success">

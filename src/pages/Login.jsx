@@ -66,7 +66,13 @@ function Login() {
         try {
             const response = await loginUser(email, password);
             persistUser(response);
-            navigate("/blocks");
+            const redirectPath = localStorage.getItem("redirectAfterLogin");
+            if (redirectPath) {
+                localStorage.removeItem("redirectAfterLogin");
+                navigate(redirectPath);
+            } else {
+                navigate("/blocks");
+            }
         } catch (error) {
             console.error(error);
             setError(

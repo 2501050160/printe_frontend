@@ -12,6 +12,13 @@ function PrinterCard({ printer, onDelete }) {
                     <p className="mt-2 text-sm font-bold text-slate-600">
                         IP: {printer.printerIp || "Local / USB"}
                     </p>
+                    {printer.qrScanToPrint && (
+                        <div className="mt-2">
+                            <span className="inline-flex items-center gap-1 text-xs font-bold text-sky-600 bg-sky-50/50 px-2 py-0.5 rounded border border-sky-100">
+                                🔐 Requires QR Scan
+                            </span>
+                        </div>
+                    )}
                 </div>
 
                 <span
