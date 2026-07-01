@@ -108,8 +108,10 @@ function ScanToPrint() {
 
         for (const orderId of selectedOrderIds) {
             try {
+                const targetOrder = orders.find(o => o.orderId === orderId);
+                const otp = targetOrder?.otpCode || "";
                 await api.post("/pdf/releasePrint", null, {
-                    params: { orderId }
+                    params: { orderId, otp }
                 });
                 successCount++;
             } catch (err) {

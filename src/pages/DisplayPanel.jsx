@@ -13,6 +13,10 @@ function DisplayPanel() {
     const [activePickup, setActivePickup] = useState(null);
     const [queuePageIndex, setQueuePageIndex] = useState(0);
 
+    const [selectedKioskOrder, setSelectedKioskOrder] = useState(null);
+    const [enteredOtp, setEnteredOtp] = useState("");
+    const [otpError, setOtpError] = useState("");
+
     const theme = getBlockTheme(displayBlock);
     const welcomeSlides = theme.slides;
 
@@ -126,15 +130,43 @@ function DisplayPanel() {
         previousStatusesRef.current = nextStatuses;
     };
 
-    const handleReleaseOrder = async (orderId) => {
+    const handleReleaseOrder = (order) => {
+        setSelectedKioskOrder(order);
+        setEnteredOtp("");
+        setOtpError("");
+    };
+
+    const verifyKioskOtp = async () => {
+        if (enteredOtp.length !== 6) {
+            setOtpError("OTP must be exactly 6 digits.");
+            return;
+        }
         try {
             await api.post("/pdf/releasePrint", null, {
-                params: { orderId }
+                params: { orderId: selectedKioskOrder.orderId, otp: enteredOtp }
             });
+            setSelectedKioskOrder(null);
             fetchOrders();
         } catch (err) {
-            console.error("Failed to release print job:", err);
+            setOtpError(err.response?.data?.message || "Invalid OTP code. Please check your dashboard.");
         }
+    };
+
+    const handleKeypadPress = (val) => {
+        setOtpError("");
+        if (enteredOtp.length < 6) {
+            setEnteredOtp(prev => prev + val);
+        }
+    };
+
+    const handleKeypadBackspace = () => {
+        setOtpError("");
+        setEnteredOtp(prev => prev.slice(0, -1));
+    };
+
+    const handleKeypadClear = () => {
+        setOtpError("");
+        setEnteredOtp("");
     };
 
     const queueOrders = orders
@@ -463,6 +495,104 @@ function DisplayPanel() {
                     <span>{new Date().toLocaleTimeString()}</span>
                 </footer>
             </section>
+
+            {/* Keypad PIN Pad Modal */}
+            <AnimatePresence>
+                {selectedKioskOrder && (
+                    <motion.div 
+                        className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/85 backdrop-blur-sm p-4"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                    >
+                        <motion.div 
+                            className="w-full max-w-md rounded-2xl border border-white/10 bg-slate-900 p-6 text-center shadow-2xl"
+                            initial={{ scale: 0.95, y: 15 }}
+                            animate={{ scale: 1, y: 0 }}
+                            exit={{ scale: 0.95, y: 15 }}
+                        >
+                            <p className="text-xs font-black uppercase tracking-widest text-sky-400">
+                                OTP Verification
+                            </p>
+                            <h3 className="mt-2 text-2xl font-black text-white">
+                                {selectedKioskOrder.orderId}
+                            </h3>
+                            <p className="text-sm font-semibold text-slate-400 mt-1">
+                                Customer: {selectedKioskOrder.customerName || "Student"}
+                            </p>
+
+                            {/* OTP Display Field */}
+                            <div className="my-6 flex justify-center gap-2">
+                                {Array.from({ length: 6 }).map((_, i) => (
+                                    <div 
+                                        key={i} 
+                                        className={`w-12 h-14 rounded-xl border flex items-center justify-center text-2xl font-black transition-all duration-150 ${
+                                            enteredOtp[i] 
+                                                ? "border-sky-500 bg-sky-500/10 text-sky-400" 
+                                                : "border-white/15 bg-white/5 text-slate-600"
+                                        }`}
+                                    >
+                                        {enteredOtp[i] || "•"}
+                                    </div>
+                                ))}
+                            </div>
+
+                            {otpError && (
+                                <p className="text-xs font-bold text-rose-500 mb-4 bg-rose-500/10 border border-rose-500/20 py-2 rounded-lg">
+                                    ⚠️ {otpError}
+                                </p>
+                            )}
+
+                            {/* Numeric Keypad Grid */}
+                            <div className="grid grid-cols-3 gap-3">
+                                {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((num) => (
+                                    <button 
+                                        key={num}
+                                        onClick={() => handleKeypadPress(String(num))}
+                                        className="h-14 rounded-xl bg-white/5 hover:bg-white/10 active:scale-95 text-xl font-bold text-white transition-all cursor-pointer"
+                                    >
+                                        {num}
+                                    </button>
+                                ))}
+                                <button 
+                                    onClick={handleKeypadClear}
+                                    className="h-14 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 active:scale-95 text-sm font-black text-rose-400 transition-all cursor-pointer"
+                                >
+                                    Clear
+                                </button>
+                                <button 
+                                    onClick={() => handleKeypadPress("0")}
+                                    className="h-14 rounded-xl bg-white/5 hover:bg-white/10 active:scale-95 text-xl font-bold text-white transition-all cursor-pointer"
+                                >
+                                    0
+                                </button>
+                                <button 
+                                    onClick={handleKeypadBackspace}
+                                    className="h-14 rounded-xl bg-white/10 hover:bg-white/15 active:scale-95 text-lg font-bold text-white transition-all cursor-pointer flex items-center justify-center"
+                                >
+                                    ⌫
+                                </button>
+                            </div>
+
+                            {/* Action Buttons */}
+                            <div className="mt-6 grid grid-cols-2 gap-3">
+                                <button
+                                    onClick={() => setSelectedKioskOrder(null)}
+                                    className="h-12 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 text-sm font-bold text-white transition-colors cursor-pointer"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    onClick={verifyKioskOtp}
+                                    className="h-12 rounded-xl bg-sky-500 hover:bg-sky-600 text-sm font-black text-white transition-colors cursor-pointer"
+                                >
+                                    Verify & Print
+                                </button>
+                            </div>
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </main>
     );
 }
