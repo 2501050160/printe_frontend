@@ -74,7 +74,7 @@ function DisplayPanel() {
 
         const timer = setTimeout(() => {
             setActivePickup(null);
-        }, 7000);
+        }, 5000);
 
         return () => clearTimeout(timer);
     }, [pickupQueue, activePickup]);
