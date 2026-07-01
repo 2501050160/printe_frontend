@@ -356,7 +356,7 @@ function DisplayPanel() {
                                         </span>
                                     </div>
 
-                                    <div className="mt-6 space-y-4">
+                                    <div className="mt-6 grid grid-cols-2 gap-4">
                                         {waitingOrders.slice(queuePageIndex * 8, (queuePageIndex + 1) * 8).map((order, index) => (
                                             <QueueCard
                                                 key={order.id}
@@ -366,7 +366,7 @@ function DisplayPanel() {
                                         ))}
 
                                         {waitingOrders.length === 0 && (
-                                            <div className="rounded-xl bg-white/10 p-6 text-center text-xl font-black text-slate-300">
+                                            <div className="col-span-2 rounded-xl bg-white/10 p-10 text-center text-2xl font-black text-slate-300">
                                                 No waiting orders
                                             </div>
                                         )}

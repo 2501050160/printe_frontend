@@ -15,10 +15,13 @@ function BlockSelection() {
     const navigate = useNavigate();
     const [blocks, setBlocks] = useState([]);
     const [loading, setLoading] = useState(true);
+    const userId = localStorage.getItem("userId");
 
     // Direct OTP Release State
     const [showOtpModal, setShowOtpModal] = useState(false);
-    const [inputOrderId, setInputOrderId] = useState("");
+    const [pendingOrders, setPendingOrders] = useState([]);
+    const [fetchingOrders, setFetchingOrders] = useState(false);
+    const [selectedOrderId, setSelectedOrderId] = useState("");
     const [inputOtp, setInputOtp] = useState("");
     const [otpError, setOtpError] = useState("");
     const [releasing, setReleasing] = useState(false);
@@ -72,23 +75,46 @@ function BlockSelection() {
         navigate("/dashboard");
     };
 
+    const handleOpenOtpModal = async () => {
+        if (!userId) {
+            showAlert("Not Logged In", "Please log in to release your prints.", "warning");
+            return;
+        }
+        setShowOtpModal(true);
+        setFetchingOrders(true);
+        setOtpError("");
+        try {
+            const res = await api.get("/pdf/userOrders", { params: { userId } });
+            const pending = (res.data || []).filter(o => o.status === "PENDING_SCAN");
+            setPendingOrders(pending);
+            if (pending.length > 0) {
+                setSelectedOrderId(pending[0].orderId);
+            } else {
+                setSelectedOrderId("");
+            }
+        } catch (err) {
+            setOtpError("Failed to fetch your pending orders.");
+        } finally {
+            setFetchingOrders(false);
+        }
+    };
+
     const handleDirectRelease = async () => {
-        if (!inputOrderId || inputOtp.length !== 4) {
-            setOtpError("Please enter a valid order number and 4-digit OTP.");
+        if (!selectedOrderId || inputOtp.length !== 4) {
+            setOtpError("Please select an order and enter the 4-digit OTP.");
             return;
         }
         setReleasing(true);
         try {
             await api.post("/pdf/releasePrint", null, {
-                params: { orderId: inputOrderId.trim(), otp: inputOtp.trim() }
+                params: { orderId: selectedOrderId, otp: inputOtp.trim() }
             });
             setOtpError("");
             setShowOtpModal(false);
-            setInputOrderId("");
             setInputOtp("");
             showAlert("Printing Started! 🖨️", "Successfully released your print job. Please collect your pages from the printer tray.", "success");
         } catch (err) {
-            setOtpError(err.response?.data?.message || "Invalid Order Number or OTP.");
+            setOtpError(err.response?.data?.message || "Invalid OTP or Order.");
         } finally {
             setReleasing(false);
         }
@@ -149,7 +175,7 @@ function BlockSelection() {
                             type="button"
                             className="block-card"
                             style={{ "--block-accent": "#f59e0b" }}
-                            onClick={() => setShowOtpModal(true)}
+                            onClick={handleOpenOtpModal}
                             initial={{ opacity: 0, y: 22 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: 0, duration: 0.45 }}
@@ -219,16 +245,29 @@ function BlockSelection() {
                             </h3>
                             
                             <div className="mt-6 space-y-4">
-                                <input
-                                    type="text"
-                                    placeholder="Order Number (e.g. 1045)"
-                                    value={inputOrderId}
-                                    onChange={(e) => {
-                                        setOtpError("");
-                                        setInputOrderId(e.target.value);
-                                    }}
-                                    className="w-full h-12 rounded-xl bg-slate-800 border border-slate-700 text-center text-lg font-bold text-white placeholder-slate-500 focus:border-sky-500 focus:outline-none"
-                                />
+                                {fetchingOrders ? (
+                                    <p className="text-slate-400 text-sm py-3 font-semibold">Loading your pending orders...</p>
+                                ) : pendingOrders.length === 0 ? (
+                                    <p className="text-rose-400 text-sm font-semibold bg-rose-500/10 py-3 rounded-xl border border-rose-500/20">
+                                        You have no pending prints to release.
+                                    </p>
+                                ) : (
+                                    <select
+                                        value={selectedOrderId}
+                                        onChange={(e) => {
+                                            setOtpError("");
+                                            setSelectedOrderId(e.target.value);
+                                        }}
+                                        className="w-full h-12 rounded-xl bg-slate-800 border border-slate-700 text-center text-sm font-bold text-white focus:border-sky-500 focus:outline-none appearance-none px-4"
+                                    >
+                                        {pendingOrders.map(order => (
+                                            <option key={order.orderId} value={order.orderId}>
+                                                {order.orderId} - {order.fileName}
+                                            </option>
+                                        ))}
+                                    </select>
+                                )}
+
                                 <input
                                     type="text"
                                     maxLength={4}
@@ -253,7 +292,6 @@ function BlockSelection() {
                                     onClick={() => {
                                         setShowOtpModal(false);
                                         setOtpError("");
-                                        setInputOrderId("");
                                         setInputOtp("");
                                     }}
                                     className="h-11 rounded-xl border border-slate-700 bg-slate-800 hover:bg-slate-700 text-xs font-bold text-white transition-colors"
@@ -262,7 +300,7 @@ function BlockSelection() {
                                 </button>
                                 <button
                                     onClick={handleDirectRelease}
-                                    disabled={releasing}
+                                    disabled={releasing || pendingOrders.length === 0}
                                     className="h-11 rounded-xl bg-sky-500 hover:bg-sky-600 text-xs font-black text-white transition-colors disabled:opacity-50"
                                 >
                                     {releasing ? "Releasing..." : "Verify & Print"}
