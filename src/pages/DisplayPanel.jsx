@@ -311,11 +311,36 @@ function DisplayPanel() {
                                             {currentOrder.customerName || "Customer"}
                                         </p>
 
-                                        <div className="mt-8 grid gap-4 sm:grid-cols-3">
+                                        <div className="mt-8 grid gap-4 sm:grid-cols-4">
                                             {[
-                                                ["Pages", currentOrder.selectedPages],
+                                                ["Pages", currentOrder.selectedPages === 'ALL' ? currentOrder.totalPages : currentOrder.selectedPages],
                                                 ["Copies", currentOrder.copies],
-                                                ["Type", currentOrder.printType]
+                                                ["Type", currentOrder.printType],
+                                                ["Total Sheets", (() => {
+                                                    let pageCount = currentOrder.totalPages || 0;
+                                                    if (currentOrder.selectedPages && currentOrder.selectedPages !== "ALL") {
+                                                        let count = 0;
+                                                        const parts = currentOrder.selectedPages.split(",");
+                                                        for (const part of parts) {
+                                                            const pagePart = part.trim();
+                                                            if (!pagePart) continue;
+                                                            if (pagePart.includes("-")) {
+                                                                const range = pagePart.split("-").map(Number);
+                                                                if (range.length === 2 && !isNaN(range[0]) && !isNaN(range[1])) {
+                                                                    count += Math.max(0, range[1] - range[0] + 1);
+                                                                } else {
+                                                                    count += 1;
+                                                                }
+                                                            } else {
+                                                                if (!isNaN(Number(pagePart))) {
+                                                                    count += 1;
+                                                                }
+                                                            }
+                                                        }
+                                                        pageCount = count > 0 ? count : 1;
+                                                    }
+                                                    return pageCount * (currentOrder.copies || 1);
+                                                })()]
                                             ].map(([label, value]) => (
                                                 <div
                                                     key={label}
@@ -383,6 +408,7 @@ function DisplayPanel() {
                                                 key={order.id}
                                                 order={order}
                                                 index={index}
+                                                position={queuePageIndex * 8 + index + 2}
                                             />
                                         ))}
 

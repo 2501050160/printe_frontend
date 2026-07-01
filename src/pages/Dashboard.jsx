@@ -48,6 +48,38 @@ function Dashboard() {
     const [estimates, setEstimates] = useState({});
     const [suggestions, setSuggestions] = useState([]);
 
+    // 10-Minute PENDING_SCAN OTP Release Countdown
+    const [scanCountdown, setScanCountdown] = useState("");
+
+    useEffect(() => {
+        const orderPendingScan = orders.find(o => o.status === "PENDING_SCAN");
+        if (!orderPendingScan || !orderPendingScan.cancelWindowEndsAt) {
+            setScanCountdown("");
+            return;
+        }
+
+        const updateTimer = () => {
+            const ends = new Date(orderPendingScan.cancelWindowEndsAt).getTime();
+            const timeoutTime = ends + 10 * 60 * 1000; // 10-minute scan limit
+            const now = Date.now();
+            const diff = timeoutTime - now;
+
+            if (diff <= 0) {
+                setScanCountdown("Expired");
+                return;
+            }
+
+            const minutes = Math.floor(diff / 60000);
+            const seconds = Math.floor((diff % 60000) / 1000);
+            setScanCountdown(`${minutes}:${seconds < 10 ? '0' : ''}${seconds}`);
+        };
+
+        updateTimer();
+        const timerId = setInterval(updateTimer, 1000);
+
+        return () => clearInterval(timerId);
+    }, [orders]);
+
     // Active Navigation Tab
     const [activeTab, setActiveTab] = useState("print");
 
@@ -776,9 +808,27 @@ function Dashboard() {
                                     </div>
                                 </div>
 
+                                {/* PENDING_SCAN OTP Release Alert with 10-min Countdown */}
+                                {activeOrder.status === 'PENDING_SCAN' && (
+                                    <div className="mt-4 bg-sky-500/10 border border-sky-500/20 text-sky-300 rounded-xl p-4 flex flex-col md:flex-row justify-between items-start md:items-center gap-3">
+                                        <div>
+                                            <span className="block text-[10px] font-black uppercase tracking-widest text-sky-400">Scan Kiosk QR or Enter OTP</span>
+                                            <p className="text-xs font-semibold text-slate-300 mt-1 leading-relaxed">
+                                                Please scan the QR code at the printer kiosk or enter your OTP code on the display panel. If your print job is not released within 10 minutes, the order will be automatically cancelled and all funds refunded back to your wallet.
+                                            </p>
+                                        </div>
+                                        <div className="flex flex-col items-start md:items-end shrink-0 bg-rose-500/10 border border-rose-500/25 px-4 py-2.5 rounded-xl">
+                                            <span className="text-[10px] font-black uppercase tracking-widest text-rose-400">Release Time Left</span>
+                                            <span className="text-2xl font-mono font-black text-rose-400 mt-0.5 animate-pulse">
+                                                {scanCountdown || "10:00"}
+                                            </span>
+                                        </div>
+                                    </div>
+                                )}
+
                                 {/* Queue Wait Time & Estimations */}
                                 {estimates[activeOrder.orderId] && (
-                                    <div className="grid grid-cols-2 md:grid-cols-3 gap-4 bg-slate-850 border border-slate-800 rounded-xl p-4 my-4">
+                                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 bg-slate-850 border border-slate-800 rounded-xl p-4 my-4">
                                         <div>
                                             <span className="text-[10px] font-black uppercase text-slate-400">Queue Position</span>
                                             <p className="text-lg font-black text-white mt-0.5">
@@ -791,8 +841,38 @@ function Dashboard() {
                                                 {estimates[activeOrder.orderId].totalPagesAhead} pages
                                             </p>
                                         </div>
-                                        <div className="col-span-2 md:col-span-1">
-                                            <span className="text-[10px] font-black uppercase text-slate-400">Estimated Wait Time</span>
+                                        <div>
+                                            <span className="text-[10px] font-black uppercase text-slate-400">Your Sheets</span>
+                                            <p className="text-lg font-black text-white mt-0.5">
+                                                {(() => {
+                                                    let pageCount = activeOrder.totalPages || 0;
+                                                    if (activeOrder.selectedPages && activeOrder.selectedPages !== "ALL") {
+                                                        let count = 0;
+                                                        const parts = activeOrder.selectedPages.split(",");
+                                                        for (const part of parts) {
+                                                            const pagePart = part.trim();
+                                                            if (!pagePart) continue;
+                                                            if (pagePart.includes("-")) {
+                                                                const range = pagePart.split("-").map(Number);
+                                                                if (range.length === 2 && !isNaN(range[0]) && !isNaN(range[1])) {
+                                                                    count += Math.max(0, range[1] - range[0] + 1);
+                                                                } else {
+                                                                    count += 1;
+                                                                }
+                                                            } else {
+                                                                if (!isNaN(Number(pagePart))) {
+                                                                    count += 1;
+                                                                }
+                                                            }
+                                                        }
+                                                        pageCount = count > 0 ? count : 1;
+                                                    }
+                                                    return pageCount * (activeOrder.copies || 1);
+                                                })()} sheets
+                                            </p>
+                                        </div>
+                                        <div>
+                                            <span className="text-[10px] font-black uppercase text-slate-400">Est. Wait Time</span>
                                             <p className="text-lg font-black text-emerald-400 mt-0.5">
                                                 ~{estimates[activeOrder.orderId].estimatedWaitTimeMinutes} min
                                             </p>
