@@ -1247,9 +1247,9 @@ function Dashboard() {
             {/* Privacy Policy Modal */}
             <AnimatePresence>
                 {showPrivacyNotice && (
-                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/65 backdrop-blur-sm">
+                    <div className="fixed inset-0 z-50 overflow-y-auto flex items-start justify-center p-4 bg-slate-950/65 backdrop-blur-sm">
                         <motion.div
-                            className="relative w-full max-w-md overflow-hidden rounded-2xl bg-white p-6 shadow-2xl border border-slate-100 z-10 cursor-grab active:cursor-grabbing touch-none"
+                            className="relative my-auto w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl border border-slate-100 z-10 cursor-grab active:cursor-grabbing touch-none"
                             drag
                             dragConstraints={{ left: 0, right: 0, top: 0, bottom: 0 }}
                             dragElastic={0.6}
@@ -1314,9 +1314,9 @@ function Dashboard() {
             {/* General Announcement Modal */}
             <AnimatePresence>
                 {showGeneralPopup && (
-                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/65 backdrop-blur-sm">
+                    <div className="fixed inset-0 z-50 overflow-y-auto flex items-start justify-center p-4 bg-slate-950/65 backdrop-blur-sm">
                         <motion.div
-                            className="relative w-full max-w-md overflow-hidden rounded-2xl bg-white p-6 shadow-2xl border border-slate-100 z-10 cursor-grab active:cursor-grabbing touch-none"
+                            className="relative my-auto w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl border border-slate-100 z-10 cursor-grab active:cursor-grabbing touch-none"
                             drag
                             dragConstraints={{ left: 0, right: 0, top: 0, bottom: 0 }}
                             dragElastic={0.6}
@@ -1381,9 +1381,9 @@ function Dashboard() {
             {/* Uploading Status Popup Modal */}
             <AnimatePresence>
                 {uploading && (
-                    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-sm">
+                    <div className="fixed inset-0 z-50 overflow-y-auto flex items-start justify-center p-4 bg-slate-950/80 backdrop-blur-sm">
                         <motion.div 
-                            className="bg-white rounded-2xl p-8 max-w-md w-full mx-4 shadow-2xl border border-slate-100 flex flex-col items-center text-center"
+                            className="bg-white rounded-2xl p-6 sm:p-8 max-w-md w-full my-auto shadow-2xl border border-slate-100 flex flex-col items-center text-center"
                             initial={{ opacity: 0, scale: 0.95, y: 15 }}
                             animate={{ opacity: 1, scale: 1, y: 0 }}
                             exit={{ opacity: 0, scale: 0.95, y: 15 }}
@@ -1419,9 +1419,9 @@ function Dashboard() {
             {/* Wallet Details Popup Modal */}
             <AnimatePresence>
                 {showWalletModal && (
-                    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-sm">
+                    <div className="fixed inset-0 z-50 overflow-y-auto flex items-start justify-center p-4 bg-slate-950/80 backdrop-blur-sm">
                         <motion.div 
-                            className="bg-white rounded-2xl p-8 max-w-md w-full mx-4 shadow-2xl border border-slate-100 flex flex-col items-center text-center relative"
+                            className="bg-white rounded-2xl p-6 sm:p-8 max-w-md w-full my-auto shadow-2xl border border-slate-100 flex flex-col items-center text-center relative"
                             initial={{ opacity: 0, scale: 0.95, y: 15 }}
                             animate={{ opacity: 1, scale: 1, y: 0 }}
                             exit={{ opacity: 0, scale: 0.95, y: 15 }}
