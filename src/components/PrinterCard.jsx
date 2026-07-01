@@ -16,12 +16,14 @@ function PrinterCard({ printer, onDelete }) {
 
                 <span
                     className={
-                        printer.active
+                        printer.maintenance
+                            ? "status-pill !bg-amber-500 !text-white !border-amber-600 font-bold"
+                            : printer.active
                             ? "status-pill status-paid"
                             : "status-pill status-unpaid"
                     }
                 >
-                    {printer.active ? "Active" : "Inactive"}
+                    {printer.maintenance ? "Maintenance" : printer.active ? "Active" : "Inactive"}
                 </span>
             </div>
 

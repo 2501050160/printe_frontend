@@ -13,6 +13,7 @@ function PrinterSettings() {
     const [printerName, setPrinterName] = useState("");
     const [printerIp, setPrinterIp] = useState("");
     const [active, setActive] = useState(true);
+    const [maintenance, setMaintenance] = useState(false);
 
     useEffect(() => {
         const adminId = localStorage.getItem("adminId");
@@ -46,11 +47,14 @@ function PrinterSettings() {
                 blockLocation,
                 printerName,
                 printerIp,
-                active
+                active,
+                maintenance
             });
 
             setPrinterName("");
             setPrinterIp("");
+            setActive(true);
+            setMaintenance(false);
             fetchPrinters();
             alert("Printer saved");
         } catch (error) {
@@ -105,7 +109,7 @@ function PrinterSettings() {
                         Block Printer Mapping
                     </h2>
 
-                    <div className="mt-5 grid gap-4 md:grid-cols-2 xl:grid-cols-5">
+                    <div className="mt-5 grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
                         <select
                             value={blockLocation}
                             onChange={(e) => setBlockLocation(e.target.value)}
@@ -142,6 +146,15 @@ function PrinterSettings() {
                         >
                             <option value="true">Active</option>
                             <option value="false">Inactive</option>
+                        </select>
+
+                        <select
+                            value={maintenance ? "true" : "false"}
+                            onChange={(e) => setMaintenance(e.target.value === "true")}
+                            className="field font-bold text-amber-600 bg-amber-50/50"
+                        >
+                            <option value="false">Normal Operation</option>
+                            <option value="true">Under Maintenance 🛠️</option>
                         </select>
 
                         <button onClick={savePrinter} className="btn success">

@@ -17,6 +17,7 @@ function Checkout() {
     const [walletBalance, setWalletBalance] = useState(getStoredWalletBalance());
     const [referralCode, setReferralCode] = useState(order?.appliedReferralCode || "");
     const [referralApplied, setReferralApplied] = useState(!!order?.appliedReferralCode);
+    const [maintenance, setMaintenance] = useState(false);
 
     // Custom Modal config
     const [modalConfig, setModalConfig] = useState({
@@ -80,18 +81,23 @@ function Checkout() {
     }, [userId]);
 
     useEffect(() => {
-        const fetchPaper = async () => {
+        const fetchStatusAndPaper = async () => {
             if (!order?.blockLocation) return;
             try {
                 const response = await api.get("/printer/paper", {
                     params: { blockLocation: order.blockLocation }
                 });
                 setPaperCount(response.data != null ? response.data : 0);
+
+                const statusRes = await api.get("/system/status", {
+                    params: { blockLocation: order.blockLocation }
+                });
+                setMaintenance(statusRes.data.maintenance || false);
             } catch (err) {
-                console.error("Failed to fetch paper count", err);
+                console.error("Failed to fetch status and paper count", err);
             }
         };
-        fetchPaper();
+        fetchStatusAndPaper();
     }, [order]);
 
     let pagesPerCopy = order?.totalPages || 0;
@@ -105,6 +111,10 @@ function Checkout() {
     const paperShortage = estimatedPagesNeeded > paperCount;
 
     const payNow = async () => {
+        if (maintenance) {
+            showAlert("Machine Under Maintenance", "This printer is currently under maintenance. Please try again later or change your block location.", "error");
+            return;
+        }
         if (paperShortage) {
             showAlert("Low Paper Level", "Print cannot be done due to low paper levels. Please change your block location.", "error");
             return;
@@ -403,6 +413,21 @@ function Checkout() {
                             </div>
                         </div>
 
+                        {maintenance && (
+                            <div style={{
+                                background: "#f97316",
+                                color: "#ffffff",
+                                padding: "10px 16px",
+                                borderRadius: "10px",
+                                fontSize: "13px",
+                                fontWeight: "bold",
+                                marginTop: "16px",
+                                boxShadow: "0 0 15px rgba(249, 115, 22, 0.3)"
+                            }}>
+                                <marquee scrollamount="4">⚠️ Please try again later as the machine is under maintenance.</marquee>
+                            </div>
+                        )}
+
                         {paperShortage && (
                             <div style={{
                                 background: "#ef4444",
@@ -422,8 +447,8 @@ function Checkout() {
                             <button
                                 onClick={payWithWallet}
                                 className="btn secondary mt-4 w-full"
-                                disabled={paperShortage}
-                                style={paperShortage ? { opacity: 0.5, cursor: "not-allowed", background: "#64748b" } : {}}
+                                disabled={paperShortage || maintenance}
+                                style={paperShortage || maintenance ? { opacity: 0.5, cursor: "not-allowed", background: "#64748b" } : {}}
                             >
                                 Pay With Wallet
                             </button>
@@ -432,8 +457,8 @@ function Checkout() {
                         <button
                             onClick={payNow}
                             className="btn success mt-4 w-full"
-                            disabled={paperShortage}
-                            style={paperShortage ? { opacity: 0.5, cursor: "not-allowed", background: "#64748b" } : {}}
+                            disabled={paperShortage || maintenance}
+                            style={paperShortage || maintenance ? { opacity: 0.5, cursor: "not-allowed", background: "#64748b" } : {}}
                         >
                             Pay With Razorpay
                         </button>

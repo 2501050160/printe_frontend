@@ -454,7 +454,7 @@ function Dashboard() {
     const estimatedTotalPages = selectedPageCount * Number(copies || 1);
     const isLowPaper = uploaded && estimatedTotalPages > paperCount;
     const estimatedTotal = selectedPageCount * Number(copies || 1) * rate;
-    const isPrintingDisabled = !systemStatus.databaseConnected || !systemStatus.agentOnline || !systemStatus.printerConfigured || isLowPaper;
+    const isPrintingDisabled = !systemStatus.databaseConnected || !systemStatus.agentOnline || !systemStatus.printerConfigured || isLowPaper || systemStatus.maintenance;
 
     const displayAdText = settings.adEnabled && settings.adText ? settings.adText.replace("{referralCode}", referralCode) : "";
 
@@ -508,6 +508,24 @@ function Dashboard() {
                     }}>
                         <marquee scrollamount="4">
                             {displayAdText}
+                        </marquee>
+                    </div>
+                )}
+
+                {/* Maintenance mode marquee alert */}
+                {systemStatus.maintenance && (
+                    <div style={{
+                        background: "#f97316",
+                        color: "#ffffff",
+                        padding: "10px 16px",
+                        borderRadius: "10px",
+                        fontSize: "13px",
+                        fontWeight: "bold",
+                        marginBottom: "16px",
+                        boxShadow: "0 0 15px rgba(249, 115, 22, 0.3)"
+                    }}>
+                        <marquee scrollamount="4">
+                            ⚠️ Please try again later as the machine is under maintenance.
                         </marquee>
                     </div>
                 )}
