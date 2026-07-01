@@ -21,6 +21,8 @@ function AdminDashboard() {
     const [maxUses, setMaxUses] = useState("");
 
     const [users, setUsers] = useState([]);
+    const [selectedUsers, setSelectedUsers] = useState([]);
+    const [selectedCoupons, setSelectedCoupons] = useState([]);
     const [supportTickets, setSupportTickets] = useState([]);
     const [selectedPricingBlock, setSelectedPricingBlock] = useState("C Block");
     const [activeTab, setActiveTab] = useState("queue");
@@ -102,6 +104,128 @@ function AdminDashboard() {
             onConfirm
         });
     };
+
+    const exportToCSV = (data, filename, headers) => {
+        if (!data || !data.length) {
+            showAlert("No Data", "There is no data to export.", "warning");
+            return;
+        }
+
+        const csvRows = [];
+        csvRows.push(headers.join(","));
+
+        for (const row of data) {
+            const values = headers.map(header => {
+                let val = "";
+                if (header === "User ID" || header === "ID") val = row.id != null ? row.id : "";
+                else if (header === "Name") val = row.name != null ? row.name : "";
+                else if (header === "Username" || header === "Email") val = row.email != null ? row.email : "";
+                else if (header === "Referral Code") val = row.referralCode != null ? row.referralCode : "";
+                else if (header === "Wallet Balance") val = row.walletBalance != null ? row.walletBalance.toFixed(2) : "0.00";
+                else if (header === "Status") val = row.blocked ? "BLOCKED" : "ACTIVE";
+
+                // For Orders
+                else if (header === "Order ID") val = row.orderId != null ? row.orderId : "";
+                else if (header === "Location") val = row.blockLocation != null ? row.blockLocation : "";
+                else if (header === "Customer") val = row.customerName != null ? row.customerName : "";
+                else if (header === "Pages") val = row.selectedPages != null ? row.selectedPages : "";
+                else if (header === "Copies") val = row.copies != null ? row.copies : "";
+                else if (header === "Price") val = row.price != null ? row.price : "";
+                else if (header === "Payment") val = row.razorpayPaymentId != null ? row.razorpayPaymentId : "UNPAID";
+                else if (header === "Order Status") val = row.status != null ? row.status : "";
+
+                // For Coupons
+                else if (header === "Code") val = row.couponCode != null ? row.couponCode : "";
+                else if (header === "Discount") val = row.discountPercentage != null ? row.discountPercentage + "%" : "";
+                else if (header === "Expiry") val = row.expiryDate != null ? row.expiryDate : "";
+                else if (header === "Used") val = `${row.usedCount != null ? row.usedCount : 0} / ${row.maxUses != null ? row.maxUses : 0}`;
+
+                const escaped = ('' + val).replace(/"/g, '""');
+                return `"${escaped}"`;
+            });
+            csvRows.push(values.join(","));
+        }
+
+        const csvContent = "\uFEFF" + csvRows.join("\n");
+        const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.setAttribute("href", url);
+        link.setAttribute("download", `${filename}.csv`);
+        link.style.visibility = "hidden";
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    };
+
+    const handleBulkDeleteUsers = () => {
+        if (selectedUsers.length === 0) return;
+        const toDeleteCount = selectedUsers.length;
+        showConfirm(
+            "Bulk Delete Users",
+            `Are you sure you want to delete the ${toDeleteCount} selected users permanently? All their wallet and order history will be deleted.`,
+            async () => {
+                try {
+                    for (const userId of selectedUsers) {
+                        await api.delete("/admin/users/delete", { params: { id: userId } });
+                    }
+                    setSelectedUsers([]);
+                    fetchUsers();
+                    showAlert("Success", `${toDeleteCount} users deleted successfully`, "success");
+                } catch (error) {
+                    console.error("Error performing bulk delete:", error);
+                    showAlert("Error", "Failed to delete all selected users", "error");
+                }
+            }
+        );
+    };
+
+    const handleBulkBlockUsers = async (block) => {
+        if (selectedUsers.length === 0) return;
+        showConfirm(
+            block ? "Bulk Block Users" : "Bulk Unblock Users",
+            `Are you sure you want to ${block ? "block" : "unblock"} the ${selectedUsers.length} selected users?`,
+            async () => {
+                try {
+                    for (const userId of selectedUsers) {
+                        const user = users.find(u => u.id === userId);
+                        if (user && user.blocked !== block) {
+                            await api.post("/admin/users/toggle-block", null, { params: { id: userId } });
+                        }
+                    }
+                    setSelectedUsers([]);
+                    fetchUsers();
+                    showAlert("Success", `Selected users updated successfully`, "success");
+                } catch (error) {
+                    console.error("Error performing bulk block toggle:", error);
+                    showAlert("Error", `Failed to update selected users`, "error");
+                }
+            }
+        );
+    };
+
+    const handleBulkDeleteCoupons = () => {
+        if (selectedCoupons.length === 0) return;
+        const toDeleteCount = selectedCoupons.length;
+        showConfirm(
+            "Bulk Delete Coupons",
+            `Are you sure you want to delete the ${toDeleteCount} selected coupons permanently?`,
+            async () => {
+                try {
+                    for (const couponId of selectedCoupons) {
+                        await api.post("/coupon/delete", null, { params: { id: couponId } });
+                    }
+                    setSelectedCoupons([]);
+                    fetchCoupons();
+                    showAlert("Success", `${toDeleteCount} coupons deleted successfully`, "success");
+                } catch (error) {
+                    console.error("Error performing bulk coupon delete:", error);
+                    showAlert("Error", "Failed to delete all selected coupons", "error");
+                }
+            }
+        );
+    };
+
 
     useEffect(() => {
         const adminId = localStorage.getItem("adminId");
@@ -973,13 +1097,19 @@ function AdminDashboard() {
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: 0.12 }}
                         >
-                            <div className="section-header pb-4">
+                            <div className="section-header pb-4 flex flex-wrap justify-between items-center gap-4">
                                 <div>
                                     <p className="eyebrow">Print queue</p>
                                     <h2 className="text-2xl font-black text-slate-900">
                                         Active Orders
                                     </h2>
                                 </div>
+                                <button
+                                    onClick={() => exportToCSV(orders, "active_orders", ["Order ID", "Location", "Customer", "Pages", "Copies", "Price", "Payment", "Order Status"])}
+                                    className="btn secondary px-4 py-2 text-sm font-bold min-h-0"
+                                >
+                                    📥 Export Excel
+                                </button>
                             </div>
 
                             <table className="data-table">
@@ -1198,18 +1328,48 @@ function AdminDashboard() {
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: 0.1 }}
                         >
-                            <div className="section-header p-6 pb-0">
+                            <div className="section-header p-6 pb-0 flex flex-wrap justify-between items-center gap-4">
                                 <div>
                                     <p className="eyebrow">Coupons</p>
                                     <h2 className="text-2xl font-black text-slate-900">
                                         Active Coupons
                                     </h2>
                                 </div>
+                                <div className="flex flex-wrap gap-2">
+                                    <button
+                                        onClick={() => exportToCSV(coupons, "coupons_list", ["Code", "Discount", "Expiry", "Used"])}
+                                        className="btn secondary px-4 py-2 text-sm font-bold min-h-0"
+                                    >
+                                        📥 Export Excel
+                                    </button>
+                                    {selectedCoupons.length > 0 && (
+                                        <button
+                                            onClick={handleBulkDeleteCoupons}
+                                            className="btn danger px-4 py-2 text-sm font-bold min-h-0"
+                                        >
+                                            🗑️ Delete Selected ({selectedCoupons.length})
+                                        </button>
+                                    )}
+                                </div>
                             </div>
 
                             <table className="data-table mt-4">
                                 <thead>
                                     <tr>
+                                        <th className="w-10">
+                                            <input
+                                                type="checkbox"
+                                                checked={coupons.length > 0 && selectedCoupons.length === coupons.length}
+                                                onChange={(e) => {
+                                                    if (e.target.checked) {
+                                                        setSelectedCoupons(coupons.map(c => c.id));
+                                                    } else {
+                                                        setSelectedCoupons([]);
+                                                    }
+                                                }}
+                                                className="w-4 h-4 rounded accent-slate-900"
+                                            />
+                                        </th>
                                         <th>Code</th>
                                         <th>Discount</th>
                                         <th>Expiry</th>
@@ -1225,6 +1385,20 @@ function AdminDashboard() {
                                             animate={{ opacity: 1, y: 0 }}
                                             transition={{ delay: index * 0.03 }}
                                         >
+                                            <td>
+                                                <input
+                                                    type="checkbox"
+                                                    checked={selectedCoupons.includes(coupon.id)}
+                                                    onChange={(e) => {
+                                                        if (e.target.checked) {
+                                                            setSelectedCoupons(prev => [...prev, coupon.id]);
+                                                        } else {
+                                                            setSelectedCoupons(prev => prev.filter(id => id !== coupon.id));
+                                                        }
+                                                    }}
+                                                    className="w-4 h-4 rounded accent-slate-900"
+                                                />
+                                            </td>
                                             <td className="font-black">
                                                 {coupon.couponCode}
                                             </td>
@@ -1249,7 +1423,7 @@ function AdminDashboard() {
                                     ))}
                                     {coupons.length === 0 && (
                                         <tr>
-                                            <td colSpan="5" className="text-center font-bold text-slate-500 py-6">
+                                            <td colSpan="6" className="text-center font-bold text-slate-500 py-6">
                                                 No coupons found
                                             </td>
                                         </tr>
@@ -1267,17 +1441,61 @@ function AdminDashboard() {
                         initial={{ opacity: 0, y: 18 }}
                         animate={{ opacity: 1, y: 0 }}
                     >
-                        <div className="section-header pb-4">
+                        <div className="section-header pb-4 flex flex-wrap justify-between items-center gap-4">
                             <div>
                                 <p className="eyebrow">Moderation</p>
                                 <h2 className="text-2xl font-black text-slate-900">Registered Users</h2>
                                 <p className="subtitle">Manage user accounts, block access, or remove accounts.</p>
+                            </div>
+                            <div className="flex flex-wrap gap-2">
+                                <button
+                                    onClick={() => exportToCSV(users, "registered_users", ["User ID", "Name", "Email", "Referral Code", "Wallet Balance", "Status"])}
+                                    className="btn secondary px-4 py-2 text-sm font-bold min-h-0"
+                                >
+                                    📥 Export Excel
+                                </button>
+                                {selectedUsers.length > 0 && (
+                                    <>
+                                        <button
+                                            onClick={() => handleBulkBlockUsers(true)}
+                                            className="btn warning px-4 py-2 text-sm font-bold min-h-0"
+                                        >
+                                            ⛔ Block Selected ({selectedUsers.length})
+                                        </button>
+                                        <button
+                                            onClick={() => handleBulkBlockUsers(false)}
+                                            className="btn success px-4 py-2 text-sm font-bold min-h-0"
+                                        >
+                                            ✅ Unblock Selected ({selectedUsers.length})
+                                        </button>
+                                        <button
+                                            onClick={handleBulkDeleteUsers}
+                                            className="btn danger px-4 py-2 text-sm font-bold min-h-0"
+                                        >
+                                            🗑️ Delete Selected ({selectedUsers.length})
+                                        </button>
+                                    </>
+                                )}
                             </div>
                         </div>
 
                         <table className="data-table mt-4 w-full">
                             <thead>
                                 <tr>
+                                    <th className="w-10">
+                                        <input
+                                            type="checkbox"
+                                            checked={users.length > 0 && selectedUsers.length === users.length}
+                                            onChange={(e) => {
+                                                if (e.target.checked) {
+                                                    setSelectedUsers(users.map(u => u.id));
+                                                } else {
+                                                    setSelectedUsers([]);
+                                                }
+                                            }}
+                                            className="w-4 h-4 rounded accent-slate-900"
+                                        />
+                                    </th>
                                     <th>User ID</th>
                                     <th>Name</th>
                                     <th>Username</th>
@@ -1295,6 +1513,20 @@ function AdminDashboard() {
                                         animate={{ opacity: 1, y: 0 }}
                                         transition={{ delay: index * 0.02 }}
                                     >
+                                        <td>
+                                            <input
+                                                type="checkbox"
+                                                checked={selectedUsers.includes(user.id)}
+                                                onChange={(e) => {
+                                                    if (e.target.checked) {
+                                                        setSelectedUsers(prev => [...prev, user.id]);
+                                                    } else {
+                                                        setSelectedUsers(prev => prev.filter(id => id !== user.id));
+                                                    }
+                                                }}
+                                                className="w-4 h-4 rounded accent-slate-900"
+                                            />
+                                        </td>
                                         <td className="font-black">#{user.id}</td>
                                         <td className="font-bold text-slate-900">{user.name}</td>
                                         <td className="font-semibold text-slate-600">{user.email}</td>
@@ -1325,7 +1557,7 @@ function AdminDashboard() {
                                 ))}
                                 {users.length === 0 && (
                                     <tr>
-                                        <td colSpan="7" className="text-center font-bold text-slate-500 py-6">
+                                        <td colSpan="8" className="text-center font-bold text-slate-500 py-6">
                                             No users found
                                         </td>
                                     </tr>
@@ -1838,6 +2070,7 @@ function AdminDashboard() {
                                                         <input 
                                                             type="number" 
                                                             className="field w-24 text-center font-bold" 
+                                                            key={currentPaper}
                                                             defaultValue={currentPaper}
                                                             id={`paper-${p.blockLocation}`}
                                                         />

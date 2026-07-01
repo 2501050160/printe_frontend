@@ -94,18 +94,18 @@ function CustomModal({
                             </p>
 
                             {/* Buttons Footer */}
-                            <div className="flex w-full gap-3">
+                            <div className="flex flex-col sm:flex-row w-full gap-3">
                                 {type === "confirm" ? (
                                     <>
                                         <button
                                             onClick={onClose}
-                                            className="btn secondary flex-1"
+                                            className="btn secondary flex-1 w-full"
                                         >
                                             {cancelText}
                                         </button>
                                         <button
                                             onClick={handleConfirm}
-                                            className="btn success flex-1"
+                                            className="btn success flex-1 w-full"
                                         >
                                             {confirmText}
                                         </button>
