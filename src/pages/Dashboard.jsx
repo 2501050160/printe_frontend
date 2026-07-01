@@ -177,6 +177,9 @@ function Dashboard() {
         eventSource.addEventListener("progress", (e) => {
             try {
                 const data = JSON.parse(e.data);
+                if (data.status === "COMPLETED") {
+                    showAlert("Order Completed! 🎉", `Your order ${data.orderId} is printed and ready for collection!`, "success");
+                }
                 setOrders(prevOrders => 
                     prevOrders.map(order => 
                         order.orderId === data.orderId 

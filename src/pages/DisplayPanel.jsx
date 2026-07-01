@@ -44,7 +44,7 @@ function DisplayPanel() {
     useEffect(() => {
         fetchOrders();
 
-        const interval = setInterval(fetchOrders, 3000);
+        const interval = setInterval(fetchOrders, 5000);
 
         return () => {
             clearInterval(interval);
@@ -110,14 +110,10 @@ function DisplayPanel() {
                 order.status === "COMPLETED" &&
                 order.paymentStatus === "PAID"
             ) {
-                const timer = setTimeout(() => {
-                    setPickupQueue((currentQueue) => [
-                        ...currentQueue,
-                        order
-                    ]);
-                }, 5000);
-
-                timersRef.current.push(timer);
+                setPickupQueue((currentQueue) => [
+                    ...currentQueue,
+                    order
+                ]);
             }
 
             nextStatuses.set(order.id, order.status);
@@ -183,6 +179,31 @@ function DisplayPanel() {
                 transition={{ duration: 16, repeat: Infinity, ease: "easeInOut" }}
             />
             <div className="display-grid-overlay" />
+
+            {/* Dynamic Background Videos */}
+            {activePickup ? (
+                <video
+                    key="exit-print-video"
+                    autoPlay
+                    loop
+                    muted
+                    playsInline
+                    className="absolute inset-0 w-full h-full object-cover z-0 opacity-40 transition-opacity duration-1000"
+                >
+                    <source src="/exit_print.mp4" type="video/mp4" />
+                </video>
+            ) : hasActiveOrPendingOrders ? (
+                <video
+                    key="printer-video"
+                    autoPlay
+                    loop
+                    muted
+                    playsInline
+                    className="absolute inset-0 w-full h-full object-cover z-0 opacity-35 transition-opacity duration-1000"
+                >
+                    <source src="/printer.mp4" type="video/mp4" />
+                </video>
+            ) : null}
 
             <section className="relative z-10 flex min-h-screen flex-col p-6 md:p-8">
                 <motion.header
