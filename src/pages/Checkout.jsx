@@ -112,7 +112,8 @@ function Checkout() {
         try {
             const response = await api.post("/payment/createOrder", null, {
                 params: {
-                    amount: finalAmount
+                    amount: finalAmount,
+                    appOrderId: order.orderId
                 }
             });
 
@@ -137,17 +138,33 @@ function Checkout() {
                         localStorage.removeItem("order");
                         navigate(`/payment-success?orderId=${order.orderId}`);
                     } catch (error) {
-                        console.error(error);
-                        showAlert("Error", "Unable to update payment status.", "error");
+                        console.error("Failed to mark order as paid:", error);
+                        showAlert("Error", "Unable to update payment status in our database.", "error");
+                    }
+                },
+                modal: {
+                    ondismiss: function () {
+                        console.log("Payment checkout modal was closed.");
+                        showAlert("Payment Cancelled", "The payment checkout was closed.", "warning");
                     }
                 }
             };
 
             const rzp = new window.Razorpay(options);
+            
+            rzp.on('payment.failed', function (response) {
+                console.error("Razorpay Payment Failure Detail:", response.error);
+                showAlert(
+                    "Payment Failed",
+                    `Reason: ${response.error.description || "The transaction was declined by the bank/gateway."}`,
+                    "error"
+                );
+            });
+
             rzp.open();
         } catch (error) {
-            console.error("Payment error:", error);
-            showAlert("Payment Failed", "Payment processing failed.", "error");
+            console.error("Payment initiation error:", error);
+            showAlert("Payment Error", "Unable to initiate payment transaction.", "error");
         }
     };
 
