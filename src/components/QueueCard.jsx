@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 
-function QueueCard({ order, index = 0, onRelease }) {
+function QueueCard({ order, index = 0 }) {
     const isPendingScan = order.status === "PENDING_SCAN";
 
     return (
@@ -20,13 +20,9 @@ function QueueCard({ order, index = 0, onRelease }) {
             </div>
 
             {isPendingScan ? (
-                <button
-                    onClick={() => onRelease && onRelease(order)}
-                    className="rounded-full bg-sky-500 hover:bg-sky-600 active:scale-95 px-4 py-2 font-black text-white cursor-pointer shadow-lg border border-sky-400/30 transition-all animate-pulse"
-                    style={{ animationDuration: '2s' }}
-                >
-                    Enter OTP 🔑
-                </button>
+                <span className="rounded-full bg-sky-500 px-4 py-2 font-black text-white shadow-md border border-sky-400/30 text-lg font-mono">
+                    OTP: {order.otpCode}
+                </span>
             ) : (
                 <span className="rounded-full bg-amber-200 px-4 py-2 font-black text-amber-950">
                     {order.status === "CANCEL_WINDOW" ? "Confirming" : "Waiting"}

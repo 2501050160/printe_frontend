@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import api from "../services/api";
 import Navbar from "../components/Navbar";
 import { getStoredWalletBalance, getWalletBalance } from "../services/auth";
@@ -11,6 +11,12 @@ function MyOrders() {
 
     const [orders, setOrders] = useState([]);
     const [walletBalance, setWalletBalance] = useState(getStoredWalletBalance());
+
+    // OTP Verification Modal states
+    const [releasingOrder, setReleasingOrder] = useState(null);
+    const [mobileOtp, setMobileOtp] = useState("");
+    const [mobileOtpError, setMobileOtpError] = useState("");
+    const [isSubmittingOtp, setIsSubmittingOtp] = useState(false);
 
     useEffect(() => {
         fetchOrders();
@@ -32,6 +38,42 @@ function MyOrders() {
             setOrders(response.data);
         } catch (error) {
             console.error(error);
+        }
+    };
+
+    const handleKeypadPress = (val) => {
+        setMobileOtpError("");
+        if (mobileOtp.length < 4) {
+            setMobileOtp(prev => prev + val);
+        }
+    };
+
+    const handleKeypadBackspace = () => {
+        setMobileOtpError("");
+        setMobileOtp(prev => prev.slice(0, -1));
+    };
+
+    const handleKeypadClear = () => {
+        setMobileOtpError("");
+        setMobileOtp("");
+    };
+
+    const handleReleaseVerify = async () => {
+        if (mobileOtp.length !== 4) {
+            setMobileOtpError("OTP must be exactly 4 digits.");
+            return;
+        }
+        setIsSubmittingOtp(true);
+        try {
+            await api.post("/pdf/releasePrint", null, {
+                params: { orderId: releasingOrder.orderId, otp: mobileOtp }
+            });
+            setReleasingOrder(null);
+            fetchOrders();
+        } catch (err) {
+            setMobileOtpError(err.response?.data?.message || "Invalid OTP code. Please check the TV display screen.");
+        } finally {
+            setIsSubmittingOtp(false);
         }
     };
 
@@ -111,10 +153,17 @@ function MyOrders() {
                                         <span className={statusClass(order.status)}>
                                             {order.status === "PENDING_SCAN" ? "PENDING SCAN" : order.status}
                                         </span>
-                                        {order.status === "PENDING_SCAN" && order.otpCode && (
-                                            <span className="bg-sky-50 text-sky-600 border border-sky-100 font-bold px-2 py-0.5 rounded text-xs font-mono">
-                                                OTP: {order.otpCode}
-                                            </span>
+                                        {order.status === "PENDING_SCAN" && (
+                                            <button
+                                                onClick={() => {
+                                                    setReleasingOrder(order);
+                                                    setMobileOtp("");
+                                                    setMobileOtpError("");
+                                                }}
+                                                className="bg-sky-500 hover:bg-sky-600 active:scale-95 text-white font-black px-3 py-1 rounded text-xs transition-all cursor-pointer flex items-center gap-1 shadow"
+                                            >
+                                                Release 🔑
+                                            </button>
                                         )}
                                         {(order.status === "PRINTING" || order.status === "QUEUE") && (
                                             <div className="flex items-center justify-center text-sky-500">
@@ -148,6 +197,105 @@ function MyOrders() {
                     </table>
                 </motion.section>
             </div>
+
+            {/* Mobile OTP Keypad Modal */}
+            <AnimatePresence>
+                {releasingOrder && (
+                    <motion.div 
+                        className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-sm p-4"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                    >
+                        <motion.div 
+                            className="w-full max-w-sm rounded-2xl border border-slate-700 bg-slate-900 p-6 text-center shadow-2xl"
+                            initial={{ scale: 0.95, y: 15 }}
+                            animate={{ scale: 1, y: 0 }}
+                            exit={{ scale: 0.95, y: 15 }}
+                        >
+                            <p className="text-xs font-black uppercase tracking-widest text-sky-400">
+                                Verify Kiosk OTP
+                            </p>
+                            <h3 className="mt-2 text-xl font-black text-white">
+                                {releasingOrder.orderId}
+                            </h3>
+                            <p className="text-sm font-semibold text-slate-400 mt-1">
+                                Enter the 4-digit OTP shown next to your order on the printer display panel.
+                            </p>
+
+                            {/* OTP Display Field */}
+                            <div className="my-6 flex justify-center gap-3">
+                                {Array.from({ length: 4 }).map((_, i) => (
+                                    <div 
+                                        key={i} 
+                                        className={`w-12 h-14 rounded-xl border flex items-center justify-center text-2xl font-black transition-all duration-150 ${
+                                            mobileOtp[i] 
+                                                ? "border-sky-500 bg-sky-500/10 text-sky-400" 
+                                                : "border-slate-700 bg-slate-800 text-slate-500"
+                                        }`}
+                                    >
+                                        {mobileOtp[i] || "•"}
+                                    </div>
+                                ))}
+                            </div>
+
+                            {mobileOtpError && (
+                                <p className="text-xs font-bold text-rose-500 mb-4 bg-rose-500/10 border border-rose-500/20 py-2 rounded-lg">
+                                    ⚠️ {mobileOtpError}
+                                </p>
+                            )}
+
+                            {/* Keypad Grid */}
+                            <div className="grid grid-cols-3 gap-3">
+                                {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((num) => (
+                                    <button 
+                                        key={num}
+                                        onClick={() => handleKeypadPress(String(num))}
+                                        className="h-12 rounded-xl bg-slate-800 hover:bg-slate-700 active:scale-95 text-lg font-bold text-white transition-all cursor-pointer"
+                                    >
+                                        {num}
+                                    </button>
+                                ))}
+                                <button 
+                                    onClick={handleKeypadClear}
+                                    className="h-12 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 active:scale-95 text-xs font-black text-rose-400 transition-all cursor-pointer"
+                                >
+                                    Clear
+                                </button>
+                                <button 
+                                    onClick={() => handleKeypadPress("0")}
+                                    className="h-12 rounded-xl bg-slate-800 hover:bg-slate-700 active:scale-95 text-lg font-bold text-white transition-all cursor-pointer"
+                                >
+                                    0
+                                </button>
+                                <button 
+                                    onClick={handleKeypadBackspace}
+                                    className="h-12 rounded-xl bg-slate-700 hover:bg-slate-600 active:scale-95 text-md font-bold text-white transition-all cursor-pointer flex items-center justify-center"
+                                >
+                                    ⌫
+                                </button>
+                            </div>
+
+                            {/* Actions */}
+                            <div className="mt-6 grid grid-cols-2 gap-3">
+                                <button
+                                    onClick={() => setReleasingOrder(null)}
+                                    className="h-11 rounded-xl border border-slate-700 bg-slate-800 hover:bg-slate-700 text-xs font-bold text-white transition-colors cursor-pointer"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    onClick={handleReleaseVerify}
+                                    disabled={isSubmittingOtp}
+                                    className="h-11 rounded-xl bg-sky-500 hover:bg-sky-600 text-xs font-black text-white transition-colors cursor-pointer disabled:opacity-50"
+                                >
+                                    {isSubmittingOtp ? "Releasing..." : "Verify & Print"}
+                                </button>
+                            </div>
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </main>
     );
 }
