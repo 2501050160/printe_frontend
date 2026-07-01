@@ -5,7 +5,7 @@ import { loginUser, persistUser } from "../services/auth";
 import api from "../services/api";
 import PopupManager from "../components/PopupManager";
 import loginHero from "../assets/login_hero.mp4";
-import introVideo from "../assets/intro_video.mp4";
+import introVideo from "../assets/intro_video1.mp4";
 
 function Login() {
     const [email, setEmail] = useState("");
