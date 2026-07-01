@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import axios from "axios";
@@ -34,6 +34,19 @@ function Dashboard() {
     const [pageOption, setPageOption] = useState("ALL");
     const [startPage, setStartPage] = useState("");
     const [endPage, setEndPage] = useState("");
+
+    // Custom PDF Previews and Page list
+    const [selectedPagesList, setSelectedPagesList] = useState([]);
+    const [pdfDoc, setPdfDoc] = useState(null);
+    const [renderedPreviews, setRenderedPreviews] = useState([]);
+
+    // Wallet transaction ledger
+    const [transactions, setTransactions] = useState([]);
+    const [loadingTransactions, setLoadingTransactions] = useState(false);
+
+    // Queue wait time and load balancing suggestions
+    const [estimates, setEstimates] = useState({});
+    const [suggestions, setSuggestions] = useState([]);
 
     // Active Navigation Tab
     const [activeTab, setActiveTab] = useState("print");
@@ -121,6 +134,165 @@ function Dashboard() {
         fetchPrices();
         fetchActiveSections();
     }, []);
+
+    // PDF.js worker setup and local preview generation
+    useEffect(() => {
+        if (selectedFiles.length > 0 && selectedFiles[0].type === "application/pdf") {
+            const reader = new FileReader();
+            reader.onload = function() {
+                const arrayBuffer = this.result;
+                const pdfjsLib = window['pdfjs-dist/build/pdf'];
+                pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
+                
+                pdfjsLib.getDocument({ data: arrayBuffer }).promise.then(pdf => {
+                    setPdfDoc(pdf);
+                    const allPages = Array.from({ length: pdf.numPages }, (_, i) => i + 1);
+                    setSelectedPagesList(allPages);
+                    
+                    const previewsCount = Math.min(pdf.numPages, 12);
+                    const previews = [];
+                    for (let i = 1; i <= previewsCount; i++) {
+                        previews.push(i);
+                    }
+                    setRenderedPreviews(previews);
+                }).catch(err => {
+                    console.error("Error loading PDF for preview:", err);
+                });
+            };
+            reader.readAsArrayBuffer(selectedFiles[0]);
+        } else {
+            setPdfDoc(null);
+            setRenderedPreviews([]);
+            setSelectedPagesList([]);
+        }
+    }, [selectedFiles]);
+
+    // SSE EventSource implementation
+    useEffect(() => {
+        if (!userId) return;
+        
+        const url = `${api.defaults.baseURL || "http://localhost:8080"}/api/queue/stream/${userId}`;
+        const eventSource = new EventSource(url);
+
+        eventSource.addEventListener("progress", (e) => {
+            try {
+                const data = JSON.parse(e.data);
+                setOrders(prevOrders => 
+                    prevOrders.map(order => 
+                        order.orderId === data.orderId 
+                            ? { ...order, status: data.status, printProgress: data.progress } 
+                            : order
+                    )
+                );
+            } catch (err) {
+                console.error("Error parsing progress update:", err);
+            }
+        });
+
+        eventSource.addEventListener("queue-update", () => {
+            fetchOrders();
+            getWalletBalance(userId).then(setWalletBalance);
+            fetchPaperCount();
+        });
+
+        eventSource.onerror = (err) => {
+            console.error("SSE connection error:", err);
+            eventSource.close();
+        };
+
+        return () => {
+            eventSource.close();
+        };
+    }, [userId]);
+
+    // Fetch wallet transaction ledger when modal opens
+    useEffect(() => {
+        if (showWalletModal && userId) {
+            setLoadingTransactions(true);
+            api.get("/wallet/transactions", { params: { userId } })
+                .then(res => {
+                    setTransactions(res.data || []);
+                })
+                .catch(err => {
+                    console.error("Failed to load transactions", err);
+                })
+                .finally(() => {
+                    setLoadingTransactions(false);
+                });
+        }
+    }, [showWalletModal, userId]);
+
+    // Queue wait time and traffic load balancing suggestions
+    const activeOrder = orders.find(o => o.status !== "COMPLETED" && o.status !== "CANCELLED");
+
+    useEffect(() => {
+        if (activeOrder) {
+            api.get("/queue/estimate", { params: { orderId: activeOrder.orderId } })
+                .then(res => {
+                    setEstimates(prev => ({ ...prev, [activeOrder.orderId]: res.data }));
+                    const waitMin = res.data.estimatedWaitTimeMinutes || 0;
+                    if (waitMin > 10 || paperCount < (activeOrder.totalPages * activeOrder.copies) || !systemStatus.agentOnline) {
+                        api.get("/printer/suggestions", { params: { currentBlock: activeOrder.blockLocation } })
+                            .then(sugRes => {
+                                setSuggestions(sugRes.data || []);
+                            });
+                    } else {
+                        setSuggestions([]);
+                    }
+                })
+                .catch(err => console.error(err));
+        } else {
+            setSuggestions([]);
+        }
+    }, [activeOrder, paperCount, systemStatus]);
+
+    // Helper functions for page selection
+    const handlePageOptionChange = (option) => {
+        setPageOption(option);
+        if (option === "ALL") {
+            setSelectedPagesList(Array.from({ length: totalPages }, (_, i) => i + 1));
+        } else if (option === "ODD") {
+            setSelectedPagesList(Array.from({ length: totalPages }, (_, i) => i + 1).filter(p => p % 2 !== 0));
+        } else if (option === "EVEN") {
+            setSelectedPagesList(Array.from({ length: totalPages }, (_, i) => i + 1).filter(p => p % 2 === 0));
+        }
+    };
+
+    const togglePageSelection = (pageNum) => {
+        setPageOption("CUSTOM");
+        setSelectedPagesList(prev => {
+            if (prev.includes(pageNum)) {
+                return prev.filter(p => p !== pageNum);
+            } else {
+                return [...prev, pageNum];
+            }
+        });
+    };
+
+    const extractOrderId = (desc) => {
+        if (!desc) return null;
+        const match = desc.match(/ORD-[A-Z0-9]+/i);
+        return match ? match[0] : null;
+    };
+
+    const downloadReceipt = async (ordId) => {
+        try {
+            const response = await api.get(`/pdf/receipt/${ordId}`, {
+                responseType: 'blob'
+            });
+            const blob = new Blob([response.data], { type: 'application/pdf' });
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.setAttribute('download', `receipt_${ordId}.pdf`);
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+        } catch (err) {
+            console.error("Failed to download receipt:", err);
+            showAlert("Download Failed", "Unable to download the receipt for this order.", "error");
+        }
+    };
 
     // Orders Polling (Every 3 seconds)
     const fetchOrders = async () => {
@@ -305,19 +477,20 @@ function Dashboard() {
             return;
         }
 
-        if (pageOption === "CUSTOM") {
-            const start = parseInt(startPage);
-            const end = parseInt(endPage);
-
-            if (isNaN(start) || isNaN(end) || start < 1 || end > totalPages || start > end) {
-                showAlert("Invalid Pages", `Pages must be between 1 and ${totalPages}`, "error");
-                return;
-            }
+        if (selectedPagesList.length === 0) {
+            showAlert("No Pages Selected", "Please select at least one page to print.", "warning");
+            return;
         }
 
         if (isLowPaper) {
             showAlert("Low Paper Level", "Print cannot be done due to low paper levels in this block.", "error");
             return;
+        }
+
+        let selectedPagesStr = "ALL";
+        if (selectedPagesList.length !== totalPages) {
+            const sorted = [...selectedPagesList].sort((a, b) => a - b);
+            selectedPagesStr = sorted.join(",");
         }
 
         try {
@@ -330,17 +503,10 @@ function Dashboard() {
                         copies,
                         printType,
                         blockLocation,
-                        selectedPages:
-                            pageOption === "ALL"
-                                ? "ALL"
-                                : `${startPage}-${endPage}`
+                        selectedPages: selectedPagesStr
                     }
                 }
             );
-
-            let pagesToPrint = pageOption === "ALL" ? totalPages : (parseInt(endPage) - parseInt(startPage) + 1);
-            const rate = printType === "COLOR" ? Number(colorPrice) : Number(bwPrice);
-            const price = pagesToPrint * Number(copies) * rate;
 
             localStorage.setItem(
                 "order",
@@ -350,11 +516,8 @@ function Dashboard() {
                     printType,
                     blockLocation,
                     totalPages,
-                    price,
-                    selectedPages:
-                        pageOption === "ALL"
-                            ? "ALL"
-                            : `${startPage}-${endPage}`
+                    price: estimatedTotal,
+                    selectedPages: selectedPagesStr
                 })
             );
 
@@ -450,7 +613,7 @@ function Dashboard() {
     };
 
     const rate = printType === "COLOR" ? Number(colorPrice) : Number(bwPrice);
-    const selectedPageCount = pageOption === "ALL" ? totalPages : (startPage && endPage ? Math.max(0, Number(endPage) - Number(startPage) + 1) : 0);
+    const selectedPageCount = selectedPagesList.length;
     const estimatedTotalPages = selectedPageCount * Number(copies || 1);
     const isLowPaper = uploaded && estimatedTotalPages > paperCount;
     const estimatedTotal = selectedPageCount * Number(copies || 1) * rate;
@@ -558,7 +721,119 @@ function Dashboard() {
 
                 {/* TAB CONTENT: PRINT DASHBOARD */}
                 {activeTab === "print" && (
-                    <div className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
+                    <div className="flex flex-col gap-6">
+                        {/* Real-time Active Order Tracking Card */}
+                        {activeOrder && (
+                            <motion.div 
+                                className="panel p-6 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white border border-slate-700 shadow-xl"
+                                initial={{ opacity: 0, y: -15 }}
+                                animate={{ opacity: 1, y: 0 }}
+                            >
+                                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4 pb-4 border-b border-slate-700/60">
+                                    <div>
+                                        <span className="text-[10px] uppercase font-black tracking-widest text-sky-400 bg-sky-500/10 px-2.5 py-1 rounded-full border border-sky-500/20">
+                                            Active Order Live Tracking
+                                        </span>
+                                        <h3 className="text-xl font-black mt-2 text-white">{activeOrder.orderId}</h3>
+                                        <p className="text-xs font-semibold text-slate-400 mt-0.5">{activeOrder.fileName}</p>
+                                    </div>
+                                    <div className="text-right">
+                                        <span className={`status-pill inline-block ${
+                                            activeOrder.status === 'PRINTING' ? '!bg-emerald-500/20 !text-emerald-400 !border-emerald-500/30' :
+                                            activeOrder.status === 'QUEUE' ? '!bg-amber-500/20 !text-amber-400 !border-amber-500/30' :
+                                            '!bg-sky-500/20 !text-sky-400 !border-sky-500/30'
+                                        }`}>
+                                            {activeOrder.status}
+                                        </span>
+                                    </div>
+                                </div>
+
+                                {/* Progress Bar & Status Message */}
+                                <div className="my-6">
+                                    <div className="flex justify-between text-xs font-bold text-slate-300 mb-2">
+                                        <span>Status: {activeOrder.printProgress || "Waiting to release print"}</span>
+                                        <span>{
+                                            activeOrder.status === 'CANCEL_WINDOW' ? '15%' :
+                                            activeOrder.status === 'PENDING_SCAN' ? '40%' :
+                                            activeOrder.status === 'QUEUE' ? '65%' :
+                                            activeOrder.status === 'PRINTING' ? '85%' : '0%'
+                                        }</span>
+                                    </div>
+                                    <div className="w-full h-3 bg-slate-800 rounded-full overflow-hidden border border-slate-700/80 p-0.5">
+                                        <div 
+                                            className="h-full bg-gradient-to-r from-sky-500 to-indigo-500 rounded-full transition-all duration-500" 
+                                            style={{
+                                                width: 
+                                                    activeOrder.status === 'CANCEL_WINDOW' ? '15%' :
+                                                    activeOrder.status === 'PENDING_SCAN' ? '40%' :
+                                                    activeOrder.status === 'QUEUE' ? '65%' :
+                                                    activeOrder.status === 'PRINTING' ? '85%' : '0%'
+                                            }} 
+                                        />
+                                    </div>
+                                </div>
+
+                                {/* Queue Wait Time & Estimations */}
+                                {estimates[activeOrder.orderId] && (
+                                    <div className="grid grid-cols-2 md:grid-cols-3 gap-4 bg-slate-850 border border-slate-800 rounded-xl p-4 my-4">
+                                        <div>
+                                            <span className="text-[10px] font-black uppercase text-slate-400">Queue Position</span>
+                                            <p className="text-lg font-black text-white mt-0.5">
+                                                #{estimates[activeOrder.orderId].queuePosition} of {estimates[activeOrder.orderId].queuePosition + estimates[activeOrder.orderId].totalPagesAhead / 5}
+                                            </p>
+                                        </div>
+                                        <div>
+                                            <span className="text-[10px] font-black uppercase text-slate-400">Pages Ahead</span>
+                                            <p className="text-lg font-black text-white mt-0.5">
+                                                {estimates[activeOrder.orderId].totalPagesAhead} pages
+                                            </p>
+                                        </div>
+                                        <div className="col-span-2 md:col-span-1">
+                                            <span className="text-[10px] font-black uppercase text-slate-400">Estimated Wait Time</span>
+                                            <p className="text-lg font-black text-emerald-400 mt-0.5">
+                                                ~{estimates[activeOrder.orderId].estimatedWaitTimeMinutes} min
+                                            </p>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* Automatic Traffic Load Balancing Suggestions */}
+                                {suggestions.length > 0 && (
+                                    <div className="mt-4 border-t border-slate-850 pt-4">
+                                        <span className="block text-xs font-black uppercase text-rose-400 tracking-wider mb-2">
+                                            ⚠️ Traffic Alert & Alternative Printers
+                                        </span>
+                                        <p className="text-xs text-slate-300 leading-relaxed mb-3">
+                                            The selected printer is busy or low on paper. For faster printing, consider submitting your file to these locations:
+                                        </p>
+                                        <div className="grid gap-2">
+                                            {suggestions.slice(0, 2).map((sug, idx) => (
+                                                <div key={idx} className="flex justify-between items-center bg-slate-800 p-2.5 rounded-lg border border-slate-700/60 text-xs">
+                                                    <div>
+                                                        <span className="font-black text-white">{sug.blockLocation}</span>
+                                                        <span className="text-slate-400 ml-2">({sug.printerName})</span>
+                                                    </div>
+                                                    <div className="flex items-center gap-3">
+                                                        <span className="text-emerald-400 font-bold">~{sug.estimatedWaitTimeMinutes} min wait</span>
+                                                        <button
+                                                            onClick={() => {
+                                                                localStorage.setItem("selectedBlock", sug.blockLocation);
+                                                                window.location.reload();
+                                                            }}
+                                                            className="btn secondary !py-1 !px-2.5 !text-[10px] !min-h-[22px] !border-slate-650 !bg-slate-800 text-white"
+                                                        >
+                                                            Switch Location
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+                            </motion.div>
+                        )}
+
+                        <div className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
                         <motion.section
                             className="panel p-6"
                             initial={{ opacity: 0, y: 18 }}
@@ -850,11 +1125,13 @@ function Dashboard() {
                                             </span>
                                             <select
                                                 value={pageOption}
-                                                onChange={(e) => setPageOption(e.target.value)}
+                                                onChange={(e) => handlePageOptionChange(e.target.value)}
                                                 className="field"
                                             >
                                                 <option value="ALL">All Pages</option>
-                                                <option value="CUSTOM">Custom Range</option>
+                                                <option value="ODD">Odd Pages Only</option>
+                                                <option value="EVEN">Even Pages Only</option>
+                                                <option value="CUSTOM">Custom Selection</option>
                                             </select>
                                         </label>
 
@@ -870,32 +1147,70 @@ function Dashboard() {
                                         </div>
                                     </div>
 
+                                    {/* Canvas Thumbnail Preview & Click-to-Select Page Selector */}
+                                    {pdfDoc && (
+                                        <div className="mt-6 border-t border-slate-100 pt-6">
+                                            <span className="block text-sm font-black text-slate-700 mb-3">
+                                                📄 Interactive Document Page Selector (Click pages to select/deselect)
+                                            </span>
+                                            <div className="flex gap-4 overflow-x-auto py-4 bg-slate-50 border border-slate-200/60 rounded-xl px-4 select-none">
+                                                {renderedPreviews.map(pageNum => (
+                                                    <PdfPageThumbnail
+                                                        key={pageNum}
+                                                        pdfDoc={pdfDoc}
+                                                        pageNumber={pageNum}
+                                                        isSelected={selectedPagesList.includes(pageNum)}
+                                                        onToggle={() => togglePageSelection(pageNum)}
+                                                    />
+                                                ))}
+                                                {totalPages > 12 && (
+                                                    <div className="flex items-center justify-center p-4 bg-slate-100 rounded-xl border border-dashed border-slate-300 text-slate-400 font-bold text-xs min-w-[100px]">
+                                                        + {totalPages - 12} more pages
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+                                    )}
+
                                     <AnimatePresence>
                                         {pageOption === "CUSTOM" && (
                                             <motion.div
-                                                className="mt-4 grid gap-4 md:grid-cols-2"
+                                                className="mt-4"
                                                 initial={{ opacity: 0, y: -8 }}
                                                 animate={{ opacity: 1, y: 0 }}
                                                 exit={{ opacity: 0, y: -8 }}
                                             >
+                                                <span className="block text-xs font-bold text-slate-500 mb-2">
+                                                    Selected Page List (comma-separated or range format, e.g. "1,3,5" or "1-4,7")
+                                                </span>
                                                 <input
-                                                    type="number"
-                                                    min="1"
-                                                    max={totalPages}
-                                                    placeholder="Start Page"
-                                                    value={startPage}
-                                                    onChange={(e) => setStartPage(e.target.value)}
-                                                    className="field"
-                                                />
-
-                                                <input
-                                                    type="number"
-                                                    min="1"
-                                                    max={totalPages}
-                                                    placeholder="End Page"
-                                                    value={endPage}
-                                                    onChange={(e) => setEndPage(e.target.value)}
-                                                    className="field"
+                                                    type="text"
+                                                    placeholder="Enter custom selection (e.g. 1,3,5-7,9)"
+                                                    value={selectedPagesList.join(",")}
+                                                    onChange={(e) => {
+                                                        const val = e.target.value;
+                                                        let list = [];
+                                                        const parts = val.split(",");
+                                                        for (const part of parts) {
+                                                            const pagePart = part.trim();
+                                                            if (!pagePart) continue;
+                                                            if (pagePart.includes("-")) {
+                                                                const range = pagePart.split("-").map(Number);
+                                                                if (range.length === 2 && !isNaN(range[0]) && !isNaN(range[1])) {
+                                                                    for (let p = range[0]; p <= range[1]; p++) {
+                                                                        list.push(p);
+                                                                    }
+                                                                }
+                                                            } else {
+                                                                const num = Number(pagePart);
+                                                                if (!isNaN(num)) {
+                                                                    list.push(num);
+                                                                }
+                                                            }
+                                                        }
+                                                        setSelectedPagesList(list);
+                                                    }}
+                                                    className="field font-mono font-bold"
                                                 />
                                             </motion.div>
                                         )}
@@ -953,6 +1268,7 @@ function Dashboard() {
                                 </div>
                             </motion.section>
                         )}
+                    </div>
                     </div>
                 )}
 
@@ -1458,6 +1774,61 @@ function Dashboard() {
                                 <span className="text-3xl font-black text-emerald-950 mt-1">₹{walletBalance}</span>
                             </div>
 
+                            {/* Transaction History Section */}
+                            <div className="w-full text-left my-4 border-t border-slate-100 pt-4 flex flex-col flex-1">
+                                <span className="text-xs font-black uppercase tracking-widest text-slate-400 mb-2">
+                                    Transaction Ledger
+                                </span>
+                                
+                                {loadingTransactions ? (
+                                    <div className="text-center py-6 text-xs text-slate-400 font-bold">
+                                        Loading ledger...
+                                    </div>
+                                ) : transactions.length === 0 ? (
+                                    <div className="text-center py-6 text-xs text-slate-400 font-semibold">
+                                        No recent transactions.
+                                    </div>
+                                ) : (
+                                    <div className="max-h-[160px] overflow-y-auto space-y-2 pr-1">
+                                        {transactions.map((tx) => {
+                                            const orderId = extractOrderId(tx.description);
+                                            return (
+                                                <div key={tx.id} className="flex justify-between items-center p-2.5 bg-slate-50 border border-slate-100 rounded-lg text-xs">
+                                                    <div>
+                                                        <div className="flex items-center gap-1.5 font-black text-slate-800">
+                                                            <span className={`w-2 h-2 rounded-full ${
+                                                                tx.amount > 0 ? "bg-emerald-505" : "bg-rose-500"
+                                                            }`} />
+                                                            {tx.type}
+                                                        </div>
+                                                        <p className="text-[10px] text-slate-505 text-slate-500 font-semibold mt-0.5">{tx.description}</p>
+                                                        <p className="text-[9px] text-slate-400 mt-0.5">
+                                                            {new Date(tx.timestamp).toLocaleString()}
+                                                        </p>
+                                                    </div>
+                                                    <div className="flex items-center gap-2 text-right pl-2 whitespace-nowrap">
+                                                        <span className={`font-black ${
+                                                            tx.amount > 0 ? "text-emerald-600" : "text-rose-600"
+                                                        }`}>
+                                                            {tx.amount > 0 ? "+" : ""}₹{tx.amount}
+                                                        </span>
+                                                        {orderId && (
+                                                            <button
+                                                                onClick={() => downloadReceipt(orderId)}
+                                                                title="Download Invoice/Receipt"
+                                                                className="p-1 rounded bg-slate-200 hover:bg-slate-350 hover:bg-slate-300 text-slate-700 font-bold cursor-pointer transition-colors"
+                                                            >
+                                                                📥
+                                                            </button>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                )}
+                            </div>
+
                             {/* Add Balance Mockup Action */}
                             <div className="w-full space-y-3">
                                 <button
@@ -1491,6 +1862,42 @@ function Dashboard() {
                 onConfirm={modalConfig.onConfirm}
             />
         </main>
+    );
+}
+
+function PdfPageThumbnail({ pdfDoc, pageNumber, isSelected, onToggle }) {
+    const canvasRef = useRef(null);
+
+    useEffect(() => {
+        if (!pdfDoc) return;
+        pdfDoc.getPage(pageNumber).then(page => {
+            const viewport = page.getViewport({ scale: 0.25 });
+            const canvas = canvasRef.current;
+            if (!canvas) return;
+            const context = canvas.getContext('2d');
+            canvas.height = viewport.height;
+            canvas.width = viewport.width;
+
+            const renderContext = {
+                canvasContext: context,
+                viewport: viewport
+            };
+            page.render(renderContext);
+        });
+    }, [pdfDoc, pageNumber]);
+
+    return (
+        <div 
+            onClick={onToggle}
+            className={`flex flex-col items-center gap-1.5 p-2 rounded-xl border-2 transition-all cursor-pointer select-none min-w-[90px] ${
+                isSelected 
+                    ? "border-sky-500 bg-sky-500/5 shadow-md" 
+                    : "border-slate-200 bg-white opacity-60 hover:opacity-100"
+            }`}
+        >
+            <canvas ref={canvasRef} className="rounded border border-slate-200 bg-white w-16 h-20 object-cover" />
+            <span className="text-[10px] font-bold text-slate-500">Page {pageNumber}</span>
+        </div>
     );
 }
 

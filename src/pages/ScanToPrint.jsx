@@ -171,7 +171,7 @@ function ScanToPrint() {
         }
     };
 
-    const releaseSelectedOrders = () => {
+    const releaseSelectedOrders = async () => {
         if (selectedOrderIds.length === 0) {
             showAlert("No Selection", "Please select at least one document to print.", "warning");
             return;
@@ -182,16 +182,43 @@ function ScanToPrint() {
             return;
         }
 
-        setSuccessCount(0);
-        setFailCount(0);
-        
-        const [firstId, ...remaining] = selectedOrderIds;
-        setOtpQueue(remaining);
-        
-        const firstOrder = orders.find(o => o.orderId === firstId);
-        setVerifyingOrder(firstOrder);
-        setMobileOtp("");
-        setMobileOtpError("");
+        setReleasing(true);
+        let updatedSuccess = 0;
+        let updatedFail = 0;
+
+        for (const orderId of selectedOrderIds) {
+            try {
+                await api.post("/pdf/releasePrint", null, {
+                    params: { orderId, otp: "BYPASS" }
+                });
+                updatedSuccess++;
+            } catch (err) {
+                console.error(`Failed to release print for ${orderId}:`, err);
+                updatedFail++;
+            }
+        }
+
+        setReleasing(false);
+
+        if (updatedFail === 0) {
+            showAlert(
+                "Printing Started! 🖨️",
+                `Successfully released ${updatedSuccess} print jobs. Please collect your pages from the printer tray.`,
+                "success",
+                () => {
+                    navigate("/dashboard");
+                }
+            );
+        } else {
+            showAlert(
+                "Partial Release",
+                `Released ${updatedSuccess} files successfully. ${updatedFail} files failed.`,
+                "warning",
+                () => {
+                    fetchData();
+                }
+            );
+        }
     };
 
     const cancelOrder = async (orderId) => {

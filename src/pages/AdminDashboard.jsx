@@ -54,6 +54,22 @@ function AdminDashboard() {
     const [rewardMaxClaims, setRewardMaxClaims] = useState(100);
     const [creatingReward, setCreatingReward] = useState(false);
 
+    // Batch Voucher generator states
+    const [batchPrefix, setBatchPrefix] = useState("");
+    const [batchCount, setBatchCount] = useState(5);
+    const [batchValue, setBatchValue] = useState(50);
+    const [batchMaxClaims, setBatchMaxClaims] = useState(1);
+    const [batchExpiry, setBatchExpiry] = useState("");
+    const [generatingBatch, setGeneratingBatch] = useState(false);
+
+    // Analytics Dashboard states
+    const [analyticsData, setAnalyticsData] = useState({
+        dailyVolume: [],
+        revenueByBlock: [],
+        colorBwRatio: []
+    });
+    const [loadingAnalytics, setLoadingAnalytics] = useState(false);
+
     // SQL Console states
     const [sqlQuery, setSqlQuery] = useState("SELECT * FROM users;");
     const [sqlResult, setSqlResult] = useState(null);
@@ -239,6 +255,7 @@ function AdminDashboard() {
         fetchStats();
         fetchPrices(selectedPricingBlock);
         fetchBlocks();
+        fetchAnalytics();
 
         const interval = setInterval(() => {
             fetchOrders();
@@ -253,7 +270,9 @@ function AdminDashboard() {
     }, [revenuePeriod]);
 
     useEffect(() => {
-        if (activeTab === "users") {
+        if (activeTab === "queue") {
+            fetchAnalytics();
+        } else if (activeTab === "users") {
             fetchUsers();
         } else if (activeTab === "support") {
             fetchSupportTickets();
@@ -552,6 +571,52 @@ function AdminDashboard() {
                 showAlert("Error", "Failed to delete reward voucher", "error");
             }
         });
+    };
+
+    const fetchAnalytics = async () => {
+        setLoadingAnalytics(true);
+        try {
+            const response = await api.get("/admin/analytics");
+            setAnalyticsData(response.data || { dailyVolume: [], revenueByBlock: [], colorBwRatio: [] });
+        } catch (error) {
+            console.error("Error fetching admin analytics:", error);
+        } finally {
+            setLoadingAnalytics(false);
+        }
+    };
+
+    const generateVoucherBatch = async (e) => {
+        e.preventDefault();
+        if (!batchPrefix.trim() || !batchCount || !batchValue || !batchMaxClaims || !batchExpiry) {
+            showAlert("Required Fields", "Please fill in all batch voucher settings.", "warning");
+            return;
+        }
+
+        setGeneratingBatch(true);
+        try {
+            await api.post("/rewards/generate-batch", null, {
+                params: {
+                    prefix: batchPrefix.trim().toUpperCase(),
+                    count: Number(batchCount),
+                    value: Number(batchValue),
+                    maxClaims: Number(batchMaxClaims),
+                    expiryDate: batchExpiry
+                }
+            });
+
+            showAlert("Batch Created Successfully 🎉", `${batchCount} voucher codes with prefix ${batchPrefix.toUpperCase()} have been generated.`, "success");
+            setBatchPrefix("");
+            setBatchCount(5);
+            setBatchValue(50);
+            setBatchMaxClaims(1);
+            setBatchExpiry("");
+            fetchRewards();
+        } catch (err) {
+            console.error(err);
+            showAlert("Batch Generation Failed", err.response?.data?.message || "Could not generate batch vouchers.", "error");
+        } finally {
+            setGeneratingBatch(false);
+        }
     };
 
     const updateStatus = async (id, status) => {
@@ -1090,6 +1155,139 @@ function AdminDashboard() {
                                 </motion.div>
                             ))}
                         </section>
+
+                        {/* Interactive Visual Analytics Widgets */}
+                        <motion.section
+                            className="panel p-6 mt-6 grid gap-6 md:grid-cols-3"
+                            initial={{ opacity: 0, y: 18 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.08 }}
+                        >
+                            {/* Widget 1: Daily Print Volume Trends */}
+                            <div className="bg-slate-50 border border-slate-200/60 rounded-2xl p-5 flex flex-col justify-between">
+                                <div>
+                                    <span className="text-[10px] font-black uppercase text-slate-400">Activity Analytics</span>
+                                    <h3 className="text-base font-black text-slate-900 mt-1 mb-4">Daily Print Volume</h3>
+                                </div>
+                                {analyticsData.dailyVolume && analyticsData.dailyVolume.length > 0 ? (
+                                    <div>
+                                        <div className="flex items-end justify-between h-[120px] gap-2 pt-2 px-1 select-none">
+                                            {analyticsData.dailyVolume.map((vol, idx) => {
+                                                const maxPages = Math.max(...analyticsData.dailyVolume.map(v => Number(v.pages || v.PAGES || 0)), 1);
+                                                const pct = (Number(vol.pages || vol.PAGES || 0) / maxPages) * 100;
+                                                return (
+                                                    <div key={idx} className="flex flex-col items-center flex-1 group relative">
+                                                        <div className="absolute bottom-full mb-1 bg-slate-900 text-white text-[10px] font-bold py-1 px-1.5 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10 shadow">
+                                                            {vol.pages || vol.PAGES || 0} pages ({vol.count || vol.COUNT || 0} prints)
+                                                        </div>
+                                                        <div 
+                                                            className="w-full bg-indigo-500 hover:bg-indigo-600 rounded-t-md transition-all duration-500 cursor-pointer"
+                                                            style={{ height: `${Math.max(8, pct)}%` }}
+                                                        />
+                                                        <span className="text-[9px] font-bold text-slate-400 mt-2 truncate max-w-full">
+                                                            {new Date(vol.date || vol.DATE).toLocaleDateString(undefined, { weekday: 'short' })}
+                                                        </span>
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <div className="text-center py-10 text-xs text-slate-400 font-semibold">
+                                        No volume history found for the last 7 days.
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* Widget 2: Campus Block Revenue Breakdown */}
+                            <div className="bg-slate-50 border border-slate-200/60 rounded-2xl p-5 flex flex-col justify-between">
+                                <div>
+                                    <span className="text-[10px] font-black uppercase text-slate-400">Location Distribution</span>
+                                    <h3 className="text-base font-black text-slate-900 mt-1 mb-4">Revenue by Campus Block</h3>
+                                </div>
+                                {analyticsData.revenueByBlock && analyticsData.revenueByBlock.length > 0 ? (
+                                    <div className="space-y-3">
+                                        {analyticsData.revenueByBlock.map((block, idx) => {
+                                            const totalRev = analyticsData.revenueByBlock.reduce((acc, curr) => acc + Number(curr.revenue || curr.REVENUE || 0), 0);
+                                            const val = Number(block.revenue || block.REVENUE || 0);
+                                            const pct = totalRev > 0 ? (val / totalRev) * 100 : 0;
+                                            const colorClasses = [
+                                                "bg-emerald-500", "bg-sky-500", "bg-violet-500", "bg-amber-500"
+                                            ];
+                                            return (
+                                                <div key={idx} className="space-y-1">
+                                                    <div className="flex justify-between text-xs font-bold text-slate-700">
+                                                        <span>{block.block || block.BLOCK || "Unknown Block"}</span>
+                                                        <span>₹{val.toFixed(2)} ({pct.toFixed(0)}%)</span>
+                                                    </div>
+                                                    <div className="w-full h-2 bg-slate-200 rounded-full overflow-hidden">
+                                                        <div 
+                                                            className={`h-full rounded-full ${colorClasses[idx % colorClasses.length]}`} 
+                                                            style={{ width: `${pct}%` }} 
+                                                        />
+                                                    </div>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                ) : (
+                                    <div className="text-center py-10 text-xs text-slate-400 font-semibold">
+                                        No sales records by block.
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* Widget 3: Print Mode Ratio */}
+                            <div className="bg-slate-50 border border-slate-200/60 rounded-2xl p-5 flex flex-col justify-between">
+                                <div>
+                                    <span className="text-[10px] font-black uppercase text-slate-400">Configuration Metrics</span>
+                                    <h3 className="text-base font-black text-slate-900 mt-1 mb-4">Color vs B&W Printing Ratio</h3>
+                                </div>
+                                {analyticsData.colorBwRatio && analyticsData.colorBwRatio.length > 0 ? (
+                                    <div className="flex flex-col justify-center h-full">
+                                        {(() => {
+                                            let bwPages = 0;
+                                            let colorPages = 0;
+                                            analyticsData.colorBwRatio.forEach(item => {
+                                                const type = (item.print_type || item.PRINT_TYPE || "").toUpperCase();
+                                                const count = Number(item.pages || item.PAGES || 0);
+                                                if (type === "BW") bwPages = count;
+                                                if (type === "COLOR") colorPages = count;
+                                            });
+                                            const total = bwPages + colorPages;
+                                            const bwPct = total > 0 ? (bwPages / total) * 100 : 50;
+                                            const colPct = total > 0 ? (colorPages / total) * 100 : 50;
+
+                                            return (
+                                                <div className="space-y-4">
+                                                    <div className="flex justify-between items-center text-xs font-bold text-slate-700">
+                                                        <div className="flex items-center gap-1.5">
+                                                            <span className="w-2.5 h-2.5 bg-slate-800 rounded-full" />
+                                                            B&W: {bwPages} pages ({bwPct.toFixed(0)}%)
+                                                        </div>
+                                                        <div className="flex items-center gap-1.5">
+                                                            <span className="w-2.5 h-2.5 bg-gradient-to-r from-sky-400 via-pink-400 to-amber-400 rounded-full" />
+                                                            Color: {colorPages} pages ({colPct.toFixed(0)}%)
+                                                        </div>
+                                                    </div>
+                                                    <div className="w-full h-4 bg-slate-200 rounded-full overflow-hidden flex">
+                                                        <div className="bg-slate-800 h-full" style={{ width: `${bwPct}%` }} />
+                                                        <div className="bg-gradient-to-r from-sky-400 via-pink-400 to-amber-400 h-full" style={{ width: `${colPct}%` }} />
+                                                    </div>
+                                                    <div className="text-[10px] text-center text-slate-500 font-bold">
+                                                        Total Printed: {total} pages
+                                                    </div>
+                                                </div>
+                                            );
+                                        })()}
+                                    </div>
+                                ) : (
+                                    <div className="text-center py-10 text-xs text-slate-400 font-semibold">
+                                        No printing ratios recorded yet.
+                                    </div>
+                                )}
+                            </div>
+                        </motion.section>
 
                         <motion.section
                             className="panel mt-6 overflow-x-auto p-6"
@@ -2100,7 +2298,7 @@ function AdminDashboard() {
                 {/* Rewards Panel Tab */}
                 {activeTab === "rewards" && (
                     <div className="mt-6 space-y-6">
-                        <div className="grid gap-6 md:grid-cols-[1fr_1.3fr]">
+                        <div className="grid gap-6 md:grid-cols-2">
                             {/* Create Reward Voucher Form */}
                             <motion.section
                                 className="panel p-6"
@@ -2110,7 +2308,7 @@ function AdminDashboard() {
                                 <div className="section-header mb-4">
                                     <div>
                                         <p className="eyebrow">Rewards Program</p>
-                                        <h2 className="text-2xl font-black text-slate-900">Voucher Generator</h2>
+                                        <h2 className="text-2xl font-black text-slate-900">Voucher Creator</h2>
                                     </div>
                                 </div>
                                 <form onSubmit={createReward} className="space-y-4">
@@ -2142,57 +2340,102 @@ function AdminDashboard() {
                                 </form>
                             </motion.section>
 
-                            {/* Active Vouchers List */}
+                            {/* Create Batch Vouchers Form */}
                             <motion.section
-                                className="panel p-6 overflow-x-auto"
+                                className="panel p-6"
                                 initial={{ opacity: 0, x: 18 }}
                                 animate={{ opacity: 1, x: 0 }}
                             >
                                 <div className="section-header mb-4">
                                     <div>
-                                        <p className="eyebrow">Active Vouchers</p>
-                                        <h2 className="text-2xl font-black text-slate-900">Vouchers List</h2>
+                                        <p className="eyebrow">Rewards Program</p>
+                                        <h2 className="text-2xl font-black text-slate-900">Batch Generator</h2>
                                     </div>
                                 </div>
-                                <table className="data-table w-full">
-                                    <thead>
-                                        <tr>
-                                            <th>Code</th>
-                                            <th>Value</th>
-                                            <th>Claims</th>
-                                            <th>Status</th>
-                                            <th>Action</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {rewards.map(rew => (
-                                            <tr key={rew.id}>
-                                                <td className="font-mono font-black text-slate-900 tracking-wide uppercase">{rew.claimCode}</td>
-                                                <td className="font-bold text-emerald-600">Rs. {rew.rewardAmount.toFixed(2)}</td>
-                                                <td className="text-xs font-bold text-slate-500">{rew.claimedCount} / {rew.maxClaims}</td>
-                                                <td>
-                                                    <button 
-                                                        onClick={() => toggleRewardActive(rew.id, rew.active)}
-                                                        className={`status-pill ${rew.active ? 'status-paid' : 'status-unpaid'}`}
-                                                        style={{ fontSize: '10px', minHeight: '22px' }}
-                                                    >
-                                                        {rew.active ? "ACTIVE" : "INACTIVE"}
-                                                    </button>
-                                                </td>
-                                                <td>
-                                                    <button onClick={() => deleteReward(rew.id)} className="btn danger min-h-0 px-3 py-1.5 text-xs font-bold">Delete</button>
-                                                </td>
-                                            </tr>
-                                        ))}
-                                        {rewards.length === 0 && (
-                                            <tr>
-                                                <td colSpan="5" className="text-center font-bold text-slate-500 py-6">No reward vouchers created yet.</td>
-                                            </tr>
-                                        )}
-                                    </tbody>
-                                </table>
+                                <form onSubmit={generateVoucherBatch} className="space-y-4">
+                                    <div className="grid gap-3 sm:grid-cols-2">
+                                        <label className="block">
+                                            <span className="block text-xs font-bold text-slate-500 mb-1">Code Prefix (uppercase)</span>
+                                            <input type="text" className="field uppercase tracking-wider font-mono" placeholder="e.g. FESTIVE" value={batchPrefix} onChange={(e) => setBatchPrefix(e.target.value)} required />
+                                        </label>
+                                        <label className="block">
+                                            <span className="block text-xs font-bold text-slate-500 mb-1">Number of Vouchers</span>
+                                            <input type="number" className="field" placeholder="e.g. 5" value={batchCount} onChange={(e) => setBatchCount(e.target.value)} min="1" max="100" required />
+                                        </label>
+                                    </div>
+                                    <div className="grid gap-3 sm:grid-cols-2">
+                                        <label className="block">
+                                            <span className="block text-xs font-bold text-slate-500 mb-1">Voucher Value (Rs.)</span>
+                                            <input type="number" className="field" placeholder="e.g. 50" value={batchValue} onChange={(e) => setBatchValue(e.target.value)} required />
+                                        </label>
+                                        <label className="block">
+                                            <span className="block text-xs font-bold text-slate-500 mb-1">Max Claims Per Code</span>
+                                            <input type="number" className="field" value={batchMaxClaims} onChange={(e) => setBatchMaxClaims(e.target.value)} required />
+                                        </label>
+                                    </div>
+                                    <label className="block">
+                                        <span className="block text-xs font-bold text-slate-500 mb-1">Expiry Date</span>
+                                        <input type="date" className="field" value={batchExpiry} onChange={(e) => setBatchExpiry(e.target.value)} required />
+                                    </label>
+                                    <button type="submit" className="btn success w-full mt-2" disabled={generatingBatch}>
+                                        {generatingBatch ? "Generating Batch..." : "Generate Batch Vouchers"}
+                                    </button>
+                                </form>
                             </motion.section>
                         </div>
+
+                        {/* Active Vouchers List */}
+                        <motion.section
+                            className="panel p-6 overflow-x-auto"
+                            initial={{ opacity: 0, y: 18 }}
+                            animate={{ opacity: 1, y: 0 }}
+                        >
+                            <div className="section-header mb-4">
+                                <div>
+                                    <p className="eyebrow">Active Vouchers</p>
+                                    <h2 className="text-2xl font-black text-slate-900">Vouchers List</h2>
+                                </div>
+                            </div>
+                            <table className="data-table w-full">
+                                <thead>
+                                    <tr>
+                                        <th>Code</th>
+                                        <th>Value</th>
+                                        <th>Claims</th>
+                                        <th>Expiry</th>
+                                        <th>Status</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {rewards.map(rew => (
+                                        <tr key={rew.id}>
+                                            <td className="font-mono font-black text-slate-900 tracking-wide uppercase">{rew.claimCode}</td>
+                                            <td className="font-bold text-emerald-600">Rs. {rew.rewardAmount.toFixed(2)}</td>
+                                            <td className="text-xs font-bold text-slate-500">{rew.claimedCount} / {rew.maxClaims}</td>
+                                            <td className="text-xs font-bold text-slate-500">{rew.expiryDate ? new Date(rew.expiryDate).toLocaleDateString() : "No Expiry"}</td>
+                                            <td>
+                                                <button 
+                                                    onClick={() => toggleRewardActive(rew.id, rew.active)}
+                                                    className={`status-pill ${rew.active ? 'status-paid' : 'status-unpaid'}`}
+                                                    style={{ fontSize: '10px', minHeight: '22px' }}
+                                                >
+                                                    {rew.active ? "ACTIVE" : "INACTIVE"}
+                                                </button>
+                                            </td>
+                                            <td>
+                                                <button onClick={() => deleteReward(rew.id)} className="btn danger min-h-0 px-3 py-1.5 text-xs font-bold">Delete</button>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                    {rewards.length === 0 && (
+                                        <tr>
+                                            <td colSpan="6" className="text-center font-bold text-slate-500 py-6">No reward vouchers created yet.</td>
+                                        </tr>
+                                    )}
+                                </tbody>
+                            </table>
+                        </motion.section>
                     </div>
                 )}
 

@@ -102,10 +102,25 @@ function Checkout() {
 
     let pagesPerCopy = order?.totalPages || 0;
     if (order?.selectedPages && order.selectedPages !== "ALL") {
-        const parts = order.selectedPages.split("-").map(Number);
-        if (parts.length === 2 && !isNaN(parts[0]) && !isNaN(parts[1])) {
-            pagesPerCopy = parts[1] - parts[0] + 1;
+        let count = 0;
+        const parts = order.selectedPages.split(",");
+        for (const part of parts) {
+            const pagePart = part.trim();
+            if (!pagePart) continue;
+            if (pagePart.includes("-")) {
+                const range = pagePart.split("-").map(Number);
+                if (range.length === 2 && !isNaN(range[0]) && !isNaN(range[1])) {
+                    count += Math.max(0, range[1] - range[0] + 1);
+                } else {
+                    count += 1;
+                }
+            } else {
+                if (!isNaN(Number(pagePart))) {
+                    count += 1;
+                }
+            }
         }
+        pagesPerCopy = count > 0 ? count : 1;
     }
     const estimatedPagesNeeded = pagesPerCopy * (order?.copies || 1);
     const paperShortage = estimatedPagesNeeded > paperCount;
