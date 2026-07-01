@@ -20,12 +20,73 @@ import Checkout from "./pages/Checkout";
 import PaymentSuccess from "./pages/PaymentSuccess";
 import PrinterSettings from "./pages/PrinterSettings";
 import ScanToPrint from "./pages/ScanToPrint";
+import { clearUserSession } from "./services/auth";
+import { useEffect } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
+
+function SessionManager() {
+    const navigate = useNavigate();
+    const location = useLocation();
+
+    useEffect(() => {
+        const userId = localStorage.getItem("userId");
+        const adminId = localStorage.getItem("adminId");
+
+        // 1. Detect if page reload/refresh happened for a normal user
+        const isReload = window.performance && 
+            (window.performance.getEntriesByType('navigation')[0]?.type === 'reload' || 
+             window.performance.navigation?.type === 1);
+
+        if (isReload && userId && !adminId) {
+            clearUserSession();
+            navigate("/");
+            window.location.reload();
+            return;
+        }
+
+        // 2. Set up 5-minute inactivity timeout for normal users
+        if (userId && !adminId) {
+            if (!localStorage.getItem("lastActivity")) {
+                localStorage.setItem("lastActivity", String(Date.now()));
+            }
+
+            const updateActivity = () => {
+                localStorage.setItem("lastActivity", String(Date.now()));
+            };
+
+            const events = ["mousedown", "keydown", "touchstart", "scroll", "click"];
+            events.forEach(event => window.addEventListener(event, updateActivity));
+
+            const interval = setInterval(() => {
+                const currentUserId = localStorage.getItem("userId");
+                const currentAdminId = localStorage.getItem("adminId");
+                
+                if (currentUserId && !currentAdminId) {
+                    const lastActivity = Number(localStorage.getItem("lastActivity") || Date.now());
+                    const elapsed = Date.now() - lastActivity;
+                    if (elapsed > 5 * 60 * 1000) { // 5 minutes
+                        clearUserSession();
+                        window.location.reload();
+                    }
+                }
+            }, 2000);
+
+            return () => {
+                events.forEach(event => window.removeEventListener(event, updateActivity));
+                clearInterval(interval);
+            };
+        }
+    }, [location.pathname]);
+
+    return null;
+}
 
 function App() {
 
   return (
 
     <BrowserRouter>
+      <SessionManager />
 
       <Routes>
 

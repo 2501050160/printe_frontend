@@ -11,6 +11,7 @@ function DisplayPanel() {
     const [slideIndex, setSlideIndex] = useState(0);
     const [pickupQueue, setPickupQueue] = useState([]);
     const [activePickup, setActivePickup] = useState(null);
+    const [queuePageIndex, setQueuePageIndex] = useState(0);
 
     const theme = getBlockTheme(displayBlock);
     const welcomeSlides = theme.slides;
@@ -125,11 +126,22 @@ function DisplayPanel() {
         previousStatusesRef.current = nextStatuses;
     };
 
+    const handleReleaseOrder = async (orderId) => {
+        try {
+            await api.post("/pdf/releasePrint", null, {
+                params: { orderId }
+            });
+            fetchOrders();
+        } catch (err) {
+            console.error("Failed to release print job:", err);
+        }
+    };
+
     const queueOrders = orders
         .filter(
             (order) =>
                 order.paymentStatus === "PAID" &&
-                ["CANCEL_WINDOW", "QUEUE", "PRINTING"].includes(
+                ["PENDING_SCAN", "CANCEL_WINDOW", "QUEUE", "PRINTING"].includes(
                     order.status
                 ) &&
                 (order.blockLocation || "C Block") === displayBlock
@@ -138,12 +150,27 @@ function DisplayPanel() {
 
     const currentOrder =
         queueOrders.find((order) => order.status === "PRINTING") ||
-        queueOrders.find((order) => order.status === "QUEUE") ||
-        queueOrders[0];
+        queueOrders.find((order) => order.status === "QUEUE");
 
     const waitingOrders = queueOrders.filter(
         (order) => order.id !== currentOrder?.id
     );
+
+    const hasActiveOrPendingOrders = queueOrders.length > 0;
+
+    useEffect(() => {
+        setQueuePageIndex(0);
+        if (waitingOrders.length <= 8) {
+            return;
+        }
+        const interval = setInterval(() => {
+            setQueuePageIndex((prev) => {
+                const totalPages = Math.ceil(waitingOrders.length / 8);
+                return (prev + 1) % totalPages;
+            });
+        }, 5000);
+        return () => clearInterval(interval);
+    }, [waitingOrders.length, displayBlock]);
 
     const currentSlide = welcomeSlides[slideIndex];
 
@@ -237,7 +264,7 @@ function DisplayPanel() {
                                     </p>
                                 </motion.div>
                             </motion.div>
-                        ) : currentOrder ? (
+                        ) : hasActiveOrPendingOrders ? (
                             <motion.div
                                 key="queue"
                                 className="grid w-full max-w-7xl gap-6 lg:grid-cols-[1.1fr_0.9fr]"
@@ -245,65 +272,77 @@ function DisplayPanel() {
                                 animate={{ opacity: 1, y: 0 }}
                                 exit={{ opacity: 0, y: -28 }}
                             >
-                                <section className="display-glass p-8">
-                                    <p
-                                        className="text-sm font-black uppercase tracking-[0.25em]"
-                                        style={{ color: theme.accent }}
-                                    >
-                                        {currentOrder.status === "PRINTING"
-                                            ? "Printing Now"
-                                            : currentOrder.status ===
-                                                "CANCEL_WINDOW"
-                                              ? "Confirming Payment"
-                                              : "Up Next"}
-                                    </p>
+                                {currentOrder ? (
+                                    <section className="display-glass p-8">
+                                        <p
+                                            className="text-sm font-black uppercase tracking-[0.25em]"
+                                            style={{ color: theme.accent }}
+                                        >
+                                            {currentOrder.status === "PRINTING"
+                                                ? "Printing Now"
+                                                : currentOrder.status ===
+                                                    "CANCEL_WINDOW"
+                                                  ? "Confirming Payment"
+                                                  : "Up Next"}
+                                        </p>
 
-                                    <motion.h2
-                                        key={currentOrder.orderId}
-                                        className="mt-5 text-6xl font-black md:text-8xl"
-                                        initial={{ opacity: 0, y: 20 }}
-                                        animate={{ opacity: 1, y: 0 }}
-                                    >
-                                        {currentOrder.orderId}
-                                    </motion.h2>
+                                        <motion.h2
+                                            key={currentOrder.orderId}
+                                            className="mt-5 text-6xl font-black md:text-8xl"
+                                            initial={{ opacity: 0, y: 20 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                        >
+                                            {currentOrder.orderId}
+                                        </motion.h2>
 
-                                    <p className="mt-4 text-4xl font-black text-white/90">
-                                        {currentOrder.customerName || "Customer"}
-                                    </p>
+                                        <p className="mt-4 text-4xl font-black text-white/90">
+                                            {currentOrder.customerName || "Customer"}
+                                        </p>
 
-                                    <div className="mt-8 grid gap-4 sm:grid-cols-3">
-                                        {[
-                                            ["Pages", currentOrder.selectedPages],
-                                            ["Copies", currentOrder.copies],
-                                            ["Type", currentOrder.printType]
-                                        ].map(([label, value]) => (
-                                            <div
-                                                key={label}
-                                                className="rounded-xl bg-white/10 p-4 backdrop-blur"
-                                            >
-                                                <p className="text-sm font-bold text-slate-300">
-                                                    {label}
-                                                </p>
-                                                <p className="mt-1 text-2xl font-black">
-                                                    {value}
-                                                </p>
-                                            </div>
-                                        ))}
-                                    </div>
+                                        <div className="mt-8 grid gap-4 sm:grid-cols-3">
+                                            {[
+                                                ["Pages", currentOrder.selectedPages],
+                                                ["Copies", currentOrder.copies],
+                                                ["Type", currentOrder.printType]
+                                            ].map(([label, value]) => (
+                                                <div
+                                                    key={label}
+                                                    className="rounded-xl bg-white/10 p-4 backdrop-blur"
+                                                >
+                                                    <p className="text-sm font-bold text-slate-300">
+                                                        {label}
+                                                    </p>
+                                                    <p className="mt-1 text-2xl font-black">
+                                                        {value}
+                                                    </p>
+                                                </div>
+                                            ))}
+                                        </div>
 
-                                    <div className="mt-8 h-3 overflow-hidden rounded-full bg-white/10">
-                                        <motion.div
-                                            className="h-full rounded-full"
-                                            style={{ background: theme.accent }}
-                                            animate={{ x: ["-100%", "120%"] }}
-                                            transition={{
-                                                duration: 1.6,
-                                                repeat: Infinity,
-                                                ease: "easeInOut"
-                                            }}
-                                        />
-                                    </div>
-                                </section>
+                                        <div className="mt-8 h-3 overflow-hidden rounded-full bg-white/10">
+                                            <motion.div
+                                                className="h-full rounded-full"
+                                                style={{ background: theme.accent }}
+                                                animate={{ x: ["-100%", "120%"] }}
+                                                transition={{
+                                                    duration: 1.6,
+                                                    repeat: Infinity,
+                                                    ease: "easeInOut"
+                                                }}
+                                            />
+                                        </div>
+                                    </section>
+                                ) : (
+                                    <section className="display-glass p-8 flex flex-col justify-center items-center text-center">
+                                        <span className="text-6xl mb-4 animate-bounce" style={{ animationDuration: '3s' }}>🖨️</span>
+                                        <h2 className="text-3xl font-black">
+                                            Printer Ready
+                                        </h2>
+                                        <p className="mt-4 text-lg font-bold text-slate-300 max-w-md">
+                                            Locate your order ID on the list and tap its corresponding OTP code to release physical printing.
+                                        </p>
+                                    </section>
+                                )}
 
                                 <section className="display-glass p-8">
                                     <div className="flex items-center justify-between gap-4">
@@ -327,11 +366,12 @@ function DisplayPanel() {
                                     </div>
 
                                     <div className="mt-6 space-y-4">
-                                        {waitingOrders.map((order, index) => (
+                                        {waitingOrders.slice(queuePageIndex * 8, (queuePageIndex + 1) * 8).map((order, index) => (
                                             <QueueCard
                                                 key={order.id}
                                                 order={order}
                                                 index={index}
+                                                onRelease={handleReleaseOrder}
                                             />
                                         ))}
 
@@ -341,6 +381,19 @@ function DisplayPanel() {
                                             </div>
                                         )}
                                     </div>
+
+                                    {waitingOrders.length > 8 && (
+                                        <div className="mt-4 flex justify-center gap-2">
+                                            {Array.from({ length: Math.ceil(waitingOrders.length / 8) }).map((_, i) => (
+                                                <span
+                                                    key={i}
+                                                    className={`h-2.5 rounded-full transition-all duration-300 ${
+                                                        i === queuePageIndex ? "w-8 bg-sky-400" : "w-2.5 bg-white/20"
+                                                    }`}
+                                                />
+                                            ))}
+                                        </div>
+                                    )}
                                 </section>
                             </motion.div>
                         ) : (

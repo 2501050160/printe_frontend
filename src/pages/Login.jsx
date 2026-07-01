@@ -314,6 +314,7 @@ function Login() {
                     >
                         <video 
                             autoPlay 
+                            muted
                             playsInline 
                             className="w-full h-full object-cover absolute inset-0 z-0"
                             onEnded={handleSkipIntro}

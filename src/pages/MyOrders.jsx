@@ -52,6 +52,10 @@ function MyOrders() {
             return "status-pill status-printing";
         }
 
+        if (status === "PENDING_SCAN") {
+            return "status-pill !bg-sky-500 !text-white !border-sky-600 font-bold";
+        }
+
         return "status-pill status-created";
     };
 
@@ -105,8 +109,13 @@ function MyOrders() {
                                     <td className="font-black">Rs. {order.price}</td>
                                     <td className="flex items-center gap-2">
                                         <span className={statusClass(order.status)}>
-                                            {order.status}
+                                            {order.status === "PENDING_SCAN" ? "PENDING SCAN" : order.status}
                                         </span>
+                                        {order.status === "PENDING_SCAN" && order.otpCode && (
+                                            <span className="bg-sky-50 text-sky-600 border border-sky-100 font-bold px-2 py-0.5 rounded text-xs font-mono">
+                                                OTP: {order.otpCode}
+                                            </span>
+                                        )}
                                         {(order.status === "PRINTING" || order.status === "QUEUE") && (
                                             <div className="flex items-center justify-center text-sky-500">
                                                 <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
