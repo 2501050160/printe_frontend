@@ -77,45 +77,66 @@ function BlockSelection() {
         const redirectOrderId = searchParams.get("orderId");
         const redirectOtp = searchParams.get("otp");
         const redirectFileName = searchParams.get("fileName");
+        const redirectBlock = searchParams.get("block");
 
         if (redirectOrderId && userId) {
             // Clear the query param so refresh doesn't re-trigger
             setSearchParams({}, { replace: true });
             
-            setShowOtpModal(true);
-            setOtpError("");
+            (async () => {
+                const blockLoc = redirectBlock ? decodeURIComponent(redirectBlock) : "";
+                let otpBypassed = false;
 
-            if (redirectOtp) {
-                // Instantly set the order and OTP from the query params to avoid API delays!
-                setPendingOrders([
-                    {
-                        orderId: redirectOrderId,
-                        otpCode: redirectOtp,
-                        fileName: redirectFileName ? decodeURIComponent(redirectFileName) : "document.pdf",
-                        status: "PENDING_SCAN"
-                    }
-                ]);
-                setSelectedOrderId(redirectOrderId);
-                setFetchingOrders(false);
-            } else {
-                // Fallback to fetching orders from API if query params don't have OTP
-                setFetchingOrders(true);
-                (async () => {
+                if (blockLoc) {
                     try {
-                        const res = await api.get("/pdf/userOrders", { params: { userId } });
-                        const pending = (res.data || []).filter(
-                            o => o.status === "PENDING_SCAN" || o.status === "CANCEL_WINDOW"
-                        );
-                        setPendingOrders(pending);
-                        const match = pending.find(o => o.orderId === redirectOrderId);
-                        setSelectedOrderId(match ? match.orderId : (pending.length > 0 ? pending[0].orderId : ""));
+                        const printerRes = await api.get("/printer/byBlock", { params: { blockLocation: blockLoc } });
+                        const printerConfig = printerRes.data;
+                        if (printerConfig && printerConfig.otpEnabled === false) {
+                            otpBypassed = true;
+                        }
                     } catch (err) {
-                        setOtpError("Failed to fetch your pending orders.");
-                    } finally {
-                        setFetchingOrders(false);
+                        console.error("Failed to check printer config:", err);
                     }
-                })();
-            }
+                }
+
+                if (otpBypassed) {
+                    showAlert("Direct Printing Released! 🚀", `OTP is bypassed for ${blockLoc}. Your document has been sent directly to the printer spooler!`, "success");
+                    navigate("/my-orders");
+                } else {
+                    setShowOtpModal(true);
+                    setOtpError("");
+                    
+                    if (redirectOtp) {
+                        // Instantly set the order and OTP from the query params to avoid API delays!
+                        setPendingOrders([
+                            {
+                                orderId: redirectOrderId,
+                                otpCode: redirectOtp,
+                                fileName: redirectFileName ? decodeURIComponent(redirectFileName) : "document.pdf",
+                                status: "PENDING_SCAN"
+                            }
+                        ]);
+                        setSelectedOrderId(redirectOrderId);
+                        setFetchingOrders(false);
+                    } else {
+                        // Fallback to fetching orders from API if query params don't have OTP
+                        setFetchingOrders(true);
+                        try {
+                            const res = await api.get("/pdf/userOrders", { params: { userId } });
+                            const pending = (res.data || []).filter(
+                                o => o.status === "PENDING_SCAN" || o.status === "CANCEL_WINDOW"
+                            );
+                            setPendingOrders(pending);
+                            const match = pending.find(o => o.orderId === redirectOrderId);
+                            setSelectedOrderId(match ? match.orderId : (pending.length > 0 ? pending[0].orderId : ""));
+                        } catch (err) {
+                            setOtpError("Failed to fetch your pending orders.");
+                        } finally {
+                            setFetchingOrders(false);
+                        }
+                    }
+                }
+            })();
         }
     }, [userId, searchParams, setSearchParams]);
 

@@ -12,13 +12,24 @@ function PrinterCard({ printer, onDelete }) {
                     <p className="mt-2 text-sm font-bold text-slate-600">
                         IP: {printer.printerIp || "Local / USB"}
                     </p>
-                    {printer.qrScanToPrint && (
-                        <div className="mt-2">
-                            <span className="inline-flex items-center gap-1 text-xs font-bold text-sky-600 bg-sky-50/50 px-2 py-0.5 rounded border border-sky-100">
-                                🔐 Requires QR Scan
+                    <div className="flex flex-col gap-1.5 mt-2">
+                        {printer.qrScanToPrint && (
+                            <div>
+                                <span className="inline-flex items-center gap-1 text-xs font-bold text-sky-600 bg-sky-50/50 px-2 py-0.5 rounded border border-sky-100">
+                                    🔐 Requires QR Scan
+                                </span>
+                            </div>
+                        )}
+                        <div>
+                            <span className={`inline-flex items-center gap-1 text-xs font-bold px-2 py-0.5 rounded border ${
+                                printer.otpEnabled !== false
+                                    ? "text-violet-600 bg-violet-50/50 border-violet-100"
+                                    : "text-amber-600 bg-amber-50/50 border-amber-100"
+                            }`}>
+                                {printer.otpEnabled !== false ? "🔑 OTP Required" : "⚡ No OTP Direct"}
                             </span>
                         </div>
-                    )}
+                    </div>
                 </div>
 
                 <span

@@ -18,9 +18,11 @@ function PaymentSuccess() {
     const [proceeding, setProceeding] = useState(false);
     const [otpCode, setOtpCode] = useState("");
     const [fileName, setFileName] = useState("");
+    const [blockLocation, setBlockLocation] = useState("");
 
     const otpRef = useRef("");
     const fileNameRef = useRef("");
+    const blockLocationRef = useRef("");
 
     const proceedOrder = async () => {
         if (proceeding) return;
@@ -29,10 +31,10 @@ function PaymentSuccess() {
             await api.post("/queue/proceed", null, {
                 params: { orderId }
             });
-            navigate(`/blocks?orderId=${orderId}&otp=${otpRef.current}&fileName=${encodeURIComponent(fileNameRef.current)}`);
+            navigate(`/blocks?orderId=${orderId}&otp=${otpRef.current}&fileName=${encodeURIComponent(fileNameRef.current)}&block=${encodeURIComponent(blockLocationRef.current)}`);
         } catch (error) {
             console.error("Failed to proceed order:", error);
-            navigate(`/blocks?orderId=${orderId}&otp=${otpRef.current}&fileName=${encodeURIComponent(fileNameRef.current)}`);
+            navigate(`/blocks?orderId=${orderId}&otp=${otpRef.current}&fileName=${encodeURIComponent(fileNameRef.current)}&block=${encodeURIComponent(blockLocationRef.current)}`);
         } finally {
             setProceeding(false);
         }
@@ -55,7 +57,7 @@ function PaymentSuccess() {
             setSecondsLeft((current) => {
                 if (current <= 1) {
                     clearInterval(interval);
-                    navigate(`/blocks?orderId=${orderId}&otp=${otpRef.current}&fileName=${encodeURIComponent(fileNameRef.current)}`);
+                    navigate(`/blocks?orderId=${orderId}&otp=${otpRef.current}&fileName=${encodeURIComponent(fileNameRef.current)}&block=${encodeURIComponent(blockLocationRef.current)}`);
                     return 0;
                 }
                 return current - 1;
@@ -87,6 +89,10 @@ function PaymentSuccess() {
                     setFileName(response.data.fileName);
                     fileNameRef.current = response.data.fileName;
                 }
+                if (response.data.blockLocation) {
+                    setBlockLocation(response.data.blockLocation);
+                    blockLocationRef.current = response.data.blockLocation;
+                }
 
                 if (response.data.secondsLeft != null) {
                     setSecondsLeft(response.data.secondsLeft);
@@ -97,7 +103,7 @@ function PaymentSuccess() {
                 }
 
                 if (response.data.status !== "CANCEL_WINDOW") {
-                    navigate(`/blocks?orderId=${orderId}&otp=${otpRef.current}&fileName=${encodeURIComponent(fileNameRef.current)}`);
+                    navigate(`/blocks?orderId=${orderId}&otp=${otpRef.current}&fileName=${encodeURIComponent(fileNameRef.current)}&block=${encodeURIComponent(blockLocationRef.current)}`);
                 }
             }
         } catch (error) {

@@ -15,6 +15,7 @@ function PrinterSettings() {
     const [active, setActive] = useState(true);
     const [maintenance, setMaintenance] = useState(false);
     const [qrScanToPrint, setQrScanToPrint] = useState(false);
+    const [otpEnabled, setOtpEnabled] = useState(true);
 
     useEffect(() => {
         const adminId = localStorage.getItem("adminId");
@@ -50,7 +51,8 @@ function PrinterSettings() {
                 printerIp,
                 active,
                 maintenance,
-                qrScanToPrint
+                qrScanToPrint,
+                otpEnabled
             });
 
             setPrinterName("");
@@ -58,6 +60,7 @@ function PrinterSettings() {
             setActive(true);
             setMaintenance(false);
             setQrScanToPrint(false);
+            setOtpEnabled(true);
             fetchPrinters();
             alert("Printer saved");
         } catch (error) {
@@ -167,6 +170,15 @@ function PrinterSettings() {
                         >
                             <option value="false">Direct Printing</option>
                             <option value="true">Scan-to-Print 🔐</option>
+                        </select>
+
+                        <select
+                            value={otpEnabled ? "true" : "false"}
+                            onChange={(e) => setOtpEnabled(e.target.value === "true")}
+                            className="field font-bold text-violet-600 bg-violet-50/50"
+                        >
+                            <option value="true">OTP Required 🔑</option>
+                            <option value="false">No OTP Direct ⚡</option>
                         </select>
 
                         <button onClick={savePrinter} className="btn success">
