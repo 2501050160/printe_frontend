@@ -47,6 +47,12 @@ function BlockSelection() {
     };
 
     useEffect(() => {
+        if (!userId) {
+            navigate("/");
+        }
+    }, [userId, navigate]);
+
+    useEffect(() => {
         const fetchBlocks = async () => {
             try {
                 const response = await api.get("/blocks/all");

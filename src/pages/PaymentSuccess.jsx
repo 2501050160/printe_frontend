@@ -34,6 +34,11 @@ function PaymentSuccess() {
     };
 
     useEffect(() => {
+        if (!userId) {
+            navigate("/");
+            return;
+        }
+
         if (!orderId) {
             navigate("/my-orders");
             return;

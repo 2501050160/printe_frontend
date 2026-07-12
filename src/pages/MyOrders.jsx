@@ -19,6 +19,12 @@ function MyOrders() {
     const [isSubmittingOtp, setIsSubmittingOtp] = useState(false);
 
     useEffect(() => {
+        if (!userId) {
+            navigate("/");
+        }
+    }, [userId, navigate]);
+
+    useEffect(() => {
         fetchOrders();
 
         if (userId) {

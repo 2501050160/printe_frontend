@@ -112,6 +112,12 @@ function Dashboard() {
     }, []);
 
     useEffect(() => {
+        if (!userId) {
+            navigate("/");
+        }
+    }, [userId, navigate]);
+
+    useEffect(() => {
         if (userId) {
             getWalletBalance(userId).then(setWalletBalance);
         }
@@ -607,7 +613,7 @@ function Dashboard() {
                                 {/* Right side: Existing Upload Dropzone */}
                                 <label 
                                     className="upload-zone block !mt-0 h-[220px] flex flex-col items-center justify-center p-4 cursor-pointer" 
-                                    style={(!systemStatus.databaseConnected || !systemStatus.agentOnline || !systemStatus.printerConfigured) ? { opacity: 0.5, cursor: "not-allowed" } : {}}
+                                    style={!systemStatus.databaseConnected ? { opacity: 0.5, cursor: "not-allowed" } : {}}
                                 >
                                     <input
                                         type="file"
@@ -615,7 +621,7 @@ function Dashboard() {
                                         multiple
                                         onChange={handleFileSelect}
                                         className="hidden"
-                                        disabled={(!systemStatus.databaseConnected || !systemStatus.agentOnline || !systemStatus.printerConfigured) || uploading}
+                                        disabled={!systemStatus.databaseConnected || uploading}
                                     />
 
                                     <div className="flex flex-col items-center gap-2 text-center">
@@ -642,8 +648,8 @@ function Dashboard() {
                             <button
                                 onClick={uploadPdf}
                                 className="btn mt-5 w-full"
-                                disabled={(!systemStatus.databaseConnected || !systemStatus.agentOnline || !systemStatus.printerConfigured) || uploading || selectedFiles.length === 0}
-                                style={((!systemStatus.databaseConnected || !systemStatus.agentOnline || !systemStatus.printerConfigured) || uploading || selectedFiles.length === 0) ? { opacity: 0.5, cursor: "not-allowed", background: "#64748b" } : {}}
+                                disabled={!systemStatus.databaseConnected || uploading || selectedFiles.length === 0}
+                                style={(!systemStatus.databaseConnected || uploading || selectedFiles.length === 0) ? { opacity: 0.5, cursor: "not-allowed", background: "#64748b" } : {}}
                             >
                                 {uploading ? (
                                     <div className="flex items-center justify-center gap-3">

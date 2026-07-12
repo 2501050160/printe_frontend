@@ -76,6 +76,12 @@ function Checkout() {
     const [paperCount, setPaperCount] = useState(9999);
 
     useEffect(() => {
+        if (!userId) {
+            navigate("/");
+        }
+    }, [userId, navigate]);
+
+    useEffect(() => {
         if (userId) {
             getWalletBalance(userId).then(setWalletBalance);
         }
