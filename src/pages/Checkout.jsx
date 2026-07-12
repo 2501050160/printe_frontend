@@ -19,6 +19,8 @@ function Checkout() {
     const [referralCode, setReferralCode] = useState(order?.appliedReferralCode || "");
     const [referralApplied, setReferralApplied] = useState(!!order?.appliedReferralCode);
     const [maintenance, setMaintenance] = useState(false);
+    const [paymentMethod, setPaymentMethod] = useState("");
+    const [referralEnabled, setReferralEnabled] = useState(true);
 
     // Custom Modal config
     const [modalConfig, setModalConfig] = useState({
@@ -100,8 +102,13 @@ function Checkout() {
                     params: { blockLocation: order.blockLocation }
                 });
                 setMaintenance(statusRes.data.maintenance || false);
+
+                const settingsRes = await api.get("/system/settings");
+                if (settingsRes.data && settingsRes.data.referralEnabled !== undefined) {
+                    setReferralEnabled(settingsRes.data.referralEnabled);
+                }
             } catch (err) {
-                console.error("Failed to fetch status and paper count", err);
+                console.error("Failed to fetch status, paper count, and settings", err);
             }
         };
         fetchStatusAndPaper();
@@ -126,6 +133,9 @@ function Checkout() {
             showAlert("Low Paper Level", "Print cannot be done due to low paper levels. Please change your block location.", "error");
             return;
         }
+        if (paymentMethod) return;
+
+        setPaymentMethod("razorpay");
         try {
             const response = await api.post("/payment/createOrder", null, {
                 params: {
@@ -157,12 +167,14 @@ function Checkout() {
                     } catch (error) {
                         console.error("Failed to mark order as paid:", error);
                         showAlert("Error", "Unable to update payment status in our database.", "error");
+                        setPaymentMethod("");
                     }
                 },
                 modal: {
                     ondismiss: function () {
                         console.log("Payment checkout modal was closed.");
                         showAlert("Payment Cancelled", "The payment checkout was closed.", "warning");
+                        setPaymentMethod("");
                     }
                 }
             };
@@ -176,12 +188,14 @@ function Checkout() {
                     `Reason: ${response.error.description || "The transaction was declined by the bank/gateway."}`,
                     "error"
                 );
+                setPaymentMethod("");
             });
 
             rzp.open();
         } catch (error) {
             console.error("Payment initiation error:", error);
             showAlert("Payment Error", "Unable to initiate payment transaction.", "error");
+            setPaymentMethod("");
         }
     };
 
@@ -194,7 +208,9 @@ function Checkout() {
             showAlert("Insufficient Funds", "Insufficient wallet balance to place this order.", "warning");
             return;
         }
+        if (paymentMethod) return;
 
+        setPaymentMethod("wallet");
         try {
             await api.post("/pdf/payWithWallet", null, {
                 params: {
@@ -208,6 +224,7 @@ function Checkout() {
         } catch (error) {
             console.error(error);
             showAlert("Error", error.response?.data?.message || "Wallet payment failed", "error");
+            setPaymentMethod("");
         }
     };
 
@@ -385,27 +402,29 @@ function Checkout() {
                             </button>
                         </div>
 
-                        <div className="mt-4 border-t border-slate-100 pt-4">
-                            <p className="text-sm font-bold text-slate-500 mb-2">Refer & Earn (Referee gets Rs. 5 & Referrer gets Rs. 10)</p>
-                            <div className="grid gap-3 sm:grid-cols-[1fr_auto]">
-                                <input
-                                    type="text"
-                                    placeholder="Enter referral code"
-                                    value={referralCode}
-                                    onChange={(e) => setReferralCode(e.target.value)}
-                                    className="field uppercase"
-                                    disabled={referralApplied}
-                                />
+                        {referralEnabled && (
+                            <div className="mt-4 border-t border-slate-100 pt-4">
+                                <p className="text-sm font-bold text-slate-500 mb-2">Refer & Earn (Referee gets Rs. 5 & Referrer gets Rs. 10)</p>
+                                <div className="grid gap-3 sm:grid-cols-[1fr_auto]">
+                                    <input
+                                        type="text"
+                                        placeholder="Enter referral code"
+                                        value={referralCode}
+                                        onChange={(e) => setReferralCode(e.target.value)}
+                                        className="field uppercase"
+                                        disabled={referralApplied}
+                                    />
 
-                                <button
-                                    onClick={applyReferral}
-                                    disabled={referralApplied}
-                                    className={referralApplied ? "btn secondary" : "btn"}
-                                >
-                                    {referralApplied ? "Applied" : "Apply Code"}
-                                </button>
+                                    <button
+                                        onClick={applyReferral}
+                                        disabled={referralApplied}
+                                        className={referralApplied ? "btn secondary" : "btn"}
+                                    >
+                                        {referralApplied ? "Applied" : "Apply Code"}
+                                    </button>
+                                </div>
                             </div>
-                        </div>
+                        )}
 
                         {maintenance && (
                             <div style={{
@@ -440,21 +459,37 @@ function Checkout() {
                         {walletBalance >= finalAmount && (
                             <button
                                 onClick={payWithWallet}
-                                className="btn secondary mt-4 w-full"
-                                disabled={paperShortage || maintenance}
-                                style={paperShortage || maintenance ? { opacity: 0.5, cursor: "not-allowed", background: "#64748b" } : {}}
+                                className="btn secondary mt-4 w-full flex items-center justify-center gap-2"
+                                disabled={paperShortage || maintenance || !!paymentMethod}
+                                style={paperShortage || maintenance || !!paymentMethod ? { opacity: 0.5, cursor: "not-allowed", background: "#64748b" } : {}}
                             >
-                                Pay With Wallet
+                                {paymentMethod === "wallet" ? (
+                                    <>
+                                        <svg className="animate-spin h-4 w-4 text-slate-700" fill="none" viewBox="0 0 24 24">
+                                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
+                                        </svg>
+                                        Processing wallet payment...
+                                    </>
+                                ) : "Pay With Wallet"}
                             </button>
                         )}
 
                         <button
                             onClick={payNow}
-                            className="btn success mt-4 w-full"
-                            disabled={paperShortage || maintenance}
-                            style={paperShortage || maintenance ? { opacity: 0.5, cursor: "not-allowed", background: "#64748b" } : {}}
+                            className="btn success mt-4 w-full flex items-center justify-center gap-2"
+                            disabled={paperShortage || maintenance || !!paymentMethod}
+                            style={paperShortage || maintenance || !!paymentMethod ? { opacity: 0.5, cursor: "not-allowed", background: "#64748b" } : {}}
                         >
-                            Pay With Razorpay
+                            {paymentMethod === "razorpay" ? (
+                                <>
+                                    <svg className="animate-spin h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
+                                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
+                                    </svg>
+                                    Opening Razorpay...
+                                </>
+                            ) : "Pay With Razorpay"}
                         </button>
                     </motion.section>
                 </div>

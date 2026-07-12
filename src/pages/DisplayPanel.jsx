@@ -57,7 +57,7 @@ function DisplayPanel() {
             setSlideIndex((current) =>
                 (current + 1) % welcomeSlides.length
             );
-        }, 5000);
+        }, 3000);
 
         return () => clearInterval(interval);
     }, [welcomeSlides.length]);
@@ -110,14 +110,10 @@ function DisplayPanel() {
                 order.status === "COMPLETED" &&
                 order.paymentStatus === "PAID"
             ) {
-                const timer = setTimeout(() => {
-                    setPickupQueue((currentQueue) => [
-                        ...currentQueue,
-                        order
-                    ]);
-                }, 5000);
-
-                timersRef.current.push(timer);
+                setPickupQueue((currentQueue) => [
+                    ...currentQueue,
+                    order
+                ]);
             }
 
             nextStatuses.set(order.id, order.status);
@@ -159,7 +155,7 @@ function DisplayPanel() {
                 const totalPages = Math.ceil(waitingOrders.length / 8);
                 return (prev + 1) % totalPages;
             });
-        }, 5000);
+        }, 3000);
         return () => clearInterval(interval);
     }, [waitingOrders.length, displayBlock]);
 
