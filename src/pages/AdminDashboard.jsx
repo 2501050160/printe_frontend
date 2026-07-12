@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import api, { getPdfDownloadUrl } from "../services/api";
 import CustomModal from "../components/CustomModal";
+import Navbar from "../components/Navbar";
 
 function AdminDashboard() {
     const navigate = useNavigate();
@@ -876,44 +877,15 @@ function AdminDashboard() {
     return (
         <main className="page-shell page-shell-decorated">
             <div className="content-wrap">
-                <motion.div
-                    className="top-bar panel top-bar-glass px-6 py-5"
-                    initial={{ opacity: 0, y: 18 }}
-                    animate={{ opacity: 1, y: 0 }}
-                >
-                    <div>
-                        <p className="eyebrow">Shop Display Panel</p>
-                        <h1 className="title">
-                            Admin Dashboard
-                        </h1>
-                        <p className="subtitle">
-                            Orders and stats refresh every 3 seconds.
-                        </p>
-                    </div>
-
-                    <div className="flex flex-wrap gap-3">
-                        <button
-                            onClick={() => navigate("/printer-settings")}
-                            className="btn"
-                        >
-                            Printer Settings
-                        </button>
-
-                        <button
-                            onClick={() => navigate("/display-panel")}
-                            className="btn secondary"
-                        >
-                            Display Panel
-                        </button>
-
-                        <button
-                            onClick={logout}
-                            className="btn danger"
-                        >
-                            Logout
-                        </button>
-                    </div>
-                </motion.div>
+                <Navbar
+                    title="Admin Dashboard"
+                    subtitle="Shop Display Panel"
+                    badge="Orders and stats refresh every 3 seconds."
+                    actions={[
+                        { label: "Printer Settings", path: "/printer-settings" },
+                        { label: "Display Panel", path: "/display-panel", className: "btn secondary" }
+                    ]}
+                />
 
                 {/* Tabs Navigation */}
                 <div className="flex flex-wrap gap-2 border-b border-slate-200/60 pb-3 mb-6 mt-6">

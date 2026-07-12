@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import api from "../services/api";
 import { getWalletBalance } from "../services/auth";
+import Navbar from "../components/Navbar";
 
 function PaymentSuccess() {
     const navigate = useNavigate();
@@ -119,8 +120,12 @@ function PaymentSuccess() {
     return (
         <main className="page-shell page-shell-decorated">
             <div className="content-wrap">
+                <Navbar
+                    title="Payment Success"
+                    subtitle="Order Confirmation"
+                />
                 <motion.div
-                    className="panel success-panel mx-auto max-w-2xl p-8 text-center"
+                    className="panel success-panel mx-auto max-w-2xl p-8 text-center mt-6"
                     initial={{ opacity: 0, y: 24, scale: 0.98 }}
                     animate={{ opacity: 1, y: 0, scale: 1 }}
                     transition={{ duration: 0.5 }}

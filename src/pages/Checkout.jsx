@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import api, { RAZORPAY_KEY } from "../services/api";
 import { getStoredWalletBalance, getWalletBalance } from "../services/auth";
 import CustomModal from "../components/CustomModal";
+import Navbar from "../components/Navbar";
 
 function Checkout() {
     const navigate = useNavigate();
@@ -274,26 +275,13 @@ function Checkout() {
     return (
         <main className="page-shell page-shell-decorated">
             <div className="content-wrap">
-                <motion.div
-                    className="top-bar panel top-bar-glass px-6 py-5"
-                    initial={{ opacity: 0, y: 18 }}
-                    animate={{ opacity: 1, y: 0 }}
-                >
-                    <div>
-                        <p className="eyebrow">Secure Payment</p>
-                        <h1 className="title">Checkout</h1>
-                        <p className="subtitle">
-                            Review the order and complete payment through Razorpay or wallet.
-                        </p>
-                    </div>
-
-                    <button
-                        onClick={() => navigate("/dashboard")}
-                        className="btn secondary"
-                    >
-                        Edit Order
-                    </button>
-                </motion.div>
+                <Navbar
+                    title="Checkout"
+                    subtitle="Secure Payment"
+                    actions={[
+                        { label: "Edit Order", path: "/dashboard", className: "btn secondary" }
+                    ]}
+                />
 
                 <div className="grid gap-6 lg:grid-cols-[0.9fr_1.1fr]">
                     <motion.section
