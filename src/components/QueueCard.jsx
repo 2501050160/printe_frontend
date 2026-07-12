@@ -1,7 +1,38 @@
 import { motion } from "framer-motion";
+import { useState, useEffect } from "react";
 
 function QueueCard({ order, index = 0 }) {
     const isPendingScan = order.status === "PENDING_SCAN";
+
+    const calculateTimeLeft = () => {
+        if (!order.cancelWindowEndsAt) return 600;
+        const expireTime = new Date(order.cancelWindowEndsAt).getTime() + 10 * 60 * 1000;
+        return Math.max(0, Math.floor((expireTime - Date.now()) / 1000));
+    };
+
+    const [timeLeft, setTimeLeft] = useState(calculateTimeLeft());
+
+    useEffect(() => {
+        if (!isPendingScan) return;
+
+        setTimeLeft(calculateTimeLeft());
+
+        const interval = setInterval(() => {
+            const left = calculateTimeLeft();
+            setTimeLeft(left);
+            if (left <= 0) {
+                clearInterval(interval);
+            }
+        }, 1000);
+
+        return () => clearInterval(interval);
+    }, [order.cancelWindowEndsAt, isPendingScan]);
+
+    const formatTime = (seconds) => {
+        const mins = Math.floor(seconds / 60);
+        const secs = seconds % 60;
+        return `${mins}:${secs < 10 ? "0" : ""}${secs}`;
+    };
 
     return (
         <motion.div
@@ -33,6 +64,9 @@ function QueueCard({ order, index = 0 }) {
                     <div className="text-center w-full bg-sky-500/20 border border-sky-400/30 rounded-xl py-2">
                         <span className="block text-[10px] font-black uppercase text-sky-300 tracking-widest mb-1">Enter OTP to Print</span>
                         <span className="text-2xl font-mono font-black text-sky-100 tracking-[0.2em]">{order.otpCode}</span>
+                        <span className="block text-[11px] font-bold text-sky-300 mt-1">
+                            Expires in {formatTime(timeLeft)}
+                        </span>
                     </div>
                 ) : (
                     <div className="text-center w-full bg-amber-500/20 border border-amber-400/30 rounded-xl py-3">
