@@ -25,15 +25,13 @@ function MyOrders() {
     }, [userId, navigate]);
 
     useEffect(() => {
-        fetchOrders();
-
         if (userId) {
+            fetchOrders();
             getWalletBalance(userId).then(setWalletBalance);
+            const interval = setInterval(fetchOrders, 3000);
+            return () => clearInterval(interval);
         }
-
-        const interval = setInterval(fetchOrders, 3000);
-        return () => clearInterval(interval);
-    }, []);
+    }, [userId]);
 
     const fetchOrders = async () => {
         try {

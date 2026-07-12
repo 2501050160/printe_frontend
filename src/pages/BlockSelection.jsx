@@ -98,7 +98,7 @@ function BlockSelection() {
                 }
             })();
         }
-    }, []);
+    }, [userId, searchParams, setSearchParams]);
 
     const logout = () => {
         clearUserSession();
