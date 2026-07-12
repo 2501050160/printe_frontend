@@ -24,10 +24,10 @@ function PaymentSuccess() {
             await api.post("/queue/proceed", null, {
                 params: { orderId }
             });
-            navigate("/my-orders");
+            navigate(`/blocks?orderId=${orderId}`);
         } catch (error) {
             console.error("Failed to proceed order:", error);
-            navigate("/my-orders");
+            navigate(`/blocks?orderId=${orderId}`);
         } finally {
             setProceeding(false);
         }
@@ -50,7 +50,7 @@ function PaymentSuccess() {
             setSecondsLeft((current) => {
                 if (current <= 1) {
                     clearInterval(interval);
-                    navigate("/my-orders");
+                    navigate(`/blocks?orderId=${orderId}`);
                     return 0;
                 }
                 return current - 1;
@@ -83,7 +83,7 @@ function PaymentSuccess() {
                 }
 
                 if (response.data.status !== "CANCEL_WINDOW") {
-                    navigate("/my-orders");
+                    navigate(`/blocks?orderId=${orderId}`);
                 }
             }
         } catch (error) {

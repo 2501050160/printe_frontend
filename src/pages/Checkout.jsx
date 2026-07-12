@@ -153,7 +153,7 @@ function Checkout() {
                         });
 
                         localStorage.removeItem("order");
-                        navigate(`/blocks?orderId=${order.orderId}`);
+                        navigate(`/payment-success?orderId=${order.orderId}`);
                     } catch (error) {
                         console.error("Failed to mark order as paid:", error);
                         showAlert("Error", "Unable to update payment status in our database.", "error");
@@ -204,7 +204,7 @@ function Checkout() {
 
             await getWalletBalance(userId);
             localStorage.removeItem("order");
-            navigate(`/blocks?orderId=${order.orderId}`);
+            navigate(`/payment-success?orderId=${order.orderId}`);
         } catch (error) {
             console.error(error);
             showAlert("Error", error.response?.data?.message || "Wallet payment failed", "error");
