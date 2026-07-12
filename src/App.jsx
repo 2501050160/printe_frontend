@@ -36,9 +36,7 @@ function SessionManager() {
 
         // 2. Set up 5-minute inactivity timeout for normal users
         if (userId && !adminId) {
-            if (!localStorage.getItem("lastActivity")) {
-                localStorage.setItem("lastActivity", String(Date.now()));
-            }
+            localStorage.setItem("lastActivity", String(Date.now()));
 
             const updateActivity = () => {
                 localStorage.setItem("lastActivity", String(Date.now()));

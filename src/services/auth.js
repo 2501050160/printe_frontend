@@ -19,6 +19,7 @@ export function persistUser(user) {
     localStorage.setItem("userId", user.id);
     localStorage.setItem("userName", user.name);
     localStorage.setItem("userEmail", user.email);
+    localStorage.setItem("lastActivity", String(Date.now()));
     if (user.referralCode) {
         localStorage.setItem("referralCode", user.referralCode);
     }
@@ -39,6 +40,7 @@ export function clearUserSession() {
     localStorage.removeItem("walletBalance");
     localStorage.removeItem("selectedBlock");
     localStorage.removeItem("order");
+    localStorage.removeItem("lastActivity");
 }
 
 export async function getWalletBalance(userId) {
