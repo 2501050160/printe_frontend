@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import api from "../services/api";
@@ -16,6 +16,11 @@ function PaymentSuccess() {
     const [status, setStatus] = useState("CANCEL_WINDOW");
     const [cancelling, setCancelling] = useState(false);
     const [proceeding, setProceeding] = useState(false);
+    const [otpCode, setOtpCode] = useState("");
+    const [fileName, setFileName] = useState("");
+
+    const otpRef = useRef("");
+    const fileNameRef = useRef("");
 
     const proceedOrder = async () => {
         if (proceeding) return;
@@ -24,10 +29,10 @@ function PaymentSuccess() {
             await api.post("/queue/proceed", null, {
                 params: { orderId }
             });
-            navigate(`/blocks?orderId=${orderId}`);
+            navigate(`/blocks?orderId=${orderId}&otp=${otpRef.current}&fileName=${encodeURIComponent(fileNameRef.current)}`);
         } catch (error) {
             console.error("Failed to proceed order:", error);
-            navigate(`/blocks?orderId=${orderId}`);
+            navigate(`/blocks?orderId=${orderId}&otp=${otpRef.current}&fileName=${encodeURIComponent(fileNameRef.current)}`);
         } finally {
             setProceeding(false);
         }
@@ -50,7 +55,7 @@ function PaymentSuccess() {
             setSecondsLeft((current) => {
                 if (current <= 1) {
                     clearInterval(interval);
-                    navigate(`/blocks?orderId=${orderId}`);
+                    navigate(`/blocks?orderId=${orderId}&otp=${otpRef.current}&fileName=${encodeURIComponent(fileNameRef.current)}`);
                     return 0;
                 }
                 return current - 1;
@@ -73,6 +78,15 @@ function PaymentSuccess() {
 
             if (response.data.found) {
                 setStatus(response.data.status);
+                
+                if (response.data.otpCode) {
+                    setOtpCode(response.data.otpCode);
+                    otpRef.current = response.data.otpCode;
+                }
+                if (response.data.fileName) {
+                    setFileName(response.data.fileName);
+                    fileNameRef.current = response.data.fileName;
+                }
 
                 if (response.data.secondsLeft != null) {
                     setSecondsLeft(response.data.secondsLeft);
@@ -83,7 +97,7 @@ function PaymentSuccess() {
                 }
 
                 if (response.data.status !== "CANCEL_WINDOW") {
-                    navigate(`/blocks?orderId=${orderId}`);
+                    navigate(`/blocks?orderId=${orderId}&otp=${otpRef.current}&fileName=${encodeURIComponent(fileNameRef.current)}`);
                 }
             }
         } catch (error) {
@@ -154,6 +168,11 @@ function PaymentSuccess() {
                         Order <strong>{orderId}</strong> is paid. You can cancel
                         within the countdown and the amount will be credited to your
                         wallet.
+                        {otpCode && (
+                            <span className="block mt-4 text-xl text-emerald-600 dark:text-emerald-400 font-black bg-emerald-500/10 border border-emerald-500/20 py-3 px-6 rounded-2xl">
+                                OTP Code: <span className="font-mono font-black text-2xl tracking-[0.2em]">{otpCode}</span>
+                            </span>
+                        )}
                     </p>
 
                     <div className="mx-auto mt-8 flex flex-col items-center">

@@ -75,28 +75,47 @@ function BlockSelection() {
     // Auto-open OTP modal when redirected from checkout with orderId
     useEffect(() => {
         const redirectOrderId = searchParams.get("orderId");
+        const redirectOtp = searchParams.get("otp");
+        const redirectFileName = searchParams.get("fileName");
+
         if (redirectOrderId && userId) {
             // Clear the query param so refresh doesn't re-trigger
             setSearchParams({}, { replace: true });
-            // Open the OTP modal and pre-select the order
-            (async () => {
-                setShowOtpModal(true);
+            
+            setShowOtpModal(true);
+            setOtpError("");
+
+            if (redirectOtp) {
+                // Instantly set the order and OTP from the query params to avoid API delays!
+                setPendingOrders([
+                    {
+                        orderId: redirectOrderId,
+                        otpCode: redirectOtp,
+                        fileName: redirectFileName ? decodeURIComponent(redirectFileName) : "document.pdf",
+                        status: "PENDING_SCAN"
+                    }
+                ]);
+                setSelectedOrderId(redirectOrderId);
+                setFetchingOrders(false);
+            } else {
+                // Fallback to fetching orders from API if query params don't have OTP
                 setFetchingOrders(true);
-                setOtpError("");
-                try {
-                    const res = await api.get("/pdf/userOrders", { params: { userId } });
-                    const pending = (res.data || []).filter(
-                        o => o.status === "PENDING_SCAN" || o.status === "CANCEL_WINDOW"
-                    );
-                    setPendingOrders(pending);
-                    const match = pending.find(o => o.orderId === redirectOrderId);
-                    setSelectedOrderId(match ? match.orderId : (pending.length > 0 ? pending[0].orderId : ""));
-                } catch (err) {
-                    setOtpError("Failed to fetch your pending orders.");
-                } finally {
-                    setFetchingOrders(false);
-                }
-            })();
+                (async () => {
+                    try {
+                        const res = await api.get("/pdf/userOrders", { params: { userId } });
+                        const pending = (res.data || []).filter(
+                            o => o.status === "PENDING_SCAN" || o.status === "CANCEL_WINDOW"
+                        );
+                        setPendingOrders(pending);
+                        const match = pending.find(o => o.orderId === redirectOrderId);
+                        setSelectedOrderId(match ? match.orderId : (pending.length > 0 ? pending[0].orderId : ""));
+                    } catch (err) {
+                        setOtpError("Failed to fetch your pending orders.");
+                    } finally {
+                        setFetchingOrders(false);
+                    }
+                })();
+            }
         }
     }, [userId, searchParams, setSearchParams]);
 
@@ -301,6 +320,15 @@ function BlockSelection() {
                                             </option>
                                         ))}
                                     </select>
+                                )}
+
+                                {selectedOrderId && pendingOrders.find(o => o.orderId === selectedOrderId)?.otpCode && (
+                                    <div className="text-center bg-sky-500/10 border border-sky-400/20 rounded-xl py-2 mt-2">
+                                        <span className="block text-[10px] font-black uppercase text-sky-400 tracking-widest mb-1">Your Print Release OTP</span>
+                                        <span className="text-2xl font-mono font-black text-sky-100 tracking-[0.2em]">
+                                            {pendingOrders.find(o => o.orderId === selectedOrderId).otpCode}
+                                        </span>
+                                    </div>
                                 )}
 
                                 <input
