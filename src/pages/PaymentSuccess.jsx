@@ -31,10 +31,10 @@ function PaymentSuccess() {
             await api.post("/queue/proceed", null, {
                 params: { orderId }
             });
-            navigate(`/blocks?orderId=${orderId}&otp=${otpRef.current}&fileName=${encodeURIComponent(fileNameRef.current)}&block=${encodeURIComponent(blockLocationRef.current)}`);
+            navigate(`/blocks?orderId=${orderId}&fileName=${encodeURIComponent(fileNameRef.current)}&block=${encodeURIComponent(blockLocationRef.current)}`);
         } catch (error) {
             console.error("Failed to proceed order:", error);
-            navigate(`/blocks?orderId=${orderId}&otp=${otpRef.current}&fileName=${encodeURIComponent(fileNameRef.current)}&block=${encodeURIComponent(blockLocationRef.current)}`);
+            navigate(`/blocks?orderId=${orderId}&fileName=${encodeURIComponent(fileNameRef.current)}&block=${encodeURIComponent(blockLocationRef.current)}`);
         } finally {
             setProceeding(false);
         }
@@ -57,7 +57,7 @@ function PaymentSuccess() {
             setSecondsLeft((current) => {
                 if (current <= 1) {
                     clearInterval(interval);
-                    navigate(`/blocks?orderId=${orderId}&otp=${otpRef.current}&fileName=${encodeURIComponent(fileNameRef.current)}&block=${encodeURIComponent(blockLocationRef.current)}`);
+                    navigate(`/blocks?orderId=${orderId}&fileName=${encodeURIComponent(fileNameRef.current)}&block=${encodeURIComponent(blockLocationRef.current)}`);
                     return 0;
                 }
                 return current - 1;
@@ -103,7 +103,7 @@ function PaymentSuccess() {
                 }
 
                 if (response.data.status !== "CANCEL_WINDOW") {
-                    navigate(`/blocks?orderId=${orderId}&otp=${otpRef.current}&fileName=${encodeURIComponent(fileNameRef.current)}&block=${encodeURIComponent(blockLocationRef.current)}`);
+                    navigate(`/blocks?orderId=${orderId}&fileName=${encodeURIComponent(fileNameRef.current)}&block=${encodeURIComponent(blockLocationRef.current)}`);
                 }
             }
         } catch (error) {
@@ -174,11 +174,6 @@ function PaymentSuccess() {
                         Order <strong>{orderId}</strong> is paid. You can cancel
                         within the countdown and the amount will be credited to your
                         wallet.
-                        {otpCode && (
-                            <span className="block mt-4 text-xl text-emerald-600 dark:text-emerald-400 font-black bg-emerald-500/10 border border-emerald-500/20 py-3 px-6 rounded-2xl">
-                                OTP Code: <span className="font-mono font-black text-2xl tracking-[0.2em]">{otpCode}</span>
-                            </span>
-                        )}
                     </p>
 
                     <div className="mx-auto mt-8 flex flex-col items-center">

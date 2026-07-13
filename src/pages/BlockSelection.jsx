@@ -343,15 +343,6 @@ function BlockSelection() {
                                     </select>
                                 )}
 
-                                {selectedOrderId && pendingOrders.find(o => o.orderId === selectedOrderId)?.otpCode && (
-                                    <div className="text-center bg-sky-500/10 border border-sky-400/20 rounded-xl py-2 mt-2">
-                                        <span className="block text-[10px] font-black uppercase text-sky-400 tracking-widest mb-1">Your Print Release OTP</span>
-                                        <span className="text-2xl font-mono font-black text-sky-100 tracking-[0.2em]">
-                                            {pendingOrders.find(o => o.orderId === selectedOrderId).otpCode}
-                                        </span>
-                                    </div>
-                                )}
-
                                 <input
                                     type="text"
                                     maxLength={4}

@@ -983,6 +983,7 @@ function AdminDashboard() {
                         onClick={() => {
                             setActiveTab("rewards");
                             fetchRewards();
+                            fetchSystemSettings();
                         }}
                         className={`px-4 py-2 font-bold text-sm rounded-lg transition-all ${
                             activeTab === "rewards"
@@ -2310,6 +2311,57 @@ function AdminDashboard() {
                                         )}
                                     </tbody>
                                 </table>
+                            </motion.section>
+                        </div>
+
+                        {/* Referral configuration */}
+                        <div className="grid gap-6 lg:grid-cols-2 mt-6">
+                            <motion.section
+                                className="panel p-6"
+                                initial={{ opacity: 0, y: 12 }}
+                                animate={{ opacity: 1, y: 0 }}
+                            >
+                                <div className="section-header mb-4">
+                                    <div>
+                                        <p className="eyebrow">Referrals</p>
+                                        <h2 className="text-2xl font-black text-slate-900">Refer & Earn Program</h2>
+                                    </div>
+                                </div>
+                                <form onSubmit={saveSystemSettings} className="space-y-4">
+                                    <div className="flex items-center gap-2 pb-2">
+                                        <input 
+                                            type="checkbox" 
+                                            id="refEnabled-rewards" 
+                                            checked={systemSettings.referralEnabled}
+                                            onChange={(e) => setSystemSettings({...systemSettings, referralEnabled: e.target.checked})}
+                                            className="w-4 h-4 accent-slate-900"
+                                        />
+                                        <label htmlFor="refEnabled-rewards" className="text-sm font-bold text-slate-700">Referral Program Active</label>
+                                    </div>
+                                    <div className="grid gap-4 sm:grid-cols-2">
+                                        <label className="block">
+                                            <span className="block text-xs font-bold text-slate-500 mb-1">Referrer Reward (Rs.)</span>
+                                            <input 
+                                                type="number" 
+                                                className="field" 
+                                                value={systemSettings.referrerAmount}
+                                                onChange={(e) => setSystemSettings({...systemSettings, referrerAmount: Number(e.target.value)})}
+                                                step="0.5"
+                                            />
+                                        </label>
+                                        <label className="block">
+                                            <span className="block text-xs font-bold text-slate-500 mb-1">Referee Reward (Rs.)</span>
+                                            <input 
+                                                type="number" 
+                                                className="field" 
+                                                value={systemSettings.refereeAmount}
+                                                onChange={(e) => setSystemSettings({...systemSettings, refereeAmount: Number(e.target.value)})}
+                                                step="0.5"
+                                            />
+                                        </label>
+                                    </div>
+                                    <button type="submit" className="btn success w-full mt-4">Save Referral Settings</button>
+                                </form>
                             </motion.section>
                         </div>
                     </div>
