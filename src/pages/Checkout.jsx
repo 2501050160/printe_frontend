@@ -91,24 +91,33 @@ function Checkout() {
 
     useEffect(() => {
         const fetchStatusAndPaper = async () => {
-            if (!order?.blockLocation) return;
+            if (!order) return;
+            
+            // 1. Fetch global system settings
             try {
-                const response = await api.get("/printer/paper", {
-                    params: { blockLocation: order.blockLocation }
-                });
-                setPaperCount(response.data != null ? response.data : 0);
-
-                const statusRes = await api.get("/system/status", {
-                    params: { blockLocation: order.blockLocation }
-                });
-                setMaintenance(statusRes.data.maintenance || false);
-
                 const settingsRes = await api.get("/system/settings");
                 if (settingsRes.data && settingsRes.data.referralEnabled !== undefined) {
                     setReferralEnabled(settingsRes.data.referralEnabled);
                 }
             } catch (err) {
-                console.error("Failed to fetch status, paper count, and settings", err);
+                console.error("Failed to fetch system settings", err);
+            }
+
+            // 2. Fetch block location specific settings
+            if (order.blockLocation) {
+                try {
+                    const response = await api.get("/printer/paper", {
+                        params: { blockLocation: order.blockLocation }
+                    });
+                    setPaperCount(response.data != null ? response.data : 0);
+
+                    const statusRes = await api.get("/system/status", {
+                        params: { blockLocation: order.blockLocation }
+                    });
+                    setMaintenance(statusRes.data.maintenance || false);
+                } catch (err) {
+                    console.error("Failed to fetch status and paper count", err);
+                }
             }
         };
         fetchStatusAndPaper();
