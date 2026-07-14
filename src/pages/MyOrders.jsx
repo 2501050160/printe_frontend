@@ -17,6 +17,7 @@ function MyOrders() {
     const [mobileOtp, setMobileOtp] = useState("");
     const [mobileOtpError, setMobileOtpError] = useState("");
     const [isSubmittingOtp, setIsSubmittingOtp] = useState(false);
+    const [selectedInvoiceOrder, setSelectedInvoiceOrder] = useState(null);
 
     useEffect(() => {
         if (!userId) {
@@ -134,6 +135,7 @@ function MyOrders() {
                                 <th>Copies</th>
                                 <th>Price</th>
                                 <th>Status</th>
+                                <th>Actions</th>
                             </tr>
                         </thead>
 
@@ -153,29 +155,53 @@ function MyOrders() {
                                     <td>{order.selectedPages}</td>
                                     <td>{order.copies}</td>
                                     <td className="font-black">Rs. {order.price}</td>
-                                    <td className="flex items-center gap-2">
-                                        <span className={statusClass(order.status)}>
-                                            {order.status === "PENDING_SCAN" ? "PENDING SCAN" : order.status}
-                                        </span>
-                                        {order.status === "PENDING_SCAN" && (
+                                    <td>
+                                        <div className="flex items-center gap-2">
+                                            <span className={statusClass(order.status)}>
+                                                {order.status === "PENDING_SCAN" ? "PENDING SCAN" : order.status}
+                                            </span>
+                                            {order.status === "PENDING_SCAN" && (
+                                                <button
+                                                    onClick={() => {
+                                                        setReleasingOrder(order);
+                                                        setMobileOtp("");
+                                                        setMobileOtpError("");
+                                                    }}
+                                                    className="bg-sky-500 hover:bg-sky-600 active:scale-95 text-white font-black px-3 py-1 rounded text-xs transition-all cursor-pointer flex items-center gap-1 shadow"
+                                                >
+                                                    Release 🔑
+                                                </button>
+                                            )}
+                                            {(order.status === "PRINTING" || order.status === "QUEUE") && (
+                                                <div className="flex items-center justify-center text-sky-500">
+                                                    <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
+                                                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                                                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
+                                                    </svg>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </td>
+                                    <td>
+                                        {order.paymentStatus === "PAID" && (
                                             <button
-                                                onClick={() => {
-                                                    setReleasingOrder(order);
-                                                    setMobileOtp("");
-                                                    setMobileOtpError("");
+                                                onClick={async () => {
+                                                    try {
+                                                        const response = await api.get("/pdf/details", {
+                                                            params: { orderId: order.orderId }
+                                                        });
+                                                        setSelectedInvoiceOrder(response.data);
+                                                        setTimeout(() => {
+                                                            window.print();
+                                                        }, 200);
+                                                    } catch (err) {
+                                                        console.error("Failed to load invoice details:", err);
+                                                    }
                                                 }}
-                                                className="bg-sky-500 hover:bg-sky-600 active:scale-95 text-white font-black px-3 py-1 rounded text-xs transition-all cursor-pointer flex items-center gap-1 shadow"
+                                                className="bg-emerald-500 hover:bg-emerald-600 active:scale-95 text-white font-black px-2 py-1 rounded text-xs transition-all cursor-pointer shadow flex items-center gap-1"
                                             >
-                                                Release 🔑
+                                                Receipt 🧾
                                             </button>
-                                        )}
-                                        {(order.status === "PRINTING" || order.status === "QUEUE") && (
-                                            <div className="flex items-center justify-center text-sky-500">
-                                                <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
-                                                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                                                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
-                                                </svg>
-                                            </div>
                                         )}
                                     </td>
                                 </motion.tr>
@@ -183,7 +209,7 @@ function MyOrders() {
 
                             {orders.length === 0 && (
                                 <tr>
-                                    <td colSpan="7">
+                                    <td colSpan="8">
                                         <div className="empty-state">
                                             <div className="empty-state-icon">📄</div>
                                             <p>No orders yet</p>
@@ -300,6 +326,203 @@ function MyOrders() {
                     </motion.div>
                 )}
             </AnimatePresence>
+
+            {selectedInvoiceOrder && (
+                <div id="printable-invoice">
+                    <div className="invoice-box">
+                        <div className="invoice-header">
+                            <div className="invoice-logo">🖨️ CLOUD PRINT</div>
+                            <div className="invoice-title">PAYMENT RECEIPT</div>
+                        </div>
+
+                        <div className="invoice-divider"></div>
+
+                        <div className="invoice-section">
+                            <div className="invoice-row">
+                                <span className="invoice-label">Order ID:</span>
+                                <span className="invoice-val font-bold">{selectedInvoiceOrder.orderId}</span>
+                            </div>
+                            <div className="invoice-row">
+                                <span className="invoice-label">Order Created:</span>
+                                <span className="invoice-val">{new Date(selectedInvoiceOrder.uploadTime).toLocaleString()}</span>
+                            </div>
+                            <div className="invoice-row">
+                                <span className="invoice-label">Order Printed:</span>
+                                <span className="invoice-val">
+                                    {selectedInvoiceOrder.queuedAt 
+                                        ? new Date(selectedInvoiceOrder.queuedAt).toLocaleString() 
+                                        : (selectedInvoiceOrder.status === "COMPLETED" 
+                                            ? "Yes (Counter Picked)" 
+                                            : "Pending Kiosk Release")}
+                                </span>
+                            </div>
+                            <div className="invoice-row">
+                                <span className="invoice-label">Transaction ID:</span>
+                                <span className="invoice-val">{selectedInvoiceOrder.razorpayPaymentId || "N/A"}</span>
+                            </div>
+                            <div className="invoice-row">
+                                <span className="invoice-label">Payment Method:</span>
+                                <span className="invoice-val">{selectedInvoiceOrder.razorpayPaymentId === "WALLET" ? "Wallet Balance" : "Razorpay Online"}</span>
+                            </div>
+                            <div className="invoice-row">
+                                <span className="invoice-label">Block Location:</span>
+                                <span className="invoice-val font-bold">{selectedInvoiceOrder.blockLocation || "C Block"}</span>
+                            </div>
+                        </div>
+
+                        <div className="invoice-divider"></div>
+
+                        <div className="invoice-section">
+                            <p className="invoice-subtitle">Document Info</p>
+                            <div className="invoice-row">
+                                <span className="invoice-label">File Name:</span>
+                                <span className="invoice-val">{selectedInvoiceOrder.fileName}</span>
+                            </div>
+                            <div className="invoice-row">
+                                <span className="invoice-label">Print Option:</span>
+                                <span className="invoice-val">{selectedInvoiceOrder.printType}</span>
+                            </div>
+                            <div className="invoice-row">
+                                <span className="invoice-label">Print Papers (Pages):</span>
+                                <span className="invoice-val font-bold">{selectedInvoiceOrder.selectedPages}</span>
+                            </div>
+                            <div className="invoice-row">
+                                <span className="invoice-label">Total Pages Count:</span>
+                                <span className="invoice-val">{selectedInvoiceOrder.totalPages} pages</span>
+                            </div>
+                            <div className="invoice-row">
+                                <span className="invoice-label">Copies:</span>
+                                <span className="invoice-val">{selectedInvoiceOrder.copies} copies</span>
+                            </div>
+                        </div>
+
+                        <div className="invoice-divider"></div>
+
+                        <div className="invoice-section">
+                            <div className="invoice-row">
+                                <span className="invoice-label">Original Price:</span>
+                                <span className="invoice-val">Rs. {Number(selectedInvoiceOrder.originalPrice || selectedInvoiceOrder.price).toFixed(2)}</span>
+                            </div>
+                            <div className="invoice-row">
+                                <span className="invoice-label">Discount Applied:</span>
+                                <span className="invoice-val text-green-600">- Rs. {Number(selectedInvoiceOrder.discountAmount || 0).toFixed(2)}</span>
+                            </div>
+                            <div className="invoice-row invoice-total">
+                                <span className="invoice-label">Total Paid:</span>
+                                <span className="invoice-val">Rs. {Number(selectedInvoiceOrder.price).toFixed(2)}</span>
+                            </div>
+                        </div>
+
+                        <div className="invoice-divider"></div>
+
+                        <div className="invoice-footer">
+                            <p>Thank you for using Cloud Print Self-Service Kiosk!</p>
+                            <p style={{ fontSize: '10px', color: '#64748b', marginTop: '8px' }}>This is a system generated digital receipt and does not require a physical signature.</p>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            <style>{`
+                #printable-invoice {
+                    display: none;
+                }
+
+                @media print {
+                    body * {
+                        visibility: hidden;
+                    }
+                    #printable-invoice, #printable-invoice * {
+                        visibility: visible;
+                    }
+                    #printable-invoice {
+                        display: block !important;
+                        position: absolute;
+                        left: 0;
+                        top: 0;
+                        width: 100%;
+                        background: #ffffff;
+                        color: #000000;
+                        padding: 20px;
+                        font-family: system-ui, -apple-system, sans-serif;
+                    }
+                    .invoice-box {
+                        max-width: 600px;
+                        margin: 0 auto;
+                        border: 1px solid #e2e8f0;
+                        padding: 30px;
+                        border-radius: 12px;
+                    }
+                    .invoice-header {
+                        display: flex;
+                        justify-content: space-between;
+                        align-items: center;
+                        margin-bottom: 20px;
+                    }
+                    .invoice-logo {
+                        font-size: 20px;
+                        font-weight: 900;
+                        color: #0f172a;
+                    }
+                    .invoice-title {
+                        font-size: 14px;
+                        font-weight: 800;
+                        letter-spacing: 0.1em;
+                        color: #64748b;
+                    }
+                    .invoice-divider {
+                        border-top: 2px dashed #cbd5e1;
+                        margin: 20px 0;
+                    }
+                    .invoice-section {
+                        margin-bottom: 15px;
+                    }
+                    .invoice-row {
+                        display: flex;
+                        justify-content: space-between;
+                        margin-bottom: 8px;
+                        font-size: 12px;
+                        color: #334155;
+                    }
+                    .invoice-label {
+                        font-weight: 600;
+                        color: #64748b;
+                    }
+                    .invoice-val {
+                        font-weight: 700;
+                        color: #0f172a;
+                    }
+                    .invoice-subtitle {
+                        font-size: 12px;
+                        font-weight: 800;
+                        text-transform: uppercase;
+                        letter-spacing: 0.05em;
+                        color: #0f172a;
+                        margin-bottom: 10px;
+                    }
+                    .invoice-total {
+                        font-size: 16px;
+                        margin-top: 10px;
+                        padding-top: 10px;
+                        border-top: 1px solid #e2e8f0;
+                    }
+                    .invoice-total .invoice-label {
+                        color: #0f172a;
+                        font-weight: 900;
+                    }
+                    .invoice-total .invoice-val {
+                        color: #10b981;
+                        font-weight: 900;
+                    }
+                    .invoice-footer {
+                        text-align: center;
+                        font-size: 11px;
+                        color: #64748b;
+                        margin-top: 30px;
+                        font-weight: 500;
+                    }
+                }
+            `}</style>
         </main>
     );
 }
