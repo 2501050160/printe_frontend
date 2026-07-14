@@ -271,14 +271,14 @@ function Landing() {
               controlsList="nodownload nofullscreen"
               disablePictureInPicture
               draggable="false"
-              className="w-full h-full object-cover pointer-events-none select-none opacity-40 hover:opacity-50 transition-opacity duration-300"
+              className="w-full h-full object-cover pointer-events-none select-none opacity-65 hover:opacity-75 transition-opacity duration-300"
             />
             {/* Dark glassmorphic gradient overlay to guarantee text readability */}
-            <div className="absolute inset-0 bg-gradient-to-r from-slate-950 via-slate-950/80 to-transparent" />
+            <div className="absolute inset-0 bg-gradient-to-r from-slate-950 via-slate-950/90 to-slate-950/30" />
           </div>
 
           {/* Foreground Overlay Text Content Container */}
-          <div className="relative z-10 max-w-6xl mx-auto w-full px-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-12">
+          <div className="relative z-10 w-full pl-8 pr-8 md:pl-16 md:pr-16 flex flex-col md:flex-row justify-between items-start md:items-center gap-12">
             <div className="max-w-2xl text-white text-left">
             <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider text-blue-400 bg-blue-950/80 border border-blue-800/60">
               <Sparkles className="w-3.5 h-3.5" /> Next-Gen Kiosk Printing
