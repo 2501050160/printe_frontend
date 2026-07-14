@@ -457,33 +457,23 @@ function DisplayPanel() {
                     </div>
 
                     {/* Right Column: Premium ambient loop video presentation */}
-                    <div className="hidden lg:flex flex-col justify-between rounded-3xl border border-white/10 bg-white/5 p-6 backdrop-blur-md shadow-2xl relative overflow-hidden h-[calc(100vh-210px)]">
-                        <div className="absolute inset-0 z-0">
-                            <video
-                                autoPlay
-                                loop
-                                muted
-                                playsInline
-                                className="w-full h-full object-cover opacity-60"
-                            >
-                                <source src="/assets/printer_rollers.mp4" type="video/mp4" />
-                            </video>
-                            <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/20 to-transparent" />
-                        </div>
-                        
-                        <div className="relative z-10 flex flex-col h-full justify-between">
-                            <div className="bg-sky-500/20 text-sky-300 border border-sky-400/30 rounded-2xl p-4 backdrop-blur">
-                                <span className="block text-[10px] font-black uppercase tracking-widest text-sky-300">Autonomous Terminal Status</span>
-                                <h3 className="text-lg font-black text-white mt-1">Smart Printing Agent</h3>
-                                <p className="text-xs text-slate-200 mt-2 font-medium">Keep your mobile device close to scan and release printing. Collect your document from the printer tray.</p>
-                            </div>
-                            
-                            <div className="bg-white/5 border border-white/10 rounded-2xl p-4 backdrop-blur mt-auto">
-                                <span className="block text-[10px] font-black uppercase tracking-widest text-slate-300">Need Help?</span>
-                                <h4 className="text-sm font-bold text-white mt-1">Raise a support ticket</h4>
-                                <p className="text-xs text-slate-300 mt-1 font-medium">Visit the help desk or submit a ticket from your dashboard panel.</p>
-                            </div>
-                        </div>
+                    <div className="hidden lg:block relative overflow-hidden h-[calc(100vh-210px)] w-full rounded-3xl">
+                        <video
+                            autoPlay
+                            loop
+                            muted
+                            playsInline
+                            className="w-full h-full object-cover opacity-80"
+                        >
+                            <source src="/assets/printer_rollers.mp4" type="video/mp4" />
+                        </video>
+                        {/* Smooth horizontal gradient overlay that blends into the background on the left side */}
+                        <div 
+                            className="absolute inset-0"
+                            style={{
+                                background: `linear-gradient(to right, ${theme.background} 0%, ${theme.background}40 40%, transparent 100%)`
+                            }}
+                        />
                     </div>
                 </div>
 
