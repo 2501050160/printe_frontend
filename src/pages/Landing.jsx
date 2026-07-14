@@ -204,7 +204,7 @@ function Landing() {
 
   return (
     <>
-    <div className="min-h-screen bg-white text-slate-900 dot-grid relative overflow-hidden font-sans">
+    <div className="min-h-screen bg-slate-950 text-white dot-grid relative overflow-hidden font-sans">
       {/* Inline SVG Clip Path definition */}
       <svg className="h-0 w-0 absolute pointer-events-none" aria-hidden="true">
         <defs>
@@ -215,12 +215,12 @@ function Landing() {
       </svg>
 
       {/* Subtle Animated Background Mesh */}
-      <div className="absolute top-0 right-0 w-[50rem] h-[50rem] bg-gradient-to-br from-blue-500/5 to-purple-500/5 rounded-full blur-[120px] pointer-events-none" />
-      <div className="absolute bottom-10 left-0 w-[40rem] h-[40rem] bg-gradient-to-tr from-emerald-500/5 to-blue-500/5 rounded-full blur-[120px] pointer-events-none" />
+      <div className="absolute top-0 right-0 w-[50rem] h-[50rem] bg-gradient-to-br from-blue-500/10 to-purple-500/10 rounded-full blur-[120px] pointer-events-none" />
+      <div className="absolute bottom-10 left-0 w-[40rem] h-[40rem] bg-gradient-to-tr from-emerald-500/10 to-blue-500/10 rounded-full blur-[120px] pointer-events-none" />
 
       {/* Floating Transparent Navbar */}
       <header className="sticky top-0 z-50 px-6 py-4 transition-all">
-        <nav className="max-w-6xl mx-auto flex items-center justify-between p-4 bg-transparent backdrop-blur-md border border-white/10 rounded-2xl">
+        <nav className="max-w-6xl mx-auto flex items-center justify-between p-4 bg-slate-950/40 backdrop-blur-md border border-white/10 rounded-2xl">
           <div className="flex items-center gap-2">
             <div className="p-2 rounded-xl bg-blue-600 text-white shadow-md shadow-blue-500/20">
               <Printer className="w-5 h-5" />
@@ -230,15 +230,15 @@ function Landing() {
             </span>
           </div>
 
-          <div className="hidden md:flex items-center gap-6 text-sm font-black text-slate-500">
-            <a href="#features" className="hover:text-slate-900 transition-colors">Features</a>
-            <a href="#locations" className="hover:text-slate-900 transition-colors">Campus Locations</a>
-            <a href="#how-it-works" className="hover:text-slate-900 transition-colors">How it Works</a>
-            <a href="#faq" className="hover:text-slate-900 transition-colors">FAQ</a>
+          <div className="hidden md:flex items-center gap-6 text-sm font-black text-slate-400">
+            <a href="#features" className="hover:text-white transition-colors">Features</a>
+            <a href="#locations" className="hover:text-white transition-colors">Campus Locations</a>
+            <a href="#how-it-works" className="hover:text-white transition-colors">How it Works</a>
+            <a href="#faq" className="hover:text-white transition-colors">FAQ</a>
           </div>
 
           <div className="flex items-center gap-3">
-            <Link to="/login" className="px-4 py-2 text-sm font-black text-slate-600 hover:text-slate-900 transition-colors">
+            <Link to="/login" className="px-4 py-2 text-sm font-black text-slate-300 hover:text-white transition-colors">
               Login
             </Link>
             <Link to="/login" className="btn success min-h-0 py-2.5 px-5 rounded-xl font-black text-sm shadow-md shadow-blue-500/10">
