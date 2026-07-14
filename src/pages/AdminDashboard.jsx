@@ -240,10 +240,12 @@ function AdminDashboard() {
         fetchStats();
         fetchPrices(selectedPricingBlock);
         fetchBlocks();
+        fetchPrinters();
 
         const interval = setInterval(() => {
             fetchOrders();
             fetchStats();
+            fetchPrinters();
         }, 3000);
 
         return () => clearInterval(interval);
@@ -643,23 +645,16 @@ function AdminDashboard() {
 
     const fetchPrinters = async () => {
         try {
-            const response = await api.get("/printer/all");
+            const response = await api.get("/admin/printers/status");
             setPrinters(response.data || []);
             
             const papersMap = {};
             for (const printer of response.data) {
-                try {
-                    const paperRes = await api.get("/printer/paper", {
-                        params: { blockLocation: printer.blockLocation }
-                    });
-                    papersMap[printer.blockLocation] = paperRes.data != null ? paperRes.data : 0;
-                } catch (err) {
-                    console.error("Error fetching paper count for", printer.blockLocation, err);
-                }
+                papersMap[printer.blockLocation] = printer.paperCount != null ? printer.paperCount : 0;
             }
             setPrinterPapers(papersMap);
         } catch (error) {
-            console.error("Error fetching printers:", error);
+            console.error("Error fetching printers status:", error);
         }
     };
 
@@ -1011,7 +1006,58 @@ function AdminDashboard() {
 
                 {/* Queue & Analytics Tab */}
                 {activeTab === "queue" && (
-                    <>
+                    <div className="mt-6 space-y-6">
+                        {/* Live Printer Stock & Status Map */}
+                        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                            {printers.map((p) => {
+                                const paperPct = Math.min(100, Math.max(0, ((p.paperCount || 0) / 500) * 100));
+                                const isLowPaper = p.paperCount < 50;
+                                return (
+                                    <motion.div
+                                        key={p.id}
+                                        className="panel p-5 relative overflow-hidden flex flex-col justify-between border-slate-100 hover:shadow-md transition-all duration-300"
+                                        initial={{ opacity: 0, scale: 0.98 }}
+                                        animate={{ opacity: 1, scale: 1 }}
+                                    >
+                                        <div className="flex items-start justify-between">
+                                            <div>
+                                                <h4 className="font-black text-slate-900 text-lg leading-tight">{p.blockLocation}</h4>
+                                                <p className="text-xs text-slate-400 font-bold mt-0.5">{p.printerName || "Printer Terminal"}</p>
+                                            </div>
+                                            <span className={`px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider ${
+                                                p.online 
+                                                    ? "bg-emerald-500/10 text-emerald-500 border border-emerald-500/20" 
+                                                    : "bg-slate-500/10 text-slate-400 border border-slate-500/15"
+                                            }`}>
+                                                {p.online ? "Online" : "Offline"}
+                                            </span>
+                                        </div>
+
+                                        <div className="mt-4">
+                                            <div className="flex items-center justify-between text-xs font-bold text-slate-500 mb-1">
+                                                <span>Paper Stock</span>
+                                                <span className={isLowPaper ? "text-rose-500 font-black" : "text-slate-800"}>
+                                                    {p.paperCount} / 500 sheets {isLowPaper && "⚠️"}
+                                                </span>
+                                            </div>
+                                            <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
+                                                <div 
+                                                    className={`h-full rounded-full transition-all duration-300 ${
+                                                        isLowPaper ? "bg-rose-500" : "bg-sky-500"
+                                                    }`} 
+                                                    style={{ width: `${paperPct}%` }}
+                                                />
+                                            </div>
+                                        </div>
+
+                                        <div className="mt-4 border-t border-slate-100 pt-3 flex items-center justify-between text-xs font-bold text-slate-400">
+                                            <span>Active Queue Load:</span>
+                                            <span className="text-slate-700 font-black">{p.queueLoad || 0} active jobs</span>
+                                        </div>
+                                    </motion.div>
+                                );
+                            })}
+                        </div>
                         <motion.section
                             className="panel p-6"
                             initial={{ opacity: 0, y: 18 }}
@@ -1260,7 +1306,7 @@ function AdminDashboard() {
                                 </tbody>
                             </table>
                         </motion.section>
-                    </>
+                    </div>
                 )}
 
                 {/* Order Queue Tab */}
@@ -2196,6 +2242,45 @@ function AdminDashboard() {
                                         </label>
                                     </div>
                                     <button type="submit" className="btn success w-full mt-4">Save Referral Settings</button>
+                                </form>
+                            </motion.section>
+
+                            {/* Thesis configuration */}
+                            <motion.section
+                                className="panel p-6"
+                                initial={{ opacity: 0, y: 12 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: 0.03 }}
+                            >
+                                <div className="section-header mb-4">
+                                    <div>
+                                        <p className="eyebrow">Thesis & Bulk Prints</p>
+                                        <h2 className="text-2xl font-black text-slate-900">Bulk Discount Rules</h2>
+                                    </div>
+                                </div>
+                                <form onSubmit={saveSystemSettings} className="space-y-4">
+                                    <div className="grid gap-4 sm:grid-cols-2">
+                                        <label className="block">
+                                            <span className="block text-xs font-bold text-slate-500 mb-1">Threshold (Pages)</span>
+                                            <input 
+                                                type="number" 
+                                                className="field" 
+                                                value={systemSettings.thesisDiscountPages || 50}
+                                                onChange={(e) => setSystemSettings({...systemSettings, thesisDiscountPages: Number(e.target.value)})}
+                                            />
+                                        </label>
+                                        <label className="block">
+                                            <span className="block text-xs font-bold text-slate-500 mb-1">Discount Percentage (%)</span>
+                                            <input 
+                                                type="number" 
+                                                className="field" 
+                                                value={systemSettings.thesisDiscountPercent || 15}
+                                                onChange={(e) => setSystemSettings({...systemSettings, thesisDiscountPercent: Number(e.target.value)})}
+                                                step="0.5"
+                                            />
+                                        </label>
+                                    </div>
+                                    <button type="submit" className="btn success w-full mt-4">Save Bulk Print Settings</button>
                                 </form>
                             </motion.section>
 

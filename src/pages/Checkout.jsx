@@ -8,7 +8,9 @@ import Navbar from "../components/Navbar";
 
 function Checkout() {
     const navigate = useNavigate();
-    const order = JSON.parse(localStorage.getItem("order"));
+    const initialOrder = JSON.parse(localStorage.getItem("order"));
+    const [currentOrder, setCurrentOrder] = useState(initialOrder);
+    const order = currentOrder;
     const userId = localStorage.getItem("userId");
 
     const [couponCode, setCouponCode] = useState("");
@@ -24,6 +26,38 @@ function Checkout() {
 
     const [isScheduled, setIsScheduled] = useState(false);
     const [scheduledTime, setScheduledTime] = useState("");
+    const [nupLayout, setNupLayout] = useState(order?.nupLayout || "1-up");
+
+    const updatePrintSettings = async (newNup) => {
+        try {
+            const response = await api.post("/pdf/updateOrder", null, {
+                params: {
+                    orderId: order.orderId,
+                    copies: order.copies,
+                    selectedPages: order.selectedPages,
+                    printType: order.printType,
+                    blockLocation: order.blockLocation,
+                    nupLayout: newNup
+                }
+            });
+            const updated = response.data;
+            localStorage.setItem("order", JSON.stringify(updated));
+            setCurrentOrder(updated);
+            
+            // Reapply coupon if already applied
+            if (couponApplied) {
+                // If coupon validation needs to run again, or simply clear it:
+                setCouponApplied(false);
+                setCouponCode("");
+                setDiscount(0);
+                setFinalAmount(updated.price);
+            } else {
+                setFinalAmount(updated.price);
+            }
+        } catch (err) {
+            console.error("Failed to update print settings:", err);
+        }
+    };
 
     // Custom Modal config
     const [modalConfig, setModalConfig] = useState({
@@ -362,6 +396,34 @@ function Checkout() {
                             ))}
                         </div>
 
+                        {/* N-up Layout Selection */}
+                        <div className="mt-6 border-t border-slate-100 pt-5">
+                            <p className="font-bold text-slate-500 mb-3 text-sm">N-up Layout (Page Collage)</p>
+                            <div className="grid grid-cols-3 gap-3">
+                                {[
+                                    { id: "1-up", label: "1-up (Normal)", desc: "1 page/side" },
+                                    { id: "2-up", label: "2-up (Saver)", desc: "2 pages/side" },
+                                    { id: "4-up", label: "4-up (Compact)", desc: "4 pages/side" }
+                                ].map((layout) => (
+                                    <button
+                                        key={layout.id}
+                                        onClick={() => {
+                                            setNupLayout(layout.id);
+                                            updatePrintSettings(layout.id);
+                                        }}
+                                        className={`flex flex-col items-center justify-center p-3 rounded-xl border text-center transition-all cursor-pointer ${
+                                            nupLayout === layout.id
+                                                ? "border-sky-500 bg-sky-50 text-sky-600 shadow-sm"
+                                                : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
+                                        }`}
+                                    >
+                                        <span className="text-xs font-black">{layout.label}</span>
+                                        <span className="text-[10px] text-slate-400 mt-1">{layout.desc}</span>
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+
                         {/* Payment Animation Loop */}
                         <div className="mt-6 flex justify-center">
                             <div className="w-full max-w-[240px] rounded-xl border border-slate-100 bg-slate-50 p-4 flex flex-col items-center">
@@ -389,14 +451,23 @@ function Checkout() {
                             </div>
 
                             <div className="mt-4 flex items-center justify-between">
-                                <span className="font-bold text-slate-300">Price</span>
-                                <span className="text-2xl font-black">Rs. {order.price}</span>
+                                <span className="font-bold text-slate-300">Base Price</span>
+                                <span className="text-xl font-bold">Rs. {Number(order.originalPrice || order.price).toFixed(2)}</span>
                             </div>
 
-                            <div className="mt-4 flex items-center justify-between">
-                                <span className="font-bold text-slate-300">Discount</span>
-                                <span className="text-xl font-black text-green-300">Rs. {discount}</span>
-                            </div>
+                            {order.discountAmount > 0 && (
+                                <div className="mt-2 flex items-center justify-between text-green-400 text-sm">
+                                    <span className="font-bold">Student Auto-Discounts</span>
+                                    <span className="font-black">- Rs. {Number(order.discountAmount).toFixed(2)}</span>
+                                </div>
+                            )}
+
+                            {couponApplied && (
+                                <div className="mt-2 flex items-center justify-between text-green-400 text-sm">
+                                    <span className="font-bold">Coupon Discount</span>
+                                    <span className="font-black">- Rs. {Number(discount).toFixed(2)}</span>
+                                </div>
+                            )}
 
                             <div className="mt-6 border-t border-white/15 pt-5">
                                 <p className="text-sm font-bold text-slate-300">Final Amount</p>

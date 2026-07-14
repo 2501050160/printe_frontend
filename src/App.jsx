@@ -20,6 +20,7 @@ import Checkout from "./pages/Checkout";
 import PaymentSuccess from "./pages/PaymentSuccess";
 import PrinterSettings from "./pages/PrinterSettings";
 import ScanToPrint from "./pages/ScanToPrint";
+import Referrals from "./pages/Referrals";
 import { clearUserSession } from "./services/auth";
 import { useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -123,10 +124,15 @@ function App() {
  element={<AdminLogin />}
 />
 
-<Route
-    path="/my-orders"
-    element={<MyOrders />}
-/>
+        <Route
+            path="/my-orders"
+            element={<MyOrders />}
+        />
+
+        <Route
+            path="/referrals"
+            element={<Referrals />}
+        />
 
         <Route
  path="/admin"

@@ -156,6 +156,18 @@ function Navbar({ title, subtitle, actions = [], badge, tabs = [], activeTab, on
                                             </div>
                                         )}
 
+                                        {userId && (
+                                            <button
+                                                onClick={() => {
+                                                    setProfileOpen(false);
+                                                    navigate("/referrals");
+                                                }}
+                                                className="w-full text-left py-2 px-3 hover:bg-slate-50 rounded-lg text-xs font-black text-sky-600 flex items-center gap-1.5 transition-colors cursor-pointer mb-2"
+                                            >
+                                                🏆 Referrals & Rewards
+                                            </button>
+                                        )}
+
                                         <button
                                             onClick={() => {
                                                 setProfileOpen(false);

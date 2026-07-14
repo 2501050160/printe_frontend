@@ -459,6 +459,49 @@ function DisplayPanel() {
                     )}
                 </div>
 
+                <style>{`
+                    @keyframes marquee-scroll {
+                        0% { transform: translateX(0%); }
+                        100% { transform: translateX(-50%); }
+                    }
+                `}</style>
+
+                {/* Student Offers Live Ticker */}
+                <div className="relative w-full overflow-hidden bg-white/5 border border-white/10 rounded-2xl py-3 px-6 mb-5 mt-6">
+                    <div 
+                        className="flex whitespace-nowrap gap-12"
+                        style={{
+                            display: 'flex',
+                            width: 'max-content',
+                            animation: 'marquee-scroll 30s linear infinite'
+                        }}
+                    >
+                        <div className="flex gap-16 shrink-0">
+                            <span className="flex items-center gap-2 text-sm font-black text-cyan-300 uppercase tracking-wider">
+                                ⚡ OFF-PEAK HAPPY HOURS: Get 15% discount for printing from 7 AM - 9 AM & 9 PM - 7 AM daily!
+                            </span>
+                            <span className="flex items-center gap-2 text-sm font-black text-emerald-400 uppercase tracking-wider">
+                                📚 THESIS BULK DISCOUNT: Printing thesis or lab records? Enjoy 15% flat discount for files &gt; 50 pages!
+                            </span>
+                            <span className="flex items-center gap-2 text-sm font-black text-amber-300 uppercase tracking-wider">
+                                👥 SHARE & EARN: Refer your friends using your unique referral code to earn ₹10 wallet credits!
+                            </span>
+                        </div>
+                        {/* Duplicate for seamless looping */}
+                        <div className="flex gap-16 shrink-0" aria-hidden="true">
+                            <span className="flex items-center gap-2 text-sm font-black text-cyan-300 uppercase tracking-wider">
+                                ⚡ OFF-PEAK HAPPY HOURS: Get 15% discount for printing from 7 AM - 9 AM & 9 PM - 7 AM daily!
+                            </span>
+                            <span className="flex items-center gap-2 text-sm font-black text-emerald-400 uppercase tracking-wider">
+                                📚 THESIS BULK DISCOUNT: Printing thesis or lab records? Enjoy 15% flat discount for files &gt; 50 pages!
+                            </span>
+                            <span className="flex items-center gap-2 text-sm font-black text-amber-300 uppercase tracking-wider">
+                                👥 SHARE & EARN: Refer your friends using your unique referral code to earn ₹10 wallet credits!
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
                 <footer className="flex flex-wrap items-center justify-between gap-3 border-t border-white/10 pt-5 text-sm font-bold uppercase tracking-[0.18em] text-slate-300">
                     <span>Cloud Print · {displayBlock}</span>
                     <span>{new Date().toLocaleTimeString()}</span>
