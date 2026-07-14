@@ -74,7 +74,8 @@ function DisplayPanel() {
 
         const timer = setTimeout(() => {
             setActivePickup(null);
-        }, 5000);
+            window.location.reload();
+        }, 7000);
 
         return () => clearTimeout(timer);
     }, [pickupQueue, activePickup]);
@@ -218,232 +219,272 @@ function DisplayPanel() {
                     </div>
                 </motion.header>
 
-                <div className="grid flex-1 place-items-center py-8">
-                    <AnimatePresence mode="wait">
-                        {activePickup ? (
-                            <motion.div
-                                key={`pickup-${activePickup.id}`}
-                                className="display-glass w-full max-w-5xl p-10 text-center"
-                                initial={{ opacity: 0, scale: 0.92 }}
-                                animate={{ opacity: 1, scale: 1 }}
-                                exit={{ opacity: 0, scale: 0.96 }}
-                            >
-                                <p className="text-lg font-black uppercase tracking-[0.25em] text-green-300">
-                                    Ready for collection
-                                </p>
-                                <h2 className="mt-5 text-6xl font-black md:text-8xl">
-                                    {activePickup.orderId}
-                                </h2>
-                                <p className="mt-5 text-4xl font-black text-cyan-100 md:text-6xl">
-                                    {activePickup.customerName || "Customer"}
-                                </p>
+                <div className="grid lg:grid-cols-[1.7fr_1fr] gap-8 flex-1 py-8 w-full">
+                    {/* Left Column: Active order queue / Welcome message / Pickup alert */}
+                    <div className="flex flex-col justify-center w-full">
+                        <AnimatePresence mode="wait">
+                            {activePickup ? (
                                 <motion.div
-                                    className="mx-auto mt-8 max-w-3xl rounded-2xl border border-green-300/40 bg-green-400/15 p-8"
-                                    animate={{
-                                        boxShadow: [
-                                            "0 0 0 rgba(74,222,128,0)",
-                                            "0 0 44px rgba(74,222,128,0.32)",
-                                            "0 0 0 rgba(74,222,128,0)"
-                                        ]
-                                    }}
-                                    transition={{ duration: 1.8, repeat: Infinity }}
+                                    key={`pickup-${activePickup.id}`}
+                                    className="display-glass w-full max-w-5xl p-10 text-center mx-auto"
+                                    initial={{ opacity: 0, scale: 0.92 }}
+                                    animate={{ opacity: 1, scale: 1 }}
+                                    exit={{ opacity: 0, scale: 0.96 }}
                                 >
-                                    <p className="text-3xl font-black md:text-5xl">
-                                        Please collect your pages
+                                    <p className="text-lg font-black uppercase tracking-[0.25em] text-green-300">
+                                        Ready for collection
                                     </p>
+                                    <h2 className="mt-5 text-6xl font-black md:text-8xl">
+                                        {activePickup.orderId}
+                                    </h2>
+                                    <p className="mt-5 text-4xl font-black text-cyan-100 md:text-6xl">
+                                        {activePickup.customerName || "Customer"}
+                                    </p>
+                                    <motion.div
+                                        className="mx-auto mt-8 max-w-3xl rounded-2xl border border-green-300/40 bg-green-400/15 p-8"
+                                        animate={{
+                                            boxShadow: [
+                                                "0 0 0 rgba(74,222,128,0)",
+                                                "0 0 44px rgba(74,222,128,0.32)",
+                                                "0 0 0 rgba(74,222,128,0)"
+                                            ]
+                                        }}
+                                        transition={{ duration: 1.8, repeat: Infinity }}
+                                    >
+                                        <p className="text-xl font-bold text-slate-100">
+                                            Your printing is completed! Please collect your papers from the printer tray.
+                                        </p>
+                                        <div className="mt-4 flex items-center justify-center gap-1.5 text-sm font-bold text-green-300">
+                                            <span>🖨️ Counter Release successful</span>
+                                        </div>
+                                    </motion.div>
                                 </motion.div>
-                            </motion.div>
-                        ) : hasActiveOrPendingOrders ? (
-                            <motion.div
-                                key="queue"
-                                className="grid w-full max-w-7xl gap-6 lg:grid-cols-[1.1fr_0.9fr]"
-                                initial={{ opacity: 0, y: 28 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                exit={{ opacity: 0, y: -28 }}
-                            >
-                                {currentOrder ? (
-                                    <section className="display-glass p-8">
-                                        <p
-                                            className="text-sm font-black uppercase tracking-[0.25em]"
-                                            style={{ color: theme.accent }}
-                                        >
-                                            {currentOrder.status === "PRINTING"
-                                                ? "Printing Now"
-                                                : currentOrder.status ===
-                                                    "CANCEL_WINDOW"
-                                                  ? "Confirming Payment"
-                                                  : "Up Next"}
-                                        </p>
-
-                                        <motion.h2
-                                            key={currentOrder.orderId}
-                                            className="mt-5 text-6xl font-black md:text-8xl"
-                                            initial={{ opacity: 0, y: 20 }}
-                                            animate={{ opacity: 1, y: 0 }}
-                                        >
-                                            {currentOrder.orderId}
-                                        </motion.h2>
-
-                                        <p className="mt-4 text-4xl font-black text-white/90">
-                                            {currentOrder.customerName || "Customer"}
-                                        </p>
-
-                                        <div className="mt-8 grid gap-4 sm:grid-cols-3">
-                                            {[
-                                                ["Pages", currentOrder.selectedPages],
-                                                ["Copies", currentOrder.copies],
-                                                ["Type", currentOrder.printType]
-                                            ].map(([label, value]) => (
-                                                <div
-                                                    key={label}
-                                                    className="rounded-xl bg-white/10 p-4 backdrop-blur"
-                                                >
-                                                    <p className="text-sm font-bold text-slate-300">
-                                                        {label}
-                                                    </p>
-                                                    <p className="mt-1 text-2xl font-black">
-                                                        {value}
-                                                    </p>
-                                                </div>
-                                            ))}
-                                        </div>
-
-                                        <div className="mt-8 h-3 overflow-hidden rounded-full bg-white/10">
-                                            <motion.div
-                                                className="h-full rounded-full"
-                                                style={{ background: theme.accent }}
-                                                animate={{ x: ["-100%", "120%"] }}
-                                                transition={{
-                                                    duration: 1.6,
-                                                    repeat: Infinity,
-                                                    ease: "easeInOut"
-                                                }}
-                                            />
-                                        </div>
-                                    </section>
-                                ) : (
-                                    <section className="display-glass p-8 flex flex-col justify-center items-center text-center">
-                                        <span className="text-6xl mb-4 animate-bounce" style={{ animationDuration: '3s' }}>🖨️</span>
-                                        <h2 className="text-3xl font-black">
-                                            Printer Ready
-                                        </h2>
-                                        <p className="mt-4 text-lg font-bold text-slate-300 max-w-md">
-                                            Locate your order ID on the list and enter its corresponding OTP code on your mobile device to release physical printing.
-                                        </p>
-                                    </section>
-                                )}
-
-                                <section className="display-glass p-8">
-                                    <div className="flex items-center justify-between gap-4">
-                                        <div>
-                                            <p
-                                                className="text-sm font-black uppercase tracking-[0.25em]"
-                                                style={{ color: theme.accent }}
-                                            >
-                                                Queue
-                                            </p>
-                                            <h3 className="mt-2 text-3xl font-black">
-                                                Next Orders
-                                            </h3>
-                                        </div>
-                                        <span
-                                            className="rounded-full px-4 py-2 text-lg font-black text-slate-950"
-                                            style={{ background: theme.accent }}
-                                        >
-                                            {queueOrders.length}
-                                        </span>
-                                    </div>
-
-                                    <div className="mt-6 grid grid-cols-2 gap-4">
-                                        {waitingOrders.slice(queuePageIndex * 8, (queuePageIndex + 1) * 8).map((order, index) => (
-                                            <QueueCard
-                                                key={order.id}
-                                                order={order}
-                                                index={index}
-                                            />
-                                        ))}
-
-                                        {waitingOrders.length === 0 && (
-                                            <div className="col-span-2 rounded-xl bg-white/10 p-10 text-center text-2xl font-black text-slate-300">
-                                                No waiting orders
-                                            </div>
-                                        )}
-                                    </div>
-
-                                    {waitingOrders.length > 8 && (
-                                        <div className="mt-4 flex justify-center gap-2">
-                                            {Array.from({ length: Math.ceil(waitingOrders.length / 8) }).map((_, i) => (
-                                                <span
-                                                    key={i}
-                                                    className={`h-2.5 rounded-full transition-all duration-300 ${
-                                                        i === queuePageIndex ? "w-8 bg-sky-400" : "w-2.5 bg-white/20"
-                                                    }`}
-                                                />
-                                            ))}
-                                        </div>
-                                    )}
-                                </section>
-                            </motion.div>
-                        ) : (
-                            <motion.div
-                                key={`welcome-${displayBlock}-${slideIndex}`}
-                                className="display-glass w-full max-w-5xl p-10 text-center"
-                                initial={{ opacity: 0, y: 24, scale: 0.98 }}
-                                animate={{ opacity: 1, y: 0, scale: 1 }}
-                                exit={{ opacity: 0, y: -24, scale: 0.98 }}
-                                transition={{ duration: 0.55 }}
-                            >
-                                <motion.p
-                                    className="text-lg font-black uppercase tracking-[0.25em]"
-                                    style={{ color: theme.accent }}
-                                    initial={{ opacity: 0 }}
-                                    animate={{ opacity: 1 }}
-                                >
-                                    Welcome
-                                </motion.p>
-
-                                <motion.h2
-                                    className="mt-5 text-5xl font-black leading-tight md:text-7xl"
+                            ) : hasActiveOrPendingOrders ? (
+                                <motion.div
+                                    key={`queue-${displayBlock}-${queuePageIndex}`}
+                                    className="grid gap-6 w-full max-w-5xl mx-auto"
                                     initial={{ opacity: 0, y: 16 }}
                                     animate={{ opacity: 1, y: 0 }}
-                                    transition={{ delay: 0.08 }}
+                                    exit={{ opacity: 0, y: -16 }}
+                                    transition={{ duration: 0.4 }}
                                 >
-                                    {currentSlide.title}
-                                </motion.h2>
+                                    {currentOrder ? (
+                                        <section className="display-glass p-8 relative overflow-hidden">
+                                            <div className="absolute right-4 top-4 rounded-full bg-emerald-500/20 border border-emerald-400/30 px-3 py-1 text-xs font-black uppercase text-emerald-300 animate-pulse">
+                                                Active
+                                            </div>
+                                            <p className="text-xs font-black uppercase tracking-widest text-slate-300">
+                                                Currently Printing
+                                            </p>
+                                            <p className="mt-2 text-sm font-bold text-white/60">
+                                                {currentOrder.status === "PRINTING"
+                                                    ? "Printing in progress..."
+                                                    : currentOrder.status ===
+                                                      "CANCEL_WINDOW"
+                                                    ? "Confirming Payment"
+                                                    : "Up Next"}
+                                            </p>
 
-                                <motion.p
-                                    className="mx-auto mt-7 max-w-3xl text-xl font-bold leading-relaxed text-slate-200 md:text-2xl"
-                                    initial={{ opacity: 0, y: 12 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    transition={{ delay: 0.16 }}
+                                            <motion.h2
+                                                key={currentOrder.orderId}
+                                                className="mt-5 text-6xl font-black md:text-8xl"
+                                                initial={{ opacity: 0, y: 20 }}
+                                                animate={{ opacity: 1, y: 0 }}
+                                            >
+                                                {currentOrder.orderId}
+                                            </motion.h2>
+
+                                            <p className="mt-4 text-4xl font-black text-white/90">
+                                                {currentOrder.customerName || "Customer"}
+                                            </p>
+
+                                            <div className="mt-8 grid gap-4 sm:grid-cols-3">
+                                                {[
+                                                    ["Pages", currentOrder.selectedPages],
+                                                    ["Copies", currentOrder.copies],
+                                                    ["Type", currentOrder.printType]
+                                                ].map(([label, value]) => (
+                                                    <div
+                                                        key={label}
+                                                        className="rounded-xl bg-white/10 p-4 backdrop-blur"
+                                                    >
+                                                        <p className="text-sm font-bold text-slate-300">
+                                                            {label}
+                                                        </p>
+                                                        <p className="mt-1 text-2xl font-black">
+                                                            {value}
+                                                        </p>
+                                                    </div>
+                                                ))}
+                                            </div>
+
+                                            <div className="mt-8 h-3 overflow-hidden rounded-full bg-white/10">
+                                                <motion.div
+                                                    className="h-full rounded-full"
+                                                    style={{ background: theme.accent }}
+                                                    animate={{ x: ["-100%", "120%"] }}
+                                                    transition={{
+                                                        duration: 1.6,
+                                                        repeat: Infinity,
+                                                        ease: "easeInOut"
+                                                    }}
+                                                />
+                                            </div>
+                                        </section>
+                                    ) : (
+                                        <section className="display-glass p-8 flex flex-col justify-center items-center text-center">
+                                            <span className="text-6xl mb-4 animate-bounce" style={{ animationDuration: '3s' }}>🖨️</span>
+                                            <h2 className="text-3xl font-black">
+                                                Printer Ready
+                                            </h2>
+                                            <p className="mt-4 text-lg font-bold text-slate-300 max-w-md">
+                                                Locate your order ID on the list and enter its corresponding OTP code on your mobile device to release physical printing.
+                                            </p>
+                                        </section>
+                                    )}
+
+                                    <section className="display-glass p-8">
+                                        <div className="flex items-center justify-between gap-4">
+                                            <div>
+                                                <p
+                                                    className="text-sm font-black uppercase tracking-[0.25em]"
+                                                    style={{ color: theme.accent }}
+                                                >
+                                                    Queue
+                                                </p>
+                                                <h3 className="mt-2 text-3xl font-black">
+                                                    Next Orders
+                                                </h3>
+                                            </div>
+                                            <span
+                                                className="rounded-full px-4 py-2 text-lg font-black text-slate-950"
+                                                style={{ background: theme.accent }}
+                                            >
+                                                {queueOrders.length}
+                                            </span>
+                                        </div>
+
+                                        <div className="mt-6 grid grid-cols-2 gap-4">
+                                            {waitingOrders.slice(queuePageIndex * 8, (queuePageIndex + 1) * 8).map((order, index) => (
+                                                <QueueCard
+                                                    key={order.id}
+                                                    order={order}
+                                                    index={index}
+                                                />
+                                            ))}
+
+                                            {waitingOrders.length === 0 && (
+                                                <div className="col-span-2 rounded-xl bg-white/10 p-10 text-center text-2xl font-black text-slate-300">
+                                                    No waiting orders
+                                                </div>
+                                            )}
+                                        </div>
+
+                                        {waitingOrders.length > 8 && (
+                                            <div className="mt-4 flex justify-center gap-2">
+                                                {Array.from({ length: Math.ceil(waitingOrders.length / 8) }).map((_, i) => (
+                                                    <span
+                                                        key={i}
+                                                        className={`h-2.5 rounded-full transition-all duration-300 ${
+                                                            i === queuePageIndex ? "w-8 bg-sky-400" : "w-2.5 bg-white/20"
+                                                        }`}
+                                                    />
+                                                ))}
+                                            </div>
+                                        )}
+                                    </section>
+                                </motion.div>
+                            ) : (
+                                <motion.div
+                                    key={`welcome-${displayBlock}-${slideIndex}`}
+                                    className="display-glass w-full max-w-5xl p-10 text-center mx-auto"
+                                    initial={{ opacity: 0, y: 24, scale: 0.98 }}
+                                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                                    exit={{ opacity: 0, y: -24, scale: 0.98 }}
+                                    transition={{ duration: 0.55 }}
                                 >
-                                    {currentSlide.text}
-                                </motion.p>
+                                    <motion.p
+                                        className="text-lg font-black uppercase tracking-[0.25em]"
+                                        style={{ color: theme.accent }}
+                                        initial={{ opacity: 0 }}
+                                        animate={{ opacity: 1 }}
+                                    >
+                                        Welcome
+                                    </motion.p>
 
-                                <div className="mt-10 flex justify-center gap-3">
-                                    {welcomeSlides.map((slide, index) => (
-                                        <motion.span
-                                            key={slide.title}
-                                            className="rounded-full"
-                                            style={{
-                                                background:
-                                                    index === slideIndex
-                                                        ? theme.accent
-                                                        : "rgba(255,255,255,0.25)"
-                                            }}
-                                            animate={{
-                                                width:
-                                                    index === slideIndex
-                                                        ? 48
-                                                        : 12,
-                                                height: 12
-                                            }}
-                                        />
-                                    ))}
-                                </div>
-                            </motion.div>
-                        )}
-                    </AnimatePresence>
+                                    <motion.h2
+                                        className="mt-5 text-5xl font-black leading-tight md:text-7xl"
+                                        initial={{ opacity: 0, y: 16 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        transition={{ delay: 0.08 }}
+                                    >
+                                        {currentSlide.title}
+                                    </motion.h2>
+
+                                    <motion.p
+                                        className="mx-auto mt-7 max-w-3xl text-xl font-bold leading-relaxed text-slate-200 md:text-2xl"
+                                        initial={{ opacity: 0, y: 12 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        transition={{ delay: 0.16 }}
+                                    >
+                                        {currentSlide.text}
+                                    </motion.p>
+
+                                    <div className="mt-10 flex justify-center gap-3">
+                                        {welcomeSlides.map((slide, index) => (
+                                            <motion.span
+                                                key={slide.title}
+                                                className="rounded-full"
+                                                style={{
+                                                    background:
+                                                        index === slideIndex
+                                                            ? theme.accent
+                                                            : "rgba(255,255,255,0.25)"
+                                                }}
+                                                animate={{
+                                                    width:
+                                                        index === slideIndex
+                                                            ? 48
+                                                            : 12,
+                                                    height: 12
+                                                }}
+                                            />
+                                        ))}
+                                    </div>
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
+                    </div>
+
+                    {/* Right Column: Premium ambient loop video presentation */}
+                    <div className="hidden lg:flex flex-col justify-between rounded-3xl border border-white/10 bg-white/5 p-6 backdrop-blur-md shadow-2xl relative overflow-hidden h-[calc(100vh-210px)]">
+                        <div className="absolute inset-0 z-0">
+                            <video
+                                autoPlay
+                                loop
+                                muted
+                                playsInline
+                                className="w-full h-full object-cover opacity-60"
+                            >
+                                <source src="/assets/printer_rollers.mp4" type="video/mp4" />
+                            </video>
+                            <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/20 to-transparent" />
+                        </div>
+                        
+                        <div className="relative z-10 flex flex-col h-full justify-between">
+                            <div className="bg-sky-500/20 text-sky-300 border border-sky-400/30 rounded-2xl p-4 backdrop-blur">
+                                <span className="block text-[10px] font-black uppercase tracking-widest text-sky-300">Autonomous Terminal Status</span>
+                                <h3 className="text-lg font-black text-white mt-1">Smart Printing Agent</h3>
+                                <p className="text-xs text-slate-200 mt-2 font-medium">Keep your mobile device close to scan and release printing. Collect your document from the printer tray.</p>
+                            </div>
+                            
+                            <div className="bg-white/5 border border-white/10 rounded-2xl p-4 backdrop-blur mt-auto">
+                                <span className="block text-[10px] font-black uppercase tracking-widest text-slate-300">Need Help?</span>
+                                <h4 className="text-sm font-bold text-white mt-1">Raise a support ticket</h4>
+                                <p className="text-xs text-slate-300 mt-1 font-medium">Visit the help desk or submit a ticket from your dashboard panel.</p>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
                 <footer className="flex flex-wrap items-center justify-between gap-3 border-t border-white/10 pt-5 text-sm font-bold uppercase tracking-[0.18em] text-slate-300">

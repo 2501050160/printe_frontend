@@ -11,6 +11,11 @@ function QueueCard({ order, index = 0 }) {
             return new Date(y, m - 1, d, hr || 0, min || 0, sec || 0);
         }
         if (typeof dateVal === "string") {
+            const match = dateVal.match(/^(\d{4})-(\d{2})-(\d{2})[T ](\d{2}):(\d{2}):(\d{2})/);
+            if (match) {
+                const [_, y, m, d, hr, min, sec] = match;
+                return new Date(Number(y), Number(m) - 1, Number(d), Number(hr), Number(min), Number(sec));
+            }
             return new Date(dateVal.replace(" ", "T"));
         }
         return new Date(dateVal);
