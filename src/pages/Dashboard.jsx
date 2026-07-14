@@ -330,7 +330,7 @@ function Dashboard() {
         }
 
         try {
-            await api.post(
+            const response = await api.post(
                 "/pdf/updateOrder",
                 null,
                 {
@@ -348,29 +348,7 @@ function Dashboard() {
                 }
             );
 
-            let pagesToPrint = pageOption === "ALL" ? totalPages : (parseInt(endPage) - parseInt(startPage) + 1);
-            const divisor = nupLayout === "2-up" ? 2 : nupLayout === "4-up" ? 4 : 1;
-            const sheetsToPrint = Math.ceil(pagesToPrint / divisor);
-            const rate = printType === "COLOR" ? Number(colorPrice) : Number(bwPrice);
-            const price = sheetsToPrint * Number(copies) * rate;
-
-            localStorage.setItem(
-                "order",
-                JSON.stringify({
-                    orderId,
-                    copies,
-                    printType,
-                    blockLocation,
-                    totalPages,
-                    price,
-                    nupLayout,
-                    selectedPages:
-                        pageOption === "ALL"
-                            ? "ALL"
-                            : `${startPage}-${endPage}`
-                })
-            );
-
+            localStorage.setItem("order", JSON.stringify(response.data));
             navigate("/checkout");
         } catch (error) {
             console.error(error);

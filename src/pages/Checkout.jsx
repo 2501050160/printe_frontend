@@ -429,7 +429,7 @@ function Checkout() {
 
                             {order.discountAmount > 0 && (
                                 <div className="mt-2 flex items-center justify-between text-green-400 text-sm">
-                                    <span className="font-bold">Student Auto-Discounts</span>
+                                    <span className="font-bold">Thesis Bulk Discount</span>
                                     <span className="font-black">- Rs. {Number(order.discountAmount).toFixed(2)}</span>
                                 </div>
                             )}
