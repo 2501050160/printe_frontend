@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route }
 from "react-router-dom";
 
+import Landing from "./pages/Landing";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Dashboard from "./pages/Dashboard";
@@ -21,6 +22,13 @@ import PaymentSuccess from "./pages/PaymentSuccess";
 import PrinterSettings from "./pages/PrinterSettings";
 import ScanToPrint from "./pages/ScanToPrint";
 import Referrals from "./pages/Referrals";
+
+// New Admin Screens
+import QueueManagement from "./pages/QueueManagement";
+import UserManagement from "./pages/UserManagement";
+import Analytics from "./pages/Analytics";
+import Settings from "./pages/Settings";
+
 import { clearUserSession } from "./services/auth";
 import { useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -81,6 +89,11 @@ function App() {
 
         <Route
           path="/"
+          element={<Landing />}
+        />
+
+        <Route
+          path="/login"
           element={<Login />}
         />
 
@@ -119,10 +132,10 @@ function App() {
           path="/dashboard"
           element={<Dashboard />}
         />
-<Route
- path="/admin-login"
- element={<AdminLogin />}
-/>
+        <Route
+          path="/admin-login"
+          element={<AdminLogin />}
+        />
 
         <Route
             path="/my-orders"
@@ -135,9 +148,27 @@ function App() {
         />
 
         <Route
- path="/admin"
- element={<AdminDashboard />}
-/>
+          path="/admin"
+          element={<AdminDashboard />}
+        />
+
+        {/* New Admin Operations Subroutes */}
+        <Route
+          path="/admin/queue"
+          element={<QueueManagement />}
+        />
+        <Route
+          path="/admin/users"
+          element={<UserManagement />}
+        />
+        <Route
+          path="/admin/analytics"
+          element={<Analytics />}
+        />
+        <Route
+          path="/admin/settings"
+          element={<Settings />}
+        />
 
         <Route
           path="/printer-settings"

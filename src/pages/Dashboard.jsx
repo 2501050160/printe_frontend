@@ -564,13 +564,48 @@ function Dashboard() {
                     </div>
                 )}
 
-                <motion.p
-                    className="subtitle mb-6 mt-2"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                >
-                    {userName ? `Signed in as ${userName}` : `User ID: ${userId}`}
-                </motion.p>
+                {/* Welcome Card & Statistics Row */}
+                <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4 mb-6 mt-4">
+                    <div className="p-6 rounded-3xl bg-white border border-slate-200/80 shadow-sm flex flex-col justify-between">
+                        <div>
+                            <p className="text-xs font-black uppercase tracking-wider text-slate-400">Welcome Back</p>
+                            <h3 className="text-2xl font-black text-slate-900 mt-1">Hello, {userName || "Sai"} 👋</h3>
+                        </div>
+                        <p className="text-xs font-bold text-slate-500 mt-4">
+                            {new Date().getHours() < 12 ? "Good Morning" : new Date().getHours() < 17 ? "Good Afternoon" : "Good Evening"}
+                        </p>
+                    </div>
+
+                    <div className="p-6 rounded-3xl bg-gradient-to-br from-blue-600 to-indigo-600 text-white shadow-md flex flex-col justify-between">
+                        <div>
+                            <p className="text-xs font-black uppercase tracking-wider text-blue-100">Wallet Balance</p>
+                            <h3 className="text-3xl font-black mt-1">₹{walletBalance}</h3>
+                        </div>
+                        <button onClick={() => setShowWalletModal(true)} className="mt-4 text-xs font-black bg-white/20 hover:bg-white/30 px-3 py-1.5 rounded-lg border border-white/10 w-fit text-white transition-colors cursor-pointer">
+                          ⚡ Top-up Wallet
+                        </button>
+                    </div>
+
+                    <div className="p-6 rounded-3xl bg-white border border-slate-200/80 shadow-sm flex flex-col justify-between">
+                        <div>
+                            <p className="text-xs font-black uppercase tracking-wider text-slate-400">Reward Balance</p>
+                            <h3 className="text-2xl font-black text-slate-900 mt-1">{rewardPoints || "0"} pts</h3>
+                        </div>
+                        <span className="text-[10px] font-black uppercase text-indigo-600 bg-indigo-50 border border-indigo-100 px-2 py-0.5 rounded w-fit mt-4">
+                          Redeem Credits
+                        </span>
+                    </div>
+
+                    <div className="p-6 rounded-3xl bg-white border border-slate-200/80 shadow-sm flex flex-col justify-between">
+                        <div>
+                            <p className="text-xs font-black uppercase tracking-wider text-slate-400">Order Analytics</p>
+                            <h3 className="text-2xl font-black text-slate-900 mt-1">{orders.length} prints</h3>
+                        </div>
+                        <p className="text-xs font-bold text-emerald-600 mt-4">
+                          🎉 Money Saved: ₹{(orders.length * 1.5).toFixed(2)}
+                        </p>
+                    </div>
+                </div>
 
                 {/* TAB CONTENT: PRINT DASHBOARD */}
                 {activeTab === "print" && (
