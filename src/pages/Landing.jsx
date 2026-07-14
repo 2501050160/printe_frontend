@@ -38,12 +38,12 @@ function Landing() {
   const statsStarted = useRef(false);
   const demoVideoRef = useRef(null);
 
-  // Statistics counters (animated manually using state timers on mount)
+  // Statistics counters
   const [stats, setStats] = useState({
-    printed: 0,
-    locations: 0,
-    success: 0.0,
-    students: 0
+    activePrinters: 27,
+    pagesPrinted: 102540,
+    studentsServed: 15420,
+    successRate: 99.8
   });
 
   useEffect(() => {
@@ -58,48 +58,33 @@ function Landing() {
     setShowIntro(false);
   };
 
-  // Load stats from database immediately on page mount
+  // Load and refresh stats from database every 5 seconds
   useEffect(() => {
-    fetch("/api/system/public-stats")
-      .then(res => res.json())
-      .then(data => {
-        const targetPrinted = data.documentCount || 102540;
-        const targetLocations = data.campusLocations || 26;
-        const targetSuccess = data.successRate || 99.9;
-        const targetStudents = data.studentCount || 15420;
-        
-        const stepPrinted = Math.max(1, Math.floor(targetPrinted / 50));
-        const stepStudents = Math.max(1, Math.floor(targetStudents / 50));
+    const fetchStats = () => {
+      fetch("/api/dashboard/live-stats")
+        .then(res => res.json())
+        .then(data => {
+          setStats({
+            activePrinters: data.activePrinters ?? 27,
+            pagesPrinted: data.pagesPrinted ?? 102540,
+            studentsServed: data.studentsServed ?? 15420,
+            successRate: data.successRate ?? 99.8
+          });
+        })
+        .catch(() => {
+          // Fallback if backend is offline
+          setStats({
+            activePrinters: 27,
+            pagesPrinted: 102540,
+            studentsServed: 15420,
+            successRate: 99.8
+          });
+        });
+    };
 
-        const interval = setInterval(() => {
-          setStats((prev) => {
-            const nextPrinted = prev.printed < targetPrinted ? Math.min(targetPrinted, prev.printed + stepPrinted) : targetPrinted;
-            const nextLocations = prev.locations < targetLocations ? prev.locations + 1 : targetLocations;
-            const nextSuccess = prev.success < targetSuccess ? parseFloat((prev.success + 2.0).toFixed(1)) : targetSuccess;
-            const nextStudents = prev.students < targetStudents ? Math.min(targetStudents, prev.students + stepStudents) : targetStudents;
-            
-            if (nextPrinted === targetPrinted && nextLocations === targetLocations && nextSuccess === targetSuccess && nextStudents === targetStudents) {
-              clearInterval(interval);
-            }
-            return { printed: nextPrinted, locations: nextLocations, success: nextSuccess, students: nextStudents };
-          });
-        }, 20);
-      })
-      .catch(() => {
-        // Fallback default values if backend is offline
-        const interval = setInterval(() => {
-          setStats((prev) => {
-            const nextPrinted = prev.printed < 102540 ? prev.printed + 2050 : 102540;
-            const nextLocations = prev.locations < 26 ? prev.locations + 1 : 26;
-            const nextSuccess = prev.success < 99.9 ? parseFloat((prev.success + 2.0).toFixed(1)) : 99.9;
-            const nextStudents = prev.students < 15420 ? prev.students + 308 : 15420;
-            if (nextPrinted === 102540 && nextLocations === 26 && nextSuccess === 99.9 && nextStudents === 15420) {
-              clearInterval(interval);
-            }
-            return { printed: nextPrinted, locations: nextLocations, success: nextSuccess, students: nextStudents };
-          });
-        }, 20);
-      });
+    fetchStats();
+    const interval = setInterval(fetchStats, 5000);
+    return () => clearInterval(interval);
   }, []);
 
   // Auto-play demo video with audio when #how-it-works scrolls into view
@@ -208,8 +193,8 @@ function Landing() {
       <div className="absolute bottom-10 left-0 w-[40rem] h-[40rem] bg-gradient-to-tr from-emerald-500/10 to-blue-500/10 rounded-full blur-[120px] pointer-events-none" />
 
       {/* Floating Transparent Navbar */}
-      <header className="sticky top-0 z-50 w-full h-20 transition-all bg-transparent flex items-center">
-        <nav className="w-full h-full px-12 flex items-center justify-between">
+      <header className="sticky top-0 z-50 w-full h-20 transition-all bg-transparent flex items-center" style={{ width: '100vw', left: 0, right: 0 }}>
+        <nav className="w-full h-full px-[40px] flex items-center justify-between">
           <div className="flex items-center gap-2">
             <div className="p-2 rounded-xl bg-blue-600 text-white shadow-md shadow-blue-500/20">
               <Printer className="w-5 h-5" />
@@ -226,7 +211,10 @@ function Landing() {
             <a href="#faq" className="hover:text-white transition-colors">FAQ</a>
           </div>
 
-          <div className="flex items-center">
+          <div className="flex items-center gap-6">
+            <Link to="/login" className="text-sm font-black text-slate-300 hover:text-white transition-colors">
+              Login
+            </Link>
             <Link to="/login" className="btn success min-h-0 py-2.5 px-5 rounded-xl font-black text-sm shadow-md shadow-blue-500/10">
               ⚡ Upload Document
             </Link>
@@ -310,24 +298,23 @@ function Landing() {
                   <Play className="w-4 h-4 fill-white" /> Watch Demo
                 </button>
               </div>
-
               {/* Left-Side Trust Section */}
               <div className="mt-10 pt-8 border-t border-white/10 grid grid-cols-2 gap-4 text-slate-400">
                 <div className="flex items-center gap-2 text-xs font-bold">
                   <span className="text-base">🖨️</span>
-                  <span>{stats.locations} Campus Printers</span>
+                  <span>{stats.activePrinters} Active Printers</span>
                 </div>
                 <div className="flex items-center gap-2 text-xs font-bold">
                   <span className="text-base">📄</span>
-                  <span>{stats.printed.toLocaleString()} Pages Printed</span>
+                  <span>{stats.pagesPrinted.toLocaleString()} Pages Printed</span>
                 </div>
                 <div className="flex items-center gap-2 text-xs font-bold">
                   <span className="text-base">👨‍🎓</span>
-                  <span>{stats.students.toLocaleString()} Students Served</span>
+                  <span>{stats.studentsServed.toLocaleString()} Students Served</span>
                 </div>
                 <div className="flex items-center gap-2 text-xs font-bold">
                   <span className="text-base">⚡</span>
-                  <span>{stats.success}% Success Rate</span>
+                  <span>{stats.successRate}% Success Rate</span>
                 </div>
               </div>
             </div>
@@ -341,19 +328,19 @@ function Landing() {
       <section className="bg-slate-900 text-white py-16 border-y border-slate-800" ref={statsRef}>
         <div className="max-w-6xl mx-auto px-6 grid grid-cols-2 lg:grid-cols-4 gap-8 text-center">
           <div>
-            <h3 className="text-4xl font-black tracking-tight text-white">{stats.printed.toLocaleString()}+</h3>
-            <p className="mt-2 text-xs font-bold text-slate-400 uppercase tracking-widest">Documents Printed</p>
+            <h3 className="text-4xl font-black tracking-tight text-white">{stats.pagesPrinted.toLocaleString()}+</h3>
+            <p className="mt-2 text-xs font-bold text-slate-400 uppercase tracking-widest">Pages Printed</p>
           </div>
           <div>
-            <h3 className="text-4xl font-black tracking-tight text-emerald-400">{stats.locations}</h3>
-            <p className="mt-2 text-xs font-bold text-slate-400 uppercase tracking-widest">Campus Locations</p>
+            <h3 className="text-4xl font-black tracking-tight text-emerald-400">{stats.activePrinters}</h3>
+            <p className="mt-2 text-xs font-bold text-slate-400 uppercase tracking-widest">Active Printers</p>
           </div>
           <div>
-            <h3 className="text-4xl font-black tracking-tight text-blue-400">{stats.success}%</h3>
+            <h3 className="text-4xl font-black tracking-tight text-blue-400">{stats.successRate}%</h3>
             <p className="mt-2 text-xs font-bold text-slate-400 uppercase tracking-widest">Success Rate</p>
           </div>
           <div>
-            <h3 className="text-4xl font-black tracking-tight text-purple-400">{stats.students.toLocaleString()}+</h3>
+            <h3 className="text-4xl font-black tracking-tight text-purple-400">{stats.studentsServed.toLocaleString()}+</h3>
             <p className="mt-2 text-xs font-bold text-slate-400 uppercase tracking-widest">Students Served</p>
           </div>
         </div>
