@@ -256,114 +256,133 @@ function Landing() {
             boxShadow: "0 35px 80px rgba(37,99,235,0.35)",
             borderColor: "rgba(59,130,246,0.4)"
           }}
-          style={{ transition: "all 0.3s ease" }}
-        >
-          {/* Custom Split-Pane Background Video with SVG Arc Separator */}
+          style={{ transition: "all 0.3s ease" }}        >
+          {/* Subtle Blue Ambient Glow Behind Arc */}
+          <div className="absolute top-1/2 left-[45%] -translate-y-1/2 -translate-x-1/2 w-[350px] h-[350px] bg-blue-500/10 rounded-full blur-[100px] pointer-events-none z-0" />
+
+          {/* Background Split Layout & Curved Arc Divider Container */}
           <div className="absolute inset-0 z-0 flex w-full h-full">
-            {/* Left side background overlay (Less Opacity for Text Contrast) */}
-            <div className="w-[45%] h-full bg-slate-950/95 relative z-10 flex-shrink-0" />
+            {/* Left 45% Pane: Masked Background (Opacity 20-35%) */}
+            <div className="w-[45%] h-full bg-slate-950/95 relative z-10 flex-shrink-0 border-r border-white/5" />
             
-            {/* SVG Arc Divider */}
+            {/* Large Curved SVG Divider */}
             <div className="w-[10%] h-full relative z-10 -ml-[1px] flex-shrink-0">
               <svg className="h-full w-full text-slate-950 fill-current overflow-visible" viewBox="0 0 100 100" preserveAspectRatio="none">
-                {/* Arc path */}
-                <path d="M 0,0 Q 80,50 0,100 L 100,100 L 100,0 Z" className="text-slate-950" />
+                {/* Arc shape masks left side */}
+                <path d="M 0,0 Q 90,50 0,100 L 100,100 L 100,0 Z" className="text-slate-950" />
                 {/* Glowing neon stroke */}
-                <path d="M 0,0 Q 80,50 0,100" fill="none" stroke="rgba(59, 130, 246, 0.4)" strokeWidth="1.5" />
+                <path d="M 0,0 Q 90,50 0,100" fill="none" stroke="rgba(59, 130, 246, 0.6)" strokeWidth="1.5" className="filter drop-shadow-[0_0_8px_rgba(59,130,246,0.6)]" />
               </svg>
             </div>
             
-            {/* Right side background video (More Opacity and Left Margin of 20px) */}
-            <div className="w-[45%] h-full relative z-0 flex-shrink-0 pl-[20px] bg-slate-950">
-              <video 
-                src={inVideo}
-                autoPlay 
-                muted 
-                loop 
-                playsInline
-                preload="auto"
-                controls={false}
-                controlsList="nodownload nofullscreen"
-                disablePictureInPicture
-                draggable="false"
-                className="w-full h-full object-cover pointer-events-none select-none opacity-90 hover:opacity-100 transition-opacity duration-300"
-              />
-            </div>
+            {/* Right 45% Pane: Fully Visible background grid */}
+            <div className="w-[45%] h-full relative z-0 flex-shrink-0 bg-slate-900/10" />
           </div>
 
-          {/* Foreground Overlay Text Content Container */}
-          <div className="relative z-10 w-full pl-8 pr-8 md:pl-16 md:pr-16 flex flex-col md:flex-row justify-between items-start md:items-center gap-12">
-            <div className="max-w-2xl text-white text-left">
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider text-blue-400 bg-blue-950/80 border border-blue-800/60">
-              <Sparkles className="w-3.5 h-3.5" /> Next-Gen Kiosk Printing
-            </span>
+          {/* Foreground Grid Layout */}
+          <div className="relative z-10 w-full pl-8 pr-8 md:pl-16 md:pr-16 flex flex-col lg:flex-row justify-between items-center gap-12 min-h-[70vh]">
             
-            <h1 className="mt-6 text-5xl md:text-7xl font-black tracking-tight leading-[1.05] text-white">
-              Print Anywhere.<br />
-              <span className="bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">Collect Instantly.</span>
-            </h1>
-            
-            <p className="mt-6 text-lg font-bold text-slate-300 leading-relaxed max-w-xl">
-              Upload your PDF documents from anywhere on campus, pay securely online, and collect your prints instantly using secure OTP codes or QR verification from any CloudPrint-enabled printer.
-            </p>
+            {/* Left Side: ~45% width overlay */}
+            <div className="w-full lg:w-[45%] text-white text-left z-20">
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider text-blue-400 bg-blue-950/80 border border-blue-800/60">
+                <Sparkles className="w-3.5 h-3.5" /> Next-Gen Kiosk Printing
+              </span>
+              
+              <h1 className="mt-6 text-5xl md:text-7xl font-black tracking-tight leading-[1.05] text-white">
+                Print Anywhere.<br />
+                <span className="bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">Collect Instantly.</span>
+              </h1>
+              
+              <p className="mt-6 text-lg font-bold text-slate-300 leading-relaxed max-w-xl">
+                Upload your PDF documents from anywhere on campus, pay securely online, and collect your prints instantly using secure OTP codes or QR verification from any CloudPrint-enabled printer.
+              </p>
 
-            <div className="mt-8 flex flex-wrap gap-3">
-              <Link to="/login" className="btn success px-6 py-3.5 rounded-xl font-black text-sm shadow-lg shadow-emerald-500/20">
-                ⚡ Upload Document
-              </Link>
-              <button
-                onClick={() => setShowDemo(true)}
-                className="btn secondary !bg-white/10 !text-white !border-white/10 hover:!bg-white/20 px-6 py-3.5 rounded-xl font-black text-sm flex items-center gap-1.5"
+              <div className="mt-8 flex flex-wrap gap-3">
+                <Link to="/login" className="btn success px-6 py-3.5 rounded-xl font-black text-sm shadow-lg shadow-emerald-500/20">
+                  ⚡ Upload Document
+                </Link>
+                <button
+                  onClick={() => setShowDemo(true)}
+                  className="btn secondary !bg-white/10 !text-white !border-white/10 hover:!bg-white/20 px-6 py-3.5 rounded-xl font-black text-sm flex items-center gap-1.5"
+                >
+                  <Play className="w-4 h-4 fill-white" /> Watch Demo
+                </button>
+                <Link to="/admin-login" className="btn secondary !bg-white/10 !text-white !border-white/10 hover:!bg-white/20 px-6 py-3.5 rounded-xl font-black text-sm">
+                  Admin Portal
+                </Link>
+              </div>
+
+              {/* Left-Side Trust Section */}
+              <div className="mt-10 pt-8 border-t border-white/10 grid grid-cols-2 gap-4 text-slate-400">
+                <div className="flex items-center gap-2 text-xs font-bold">
+                  <span className="text-base">🖨️</span>
+                  <span>25+ Campus Printers</span>
+                </div>
+                <div className="flex items-center gap-2 text-xs font-bold">
+                  <span className="text-base">📄</span>
+                  <span>100,000+ Pages Printed</span>
+                </div>
+                <div className="flex items-center gap-2 text-xs font-bold">
+                  <span className="text-base">👨‍🎓</span>
+                  <span>Thousands of Students</span>
+                </div>
+                <div className="flex items-center gap-2 text-xs font-bold">
+                  <span className="text-base">⚡</span>
+                  <span>Secure OTP & QR Printing</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Right Side: ~55% width Video Showcase beginning 20px from curved divider */}
+            <div className="w-full lg:w-[50%] flex justify-center lg:justify-end pl-[20px] z-20">
+              <motion.div 
+                className="w-full rounded-[24px] p-1.5 bg-white/10 backdrop-blur-md border border-white/20 shadow-[0_20px_50px_rgba(37,99,235,0.15)] relative"
+                whileHover={{ 
+                  scale: 1.02,
+                  boxShadow: "0 25px 60px rgba(37,99,235,0.3)",
+                  borderColor: "rgba(59,130,246,0.6)"
+                }}
+                style={{ transition: "all 0.3s ease" }}
               >
-                <Play className="w-4 h-4 fill-white" /> Watch Demo
-              </button>
-              <Link to="/admin-login" className="btn secondary !bg-white/10 !text-white !border-white/10 hover:!bg-white/20 px-6 py-3.5 rounded-xl font-black text-sm">
-                Admin Portal
-              </Link>
+                <div className="relative rounded-[20px] overflow-hidden aspect-video bg-slate-950 shadow-[0_0_20px_rgba(59,130,246,0.15)]">
+                  <video 
+                    src={inVideo}
+                    autoPlay 
+                    muted 
+                    loop 
+                    playsInline
+                    preload="auto"
+                    controls={false}
+                    controlsList="nodownload nofullscreen"
+                    disablePictureInPicture
+                    draggable="false"
+                    className="w-full h-full object-cover pointer-events-none select-none"
+                  />
+
+                  {/* Top-Right Badge */}
+                  <div className="absolute top-4 right-4 px-3 py-1.5 rounded-full bg-blue-600/90 backdrop-blur-md text-white text-[10px] font-black uppercase tracking-wider shadow-md z-10">
+                    ▶ Live Product Demo
+                  </div>
+
+                  {/* Bottom-Left Badge info overlay */}
+                  <div className="absolute bottom-4 left-4 p-4 rounded-2xl bg-slate-950/70 border border-white/10 backdrop-blur-md text-left text-white max-w-[240px] shadow-lg z-10">
+                    <div className="flex items-center gap-1.5 text-[9px] font-black text-emerald-400 uppercase tracking-widest">
+                      <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping" />
+                      🟢 Real Campus Workflow
+                    </div>
+                    <p className="text-[10px] text-slate-300 font-bold mt-1.5 leading-relaxed">
+                      Student → Upload → Pay → OTP → Kiosk → Print → Done
+                    </p>
+                    <div className="mt-3 pt-2.5 border-t border-white/10 flex justify-between items-center gap-4">
+                      <span className="text-[9px] font-black uppercase text-slate-400">Average Print Time</span>
+                      <span className="text-sm font-black text-emerald-400">&lt; 10 Seconds</span>
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
             </div>
 
-            {/* Left-Side Trust Section */}
-            <div className="mt-10 pt-8 border-t border-white/10 grid grid-cols-2 gap-4 text-slate-400">
-              <div className="flex items-center gap-2 text-xs font-bold">
-                <span className="text-base">🖨️</span>
-                <span>25+ Campus Printers</span>
-              </div>
-              <div className="flex items-center gap-2 text-xs font-bold">
-                <span className="text-base">📄</span>
-                <span>100,000+ Pages Printed</span>
-              </div>
-              <div className="flex items-center gap-2 text-xs font-bold">
-                <span className="text-base">👨‍🎓</span>
-                <span>Thousands of Students</span>
-              </div>
-              <div className="flex items-center gap-2 text-xs font-bold">
-                <span className="text-base">⚡</span>
-                <span>Secure OTP & QR Printing</span>
-              </div>
-            </div>
-          </div>
-          </div>
-
-          {/* Floating UI Live Demo overlay badge top-right */}
-          <div className="absolute top-6 right-6 hidden md:flex items-center gap-2 px-3 py-1.5 rounded-full bg-blue-600/90 backdrop-blur-md text-white text-[10px] font-black uppercase tracking-wider shadow-md z-10 border border-blue-500/20">
-            <span>▶ Live Product Demo</span>
-          </div>
-
-          {/* Real Campus Workflow overlay badge bottom-right */}
-          <div className="absolute bottom-6 right-6 hidden lg:block p-4 rounded-2xl bg-slate-950/90 border border-white/15 backdrop-blur-md text-left text-white max-w-[240px] shadow-lg z-10">
-            <div className="flex items-center gap-1.5 text-[9px] font-black text-emerald-400 uppercase tracking-widest">
-              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping" />
-              🟢 Real Campus Workflow
-            </div>
-            <p className="text-[10px] text-slate-300 font-bold mt-1.5 leading-relaxed">
-              Student → Upload → Pay → OTP → Kiosk → Print → Done
-            </p>
-            <div className="mt-3 pt-2.5 border-t border-white/10 flex justify-between items-center gap-4">
-              <span className="text-[9px] font-black uppercase text-slate-400">Average Print Time</span>
-              <span className="text-sm font-black text-emerald-400">&lt; 10 Seconds</span>
-            </div>
-          </div>
-        </motion.div>
+          </div>        </motion.div>
       </section>
 
       {/* Live Statistics Section */}
