@@ -203,32 +203,32 @@ function Landing() {
 
   return (
     <>
-    <div className="min-h-screen bg-slate-900 text-white relative overflow-hidden font-sans">
-      {/* Vibrant High-Contrast Background Glow Mesh */}
-      <div className="absolute top-0 right-0 w-[55rem] h-[55rem] bg-gradient-to-br from-indigo-500/20 via-purple-600/10 to-pink-500/20 rounded-full blur-[140px] pointer-events-none" />
-      <div className="absolute bottom-10 left-0 w-[45rem] h-[45rem] bg-gradient-to-tr from-emerald-500/10 via-teal-600/10 to-cyan-500/20 rounded-full blur-[140px] pointer-events-none" />
+    <div className="min-h-screen bg-white text-slate-900 dot-grid relative overflow-hidden font-sans">
+      {/* Subtle Animated Background Mesh */}
+      <div className="absolute top-0 right-0 w-[50rem] h-[50rem] bg-gradient-to-br from-blue-500/5 to-purple-500/5 rounded-full blur-[120px] pointer-events-none" />
+      <div className="absolute bottom-10 left-0 w-[40rem] h-[40rem] bg-gradient-to-tr from-emerald-500/5 to-blue-500/5 rounded-full blur-[120px] pointer-events-none" />
 
       {/* Floating Glass Navbar */}
       <header className="sticky top-0 z-50 px-6 py-4 transition-all">
-        <nav className="max-w-6xl mx-auto flex items-center justify-between p-4 rounded-2xl bg-slate-950/80 border border-slate-800 backdrop-blur-md shadow-sm">
+        <nav className="max-w-6xl mx-auto flex items-center justify-between p-4 rounded-2xl glass-panel shadow-sm border border-white/40">
           <div className="flex items-center gap-2">
             <div className="p-2 rounded-xl bg-blue-600 text-white shadow-md shadow-blue-500/20">
               <Printer className="w-5 h-5" />
             </div>
-            <span className="text-xl font-black tracking-tight bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+            <span className="text-xl font-black tracking-tight bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
               CloudPrint
             </span>
           </div>
 
-          <div className="hidden md:flex items-center gap-6 text-sm font-black text-slate-400">
-            <a href="#features" className="hover:text-white transition-colors">Features</a>
-            <a href="#locations" className="hover:text-white transition-colors">Campus Locations</a>
-            <a href="#how-it-works" className="hover:text-white transition-colors">How it Works</a>
-            <a href="#faq" className="hover:text-white transition-colors">FAQ</a>
+          <div className="hidden md:flex items-center gap-6 text-sm font-black text-slate-500">
+            <a href="#features" className="hover:text-slate-900 transition-colors">Features</a>
+            <a href="#locations" className="hover:text-slate-900 transition-colors">Campus Locations</a>
+            <a href="#how-it-works" className="hover:text-slate-900 transition-colors">How it Works</a>
+            <a href="#faq" className="hover:text-slate-900 transition-colors">FAQ</a>
           </div>
 
           <div className="flex items-center gap-3">
-            <Link to="/login" className="px-4 py-2 text-sm font-black text-slate-400 hover:text-white transition-colors">
+            <Link to="/login" className="px-4 py-2 text-sm font-black text-slate-600 hover:text-slate-900 transition-colors">
               Login
             </Link>
             <Link to="/login" className="btn success min-h-0 py-2.5 px-5 rounded-xl font-black text-sm shadow-md shadow-blue-500/10">
@@ -241,16 +241,16 @@ function Landing() {
       {/* Hero Section */}
       <section className="max-w-6xl mx-auto px-6 pt-16 pb-24 grid lg:grid-cols-2 gap-12 items-center relative z-10">
         <div>
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider text-blue-400 bg-blue-950/80 border border-blue-800">
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider text-blue-600 bg-blue-50 border border-blue-100">
             <Sparkles className="w-3.5 h-3.5" /> Next-Gen Kiosk Printing
           </span>
           
-          <h1 className="mt-6 text-5xl md:text-6xl font-black tracking-tight leading-[1.05] text-white">
+          <h1 className="mt-6 text-5xl md:text-6xl font-black tracking-tight leading-[1.05] text-slate-900">
             Print from <span className="text-gradient-purple">Anywhere</span>, <br />
             collect in <span className="text-gradient-brand">Seconds</span>.
           </h1>
           
-          <p className="mt-6 text-lg font-bold text-slate-400 leading-relaxed">
+          <p className="mt-6 text-lg font-bold text-slate-600 leading-relaxed">
             Upload your PDF documents from anywhere on campus, pay securely online, and collect your prints instantly using QR codes or OTP verification from any CloudPrint-enabled printer.
           </p>
 
@@ -260,18 +260,21 @@ function Landing() {
             </Link>
             <button
               onClick={() => setShowDemo(true)}
-              className="btn secondary px-6 py-3.5 rounded-xl font-black text-sm flex items-center gap-1.5 bg-slate-800 text-white border border-slate-700 hover:bg-slate-750"
+              className="btn secondary px-6 py-3.5 rounded-xl font-black text-sm flex items-center gap-1.5"
             >
-              <Play className="w-4 h-4 fill-white" /> Watch Demo
+              <Play className="w-4 h-4 fill-slate-900" /> Watch Demo
             </button>
-            <Link to="/admin-login" className="btn secondary px-6 py-3.5 rounded-xl font-black text-sm bg-slate-800 text-white border border-slate-700 hover:bg-slate-750">
+            <Link to="/blocks" className="btn secondary px-6 py-3.5 rounded-xl font-black text-sm flex items-center gap-1.5">
+              <QrCode className="w-4 h-4" /> Scan QR
+            </Link>
+            <Link to="/admin-login" className="btn secondary px-6 py-3.5 rounded-xl font-black text-sm">
               Admin Portal
             </Link>
           </div>
         </div>
 
         {/* Right Side: Animated 3D Ecosystem Simulation */}
-        <div className="relative flex items-center justify-center p-6 bg-slate-950/50 rounded-3xl border border-slate-800/80 overflow-hidden h-[540px]">
+        <div className="relative flex items-center justify-center p-6 bg-slate-100/50 rounded-3xl border border-slate-200/60 overflow-hidden h-[540px]">
           <div className="absolute inset-0 bg-grid-pattern opacity-10" />
 
           {/* Workflow Graph Nodes */}
@@ -376,58 +379,58 @@ function Landing() {
       {/* Trust Feature Cards */}
       <section className="max-w-6xl mx-auto px-6 py-24" id="features">
         <div className="text-center max-w-2xl mx-auto mb-16">
-          <span className="text-xs font-black uppercase tracking-widest text-blue-400 bg-blue-950 border border-blue-800 px-3 py-1 rounded-full">
+          <span className="text-xs font-black uppercase tracking-widest text-blue-600 bg-blue-50 border border-blue-100 px-3 py-1 rounded-full">
             Security & Trust
           </span>
-          <h2 className="mt-4 text-3xl md:text-4xl font-black text-white">
+          <h2 className="mt-4 text-3xl md:text-4xl font-black text-slate-900">
             Trusted Across Campus
           </h2>
         </div>
 
         <div className="grid md:grid-cols-3 gap-8">
-          <div className="p-6 rounded-3xl bg-slate-950/60 border border-slate-800 flex items-start gap-4">
-            <div className="p-3 bg-slate-900 rounded-2xl shadow-sm border border-slate-800 shrink-0">
-              <Lock className="w-5 h-5 text-blue-400" />
+          <div className="p-6 rounded-3xl bg-slate-50 border border-slate-100 flex items-start gap-4">
+            <div className="p-3 bg-white rounded-2xl shadow-sm border border-slate-100 shrink-0">
+              <Lock className="w-5 h-5 text-blue-600" />
             </div>
             <div>
-              <h3 className="text-base font-black text-white">Secure OTP Printing</h3>
-              <p className="text-xs font-bold text-slate-400 mt-1.5 leading-relaxed">No unauthorized prints. Documents release only when you type in your OTP.</p>
+              <h3 className="text-base font-black text-slate-950">Secure OTP Printing</h3>
+              <p className="text-xs font-bold text-slate-500 mt-1.5 leading-relaxed">No unauthorized prints. Documents release only when you type in your OTP.</p>
             </div>
           </div>
 
-          <div className="p-6 rounded-3xl bg-slate-950/60 border border-slate-800 flex items-start gap-4">
-            <div className="p-3 bg-slate-900 rounded-2xl shadow-sm border border-slate-800 shrink-0">
-              <QrCode className="w-5 h-5 text-emerald-400" />
+          <div className="p-6 rounded-3xl bg-slate-50 border border-slate-100 flex items-start gap-4">
+            <div className="p-3 bg-white rounded-2xl shadow-sm border border-slate-100 shrink-0">
+              <QrCode className="w-5 h-5 text-emerald-500" />
             </div>
             <div>
-              <h3 className="text-base font-black text-white">QR Code Release</h3>
-              <p className="text-xs font-bold text-slate-400 mt-1.5 leading-relaxed">Simply scan the QR sticker on the kiosk tray to immediately output pages.</p>
+              <h3 className="text-base font-black text-slate-950">QR Code Release</h3>
+              <p className="text-xs font-bold text-slate-500 mt-1.5 leading-relaxed">Simply scan the QR sticker on the kiosk tray to immediately output pages.</p>
             </div>
           </div>
 
-          <div className="p-6 rounded-3xl bg-slate-950/60 border border-slate-800 flex items-start gap-4">
-            <div className="p-3 bg-slate-900 rounded-2xl shadow-sm border border-slate-800 shrink-0">
-              <CreditCard className="w-5 h-5 text-purple-400" />
+          <div className="p-6 rounded-3xl bg-slate-50 border border-slate-100 flex items-start gap-4">
+            <div className="p-3 bg-white rounded-2xl shadow-sm border border-slate-100 shrink-0">
+              <CreditCard className="w-5 h-5 text-purple-500" />
             </div>
             <div>
-              <h3 className="text-base font-black text-white">Razorpay Payments</h3>
-              <p className="text-xs font-bold text-slate-400 mt-1.5 leading-relaxed">Fast checkouts using UPI, Credit Cards, or Net banking gateways.</p>
+              <h3 className="text-base font-black text-slate-950">Razorpay Payments</h3>
+              <p className="text-xs font-bold text-slate-500 mt-1.5 leading-relaxed">Fast checkouts using UPI, Credit Cards, or Net banking gateways.</p>
             </div>
           </div>
         </div>
       </section>
 
       {/* Interactive Live Campus Map Section */}
-      <section className="bg-slate-950/40 border-y border-slate-800/80 py-24" id="locations">
+      <section className="bg-slate-50 border-y border-slate-200/60 py-24" id="locations">
         <div className="max-w-6xl mx-auto px-6 grid lg:grid-cols-2 gap-12 items-center">
           <div>
-            <span className="text-xs font-black uppercase tracking-widest text-purple-400 bg-purple-950 border border-purple-900 px-3 py-1 rounded-full">
+            <span className="text-xs font-black uppercase tracking-widest text-purple-600 bg-purple-50 border border-purple-100 px-3 py-1 rounded-full">
               Interactive Campus Map
             </span>
-            <h2 className="mt-4 text-3xl md:text-4xl font-black text-white">
+            <h2 className="mt-4 text-3xl md:text-4xl font-black text-slate-900">
               Find Active Campus Printers
             </h2>
-            <p className="mt-4 text-sm font-bold text-slate-400">
+            <p className="mt-4 text-sm font-bold text-slate-500">
               Click on a building in the selector grid to check real-time queue states, hardware status, and paper load levels.
             </p>
 
@@ -439,8 +442,8 @@ function Landing() {
                   onClick={() => setActiveBuilding(name)}
                   className={`p-4 rounded-2xl border text-left transition-all ${
                     activeBuilding === name
-                      ? "bg-slate-900 border-blue-500 shadow-md scale-[1.02] font-black text-white"
-                      : "bg-slate-950/50 border-slate-800 hover:bg-slate-900 font-bold text-slate-400"
+                      ? "bg-white border-blue-500 shadow-md scale-[1.02] font-black"
+                      : "bg-white/50 border-slate-200 hover:bg-white font-bold"
                   }`}
                 >
                   <div className="flex items-center justify-between">
@@ -459,37 +462,37 @@ function Landing() {
           </div>
 
           {/* Building Live Status Panel */}
-          <div className="p-8 rounded-3xl bg-slate-900 border border-slate-800 shadow-xl flex flex-col gap-6 relative overflow-hidden">
-            <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/10 rounded-full blur-2xl" />
+          <div className="p-8 rounded-3xl bg-white border border-slate-200 shadow-xl flex flex-col gap-6 relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/5 rounded-full blur-2xl" />
             
             <div className="flex justify-between items-start">
               <div>
-                <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">Selected Hub</span>
-                <h3 className="text-2xl font-black text-white mt-1">{activeBuilding}</h3>
+                <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Selected Hub</span>
+                <h3 className="text-2xl font-black text-slate-950 mt-1">{activeBuilding}</h3>
               </div>
-              <span className={`px-3 py-1 rounded-full text-xs font-black uppercase border ${buildingData[activeBuilding].statusColor.replace('bg-emerald-50 border-emerald-100', 'bg-emerald-950/40 border-emerald-800').replace('bg-amber-50 border-amber-100', 'bg-amber-950/40 border-amber-800').replace('bg-rose-50 border-rose-100', 'bg-rose-950/40 border-rose-800')}`}>
+              <span className={`px-3 py-1 rounded-full text-xs font-black uppercase border ${buildingData[activeBuilding].statusColor}`}>
                 {buildingData[activeBuilding].status}
               </span>
             </div>
 
             <div className="grid grid-cols-2 gap-4 mt-2">
-              <div className="p-4 rounded-2xl bg-slate-950/50 border border-slate-800">
-                <p className="text-xs font-bold text-slate-500">Paper Level</p>
-                <p className="text-lg font-black text-slate-200 mt-1">{buildingData[activeBuilding].paper}</p>
+              <div className="p-4 rounded-2xl bg-slate-50 border border-slate-100">
+                <p className="text-xs font-bold text-slate-400">Paper Level</p>
+                <p className="text-lg font-black text-slate-800 mt-1">{buildingData[activeBuilding].paper}</p>
               </div>
 
-              <div className="p-4 rounded-2xl bg-slate-950/50 border border-slate-800">
-                <p className="text-xs font-bold text-slate-500">Estimated Wait</p>
-                <p className="text-lg font-black text-slate-200 mt-1">{buildingData[activeBuilding].wait}</p>
+              <div className="p-4 rounded-2xl bg-slate-50 border border-slate-100">
+                <p className="text-xs font-bold text-slate-400">Estimated Wait</p>
+                <p className="text-lg font-black text-slate-800 mt-1">{buildingData[activeBuilding].wait}</p>
               </div>
             </div>
 
-            <div className="p-4 rounded-2xl bg-slate-950/50 border border-slate-800 flex justify-between items-center">
+            <div className="p-4 rounded-2xl bg-slate-50 border border-slate-100 flex justify-between items-center">
               <div>
-                <p className="text-xs font-bold text-slate-500">Active Queue</p>
-                <p className="text-lg font-black text-slate-200 mt-1">{buildingData[activeBuilding].queue} orders pending</p>
+                <p className="text-xs font-bold text-slate-400">Active Queue</p>
+                <p className="text-lg font-black text-slate-800 mt-1">{buildingData[activeBuilding].queue} orders pending</p>
               </div>
-              <span className="text-xs font-bold text-slate-400">Model: {buildingData[activeBuilding].model}</span>
+              <span className="text-xs font-bold text-slate-500">Model: {buildingData[activeBuilding].model}</span>
             </div>
           </div>
         </div>
@@ -498,51 +501,51 @@ function Landing() {
       {/* Live Dashboard Perspective Previews */}
       <section className="max-w-6xl mx-auto px-6 py-24">
         <div className="text-center max-w-2xl mx-auto mb-16">
-          <span className="text-xs font-black uppercase tracking-widest text-blue-400 bg-blue-950 border border-blue-900 px-3 py-1 rounded-full">
+          <span className="text-xs font-black uppercase tracking-widest text-blue-600 bg-blue-50 border border-blue-100 px-3 py-1 rounded-full">
             Modern SaaS Interfaces
           </span>
-          <h2 className="mt-4 text-3xl md:text-4xl font-black text-white">
+          <h2 className="mt-4 text-3xl md:text-4xl font-black text-slate-900">
             Interactive Dashboard Ecosystems
           </h2>
         </div>
 
         {/* Perspective stacked cards */}
-        <div className="relative h-[480px] w-full flex items-center justify-center overflow-hidden rounded-3xl border border-slate-800 bg-gradient-to-tr from-slate-950 to-slate-900 shadow-inner p-8">
+        <div className="relative h-[480px] w-full flex items-center justify-center overflow-hidden rounded-3xl border border-slate-200/80 bg-gradient-to-tr from-slate-100 to-white shadow-inner p-8">
           
           {/* Admin Dashboard Mock Card */}
           <div 
-            className="absolute left-10 md:left-24 w-[360px] md:w-[460px] h-[300px] rounded-2xl bg-slate-900 border border-slate-850 shadow-2xl p-6 hidden sm:flex flex-col gap-4 text-white"
+            className="absolute left-10 md:left-24 w-[360px] md:w-[460px] h-[300px] rounded-2xl bg-white border border-slate-200 shadow-2xl p-6 hidden sm:flex flex-col gap-4"
             style={{
               transform: "perspective(1000px) rotateY(15deg) rotateX(8deg) translateZ(50px)",
               opacity: 0.85
             }}
           >
-            <div className="flex justify-between items-center border-b border-slate-800 pb-3">
-              <span className="text-xs font-black text-slate-400">SaaS Admin Control</span>
-              <span className="h-2 w-2 rounded-full bg-blue-400" />
+            <div className="flex justify-between items-center border-b pb-3">
+              <span className="text-xs font-black text-slate-500">SaaS Admin Control</span>
+              <span className="h-2 w-2 rounded-full bg-blue-600" />
             </div>
             <div className="grid grid-cols-3 gap-3">
-              <div className="p-3 bg-slate-950/60 rounded-xl border border-slate-800">
-                <span className="text-[10px] text-slate-500 font-bold">Revenue</span>
-                <p className="text-sm font-black mt-1 text-emerald-400">₹4,290.00</p>
+              <div className="p-3 bg-slate-50 rounded-xl">
+                <span className="text-[10px] text-slate-400 font-bold">Revenue</span>
+                <p className="text-sm font-black mt-1">₹4,290.00</p>
               </div>
-              <div className="p-3 bg-slate-950/60 rounded-xl border border-slate-800">
-                <span className="text-[10px] text-slate-500 font-bold">Online</span>
-                <p className="text-sm font-black mt-1 text-blue-400">6 Printers</p>
+              <div className="p-3 bg-slate-50 rounded-xl">
+                <span className="text-[10px] text-slate-400 font-bold">Online</span>
+                <p className="text-sm font-black mt-1">6 Printers</p>
               </div>
-              <div className="p-3 bg-slate-950/60 rounded-xl border border-slate-800">
-                <span className="text-[10px] text-slate-500 font-bold">Queue</span>
-                <p className="text-sm font-black mt-1 text-purple-400">4 Active</p>
+              <div className="p-3 bg-slate-50 rounded-xl">
+                <span className="text-[10px] text-slate-400 font-bold">Queue</span>
+                <p className="text-sm font-black mt-1">4 Active</p>
               </div>
             </div>
-            <div className="h-24 bg-slate-950/40 rounded-xl border border-slate-800 flex items-center justify-center text-xs font-bold text-slate-500">
+            <div className="h-24 bg-slate-50 rounded-xl border flex items-center justify-center text-xs font-bold text-slate-400">
               Interactive charts (ApexCharts/Recharts)
             </div>
           </div>
 
           {/* Student Dashboard Mock Card (Top/Front) */}
           <div 
-            className="w-[380px] md:w-[480px] h-[320px] rounded-2xl bg-slate-950 text-white shadow-2xl p-6 flex flex-col gap-4 z-20 border border-slate-800"
+            className="w-[380px] md:w-[480px] h-[320px] rounded-2xl bg-slate-950 text-white shadow-2xl p-6 flex flex-col gap-4 z-20"
             style={{
               transform: "perspective(1000px) rotateY(-15deg) rotateX(10deg) translateZ(80px)"
             }}
@@ -587,7 +590,7 @@ function Landing() {
       </section>
 
       {/* FAQ Accordion Section */}
-      <section className="bg-slate-950/60 py-24 border-t border-slate-800" id="faq">
+      <section className="bg-white py-24 border-t border-slate-200/80" id="faq">
         <div className="max-w-4xl mx-auto px-6">
           <div className="text-center max-w-2xl mx-auto mb-16">
             <span className="text-xs font-black uppercase tracking-widest text-blue-600 bg-blue-50 border border-blue-100 px-3 py-1 rounded-full">
@@ -602,14 +605,14 @@ function Landing() {
             {faqData.map((faq, index) => (
               <div 
                 key={faq.q} 
-                className="border border-slate-800 rounded-2xl overflow-hidden bg-slate-900/40 hover:bg-slate-900 transition-colors"
+                className="border border-slate-200/80 rounded-2xl overflow-hidden bg-slate-50/50 hover:bg-white transition-colors"
               >
                 <button
                   onClick={() => setActiveFaq(activeFaq === index ? null : index)}
-                  className="w-full p-6 flex justify-between items-center text-left font-black text-white text-base"
+                  className="w-full p-6 flex justify-between items-center text-left font-black text-slate-900 text-base"
                 >
                   <span>{faq.q}</span>
-                  <ChevronDown className={`w-5 h-5 text-slate-500 transition-transform ${
+                  <ChevronDown className={`w-5 h-5 text-slate-400 transition-transform ${
                     activeFaq === index ? "rotate-180" : ""
                   }`} />
                 </button>
@@ -621,9 +624,9 @@ function Landing() {
                       animate={{ height: "auto", opacity: 1 }}
                       exit={{ height: 0, opacity: 0 }}
                       transition={{ duration: 0.2 }}
-                      className="border-t border-slate-800"
+                      className="border-t border-slate-100"
                     >
-                      <p className="p-6 text-sm font-bold text-slate-400 leading-relaxed bg-slate-950/60">
+                      <p className="p-6 text-sm font-bold text-slate-500 leading-relaxed bg-white">
                         {faq.a}
                       </p>
                     </motion.div>
@@ -663,7 +666,7 @@ function Landing() {
       </section>
 
       {/* Premium Footer */}
-      <footer className="border-t border-slate-800 bg-slate-950/80 py-16 text-slate-400 text-sm font-bold">
+      <footer className="border-t border-slate-200 bg-white py-16 text-slate-500 text-sm font-bold">
         <div className="max-w-6xl mx-auto px-6 grid md:grid-cols-4 gap-10">
           
           <div className="flex flex-col gap-4">
@@ -671,38 +674,38 @@ function Landing() {
               <div className="p-1.5 rounded-lg bg-blue-600 text-white shadow-sm">
                 <Printer className="w-4 h-4" />
               </div>
-              <span className="text-base font-black tracking-tight text-white">
+              <span className="text-base font-black tracking-tight text-slate-900">
                 CloudPrint
               </span>
             </div>
-            <p className="text-xs font-bold text-slate-500 leading-relaxed">
+            <p className="text-xs font-bold text-slate-400 leading-relaxed">
               Automating university printing hubs through dynamic cloud systems, safe collections, and dynamic Student discounts.
             </p>
           </div>
 
           <div>
-            <h4 className="text-xs font-black uppercase tracking-widest text-white mb-4">Features</h4>
+            <h4 className="text-xs font-black uppercase tracking-widest text-slate-900 mb-4">Features</h4>
             <div className="flex flex-col gap-2.5">
-              <a href="#features" className="hover:text-white transition-colors">OTP Safe Printing</a>
-              <a href="#locations" className="hover:text-white transition-colors">Campus Map</a>
-              <Link to="/blocks" className="hover:text-white transition-colors">Location Selector</Link>
+              <a href="#features" className="hover:text-slate-900 transition-colors">OTP Safe Printing</a>
+              <a href="#locations" className="hover:text-slate-900 transition-colors">Campus Map</a>
+              <Link to="/blocks" className="hover:text-slate-900 transition-colors">Location Selector</Link>
             </div>
           </div>
 
           <div>
-            <h4 className="text-xs font-black uppercase tracking-widest text-white mb-4">Support & Documentation</h4>
+            <h4 className="text-xs font-black uppercase tracking-widest text-slate-900 mb-4">Support & Documentation</h4>
             <div className="flex flex-col gap-2.5">
-              <Link to="/admin-login" className="hover:text-white transition-colors">Admin Login</Link>
-              <span className="normal-case font-black text-blue-400 block">🌐 {window.location.host || 'saipraveen.site'}</span>
+              <Link to="/admin-login" className="hover:text-slate-900 transition-colors">Admin Login</Link>
+              <span className="normal-case font-black text-blue-600 block">🌐 {window.location.host || 'saipraveen.soye'}</span>
             </div>
           </div>
 
           <div>
-            <h4 className="text-xs font-black uppercase tracking-widest text-white mb-4">CloudPrint Ecosystem</h4>
-            <p className="text-xs text-slate-500 font-bold leading-normal">
+            <h4 className="text-xs font-black uppercase tracking-widest text-slate-900 mb-4">CloudPrint Ecosystem</h4>
+            <p className="text-xs text-slate-400 font-bold leading-normal">
               Designed for high-performance kiosk TVs, student notebooks, and campus admins.
             </p>
-            <p className="mt-4 text-[10px] text-slate-600 font-black">
+            <p className="mt-4 text-[10px] text-slate-300 font-black">
               © {new Date().getFullYear()} CloudPrint Inc. All rights reserved.
             </p>
           </div>
