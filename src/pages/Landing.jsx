@@ -245,13 +245,13 @@ function Landing() {
             <Sparkles className="w-3.5 h-3.5" /> Next-Gen Kiosk Printing
           </span>
           
-          <h1 className="mt-6 text-5xl md:text-6xl font-black tracking-tight leading-[1.05] text-slate-900">
-            Print from <span className="text-gradient-purple">Anywhere</span>, <br />
-            collect in <span className="text-gradient-brand">Seconds</span>.
+          <h1 className="mt-6 text-5xl md:text-7xl font-black tracking-tight leading-[1.05] text-slate-900">
+            Print Anywhere.<br />
+            <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">Collect Instantly.</span>
           </h1>
           
           <p className="mt-6 text-lg font-bold text-slate-600 leading-relaxed">
-            Upload your PDF documents from anywhere on campus, pay securely online, and collect your prints instantly using QR codes or OTP verification from any CloudPrint-enabled printer.
+            Upload your PDF documents from anywhere on campus, pay securely online, and collect your prints instantly using secure OTP codes or QR verification from any CloudPrint-enabled printer.
           </p>
 
           <div className="mt-8 flex flex-wrap gap-3">
@@ -264,56 +264,83 @@ function Landing() {
             >
               <Play className="w-4 h-4 fill-slate-900" /> Watch Demo
             </button>
-            <Link to="/blocks" className="btn secondary px-6 py-3.5 rounded-xl font-black text-sm flex items-center gap-1.5">
-              <QrCode className="w-4 h-4" /> Scan QR
-            </Link>
             <Link to="/admin-login" className="btn secondary px-6 py-3.5 rounded-xl font-black text-sm">
               Admin Portal
             </Link>
           </div>
+
+          {/* New Left-Side Trust Section */}
+          <div className="mt-10 pt-8 border-t border-slate-100 grid grid-cols-2 gap-4 text-slate-500">
+            <div className="flex items-center gap-2 text-xs font-bold">
+              <span className="text-base">🖨️</span>
+              <span>25+ Campus Printers</span>
+            </div>
+            <div className="flex items-center gap-2 text-xs font-bold">
+              <span className="text-base">📄</span>
+              <span>100,000+ Pages Printed</span>
+            </div>
+            <div className="flex items-center gap-2 text-xs font-bold">
+              <span className="text-base">👨‍🎓</span>
+              <span>Thousands of Students</span>
+            </div>
+            <div className="flex items-center gap-2 text-xs font-bold">
+              <span className="text-base">⚡</span>
+              <span>Secure OTP & QR Printing</span>
+            </div>
+          </div>
         </div>
 
-        {/* Right Side: Animated 3D Ecosystem Simulation */}
-        <div className="relative flex items-center justify-center p-6 bg-slate-100/50 rounded-3xl border border-slate-200/60 overflow-hidden h-[540px]">
-          <div className="absolute inset-0 bg-grid-pattern opacity-10" />
+        {/* Right Side: Premium Glass Video Showcase with Gentle Floating Animation */}
+        <motion.div 
+          className="relative rounded-3xl p-2 bg-white/40 backdrop-blur-md border border-white/80 shadow-[0_20px_50px_rgba(37,99,235,0.1)] overflow-hidden cursor-pointer"
+          initial={{ y: 0 }}
+          animate={{ 
+            y: [0, -10, 0],
+          }}
+          transition={{ 
+            duration: 6,
+            repeat: Infinity,
+            ease: "easeInOut"
+          }}
+          whileHover={{ 
+            scale: 1.02,
+            boxShadow: "0 25px 60px rgba(37,99,235,0.25)",
+            borderColor: "rgba(59,130,246,0.5)"
+          }}
+        >
+          <div className="relative rounded-2xl overflow-hidden aspect-video bg-slate-950">
+            <video 
+              ref={demoVideoRef}
+              src={demoVideo}
+              autoPlay 
+              muted 
+              loop 
+              playsInline
+              className="w-full h-full object-cover opacity-90 hover:opacity-100 transition-opacity duration-300"
+              controls
+            />
 
-          {/* Workflow Graph Nodes */}
-          <div className="grid grid-cols-2 gap-x-8 gap-y-12 z-10 w-full max-w-md">
-            {flowSteps.map((step, idx) => (
-              <div
-                key={step.name}
-                className={`p-4 rounded-2xl border transition-all duration-300 flex flex-col justify-between h-24 ${
-                  activeFlowStep === idx
-                    ? "bg-white border-blue-500 shadow-lg scale-105"
-                    : "bg-white/80 border-slate-200 shadow-sm"
-                }`}
-              >
-                <div className="flex justify-between items-center">
-                  <span className="text-[10px] font-black uppercase text-slate-400">Step 0{idx + 1}</span>
-                  <span className={`w-2.5 h-2.5 rounded-full ${
-                    activeFlowStep === idx ? "bg-blue-600 animate-ping" : "bg-slate-300"
-                  }`} />
-                </div>
-                <h4 className="text-sm font-black text-slate-950 mt-2">{step.name}</h4>
+            {/* Top-Right Badge */}
+            <div className="absolute top-4 right-4 px-3 py-1.5 rounded-full bg-blue-600/90 backdrop-blur-md text-white text-[10px] font-black uppercase tracking-wider shadow-md">
+              ▶ Live Product Demo
+            </div>
+
+            {/* Bottom-Left Badge info overlay */}
+            <div className="absolute bottom-4 left-4 p-4 rounded-2xl bg-slate-950/70 border border-white/10 backdrop-blur-md text-left text-white max-w-[240px] shadow-lg">
+              <div className="flex items-center gap-1.5 text-[9px] font-black text-emerald-400 uppercase tracking-widest">
+                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping" />
+                🟢 Real Campus Workflow
               </div>
-            ))}
+              <p className="text-[10px] text-slate-300 font-bold mt-1.5 leading-relaxed">
+                Student → Upload → Pay → OTP → Kiosk → Print → Done
+              </p>
+              <div className="mt-3 pt-2.5 border-t border-white/10 flex justify-between items-center gap-4">
+                <span className="text-[9px] font-black uppercase text-slate-400">Average Print Time</span>
+                <span className="text-sm font-black text-emerald-400">&lt; 10 Seconds</span>
+              </div>
+            </div>
           </div>
-
-          {/* Floating UI cards simulation */}
-          <div className="absolute bottom-8 right-6 p-4 rounded-xl glass-panel shadow-lg border border-white/40 max-w-[150px] z-20">
-            <span className="px-2 py-0.5 rounded bg-emerald-100 text-emerald-700 text-[9px] font-black uppercase">
-              Printer Online
-            </span>
-            <p className="text-[10px] font-black text-slate-800 mt-2">C Block active</p>
-          </div>
-
-          <div className="absolute top-8 left-6 p-4 rounded-xl glass-panel shadow-lg border border-white/40 max-w-[150px] z-20">
-            <span className="px-2 py-0.5 rounded bg-blue-100 text-blue-700 text-[9px] font-black uppercase">
-              Active Queue
-            </span>
-            <p className="text-[10px] font-black text-slate-800 mt-2">2 pending jobs</p>
-          </div>
-        </div>
+        </motion.div>
       </section>
 
       {/* Live Statistics Section */}
