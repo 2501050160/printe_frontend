@@ -209,7 +209,7 @@ function Landing() {
       <svg className="h-0 w-0 absolute pointer-events-none" aria-hidden="true">
         <defs>
           <clipPath id="hero-clip" clipPathUnits="objectBoundingBox">
-            <path d="M 0.2,0 Q 0.05,0.5 0.2,1 L 1,1 L 1,0 Z" />
+            <path d="M 0.15,0 Q 0.0,0.5 0.15,1 L 1,1 L 1,0 Z" />
           </clipPath>
         </defs>
       </svg>
@@ -270,14 +270,6 @@ function Landing() {
             {/* Left 40% Pane: Masked Background (Opacity 30%) */}
             <div className="w-[40%] h-full bg-slate-950/95 relative z-10 flex-shrink-0 border-r border-white/5" />
             
-            {/* Large Curved SVG Divider Leaning Toward Text */}
-            <div className="w-[20%] h-full relative z-20 -ml-[10%] flex-shrink-0">
-              <svg className="h-full w-full text-slate-950 fill-current overflow-visible" viewBox="0 0 100 100" preserveAspectRatio="none">
-                {/* Glowing neon stroke with 2px width */}
-                <path d="M 20,0 Q 5,50 20,100" fill="none" stroke="rgba(59, 130, 246, 0.85)" strokeWidth="2" className="filter drop-shadow-[0_0_12px_rgba(59,130,246,0.85)]" />
-              </svg>
-            </div>
-            
             {/* Right 60% Pane: Borderless Video Container filling 100% space, clipped exactly to the curve */}
             <div 
               className="absolute inset-y-0 right-0 left-[30%] z-0 bg-slate-950"
@@ -299,6 +291,13 @@ function Landing() {
                 draggable="false"
                 className="w-full h-full object-cover object-center pointer-events-none select-none opacity-100"
               />
+              
+              {/* Massive Curved Glowing Arc Overlay (drawn on the exact same container path) */}
+              <svg className="absolute inset-0 w-full h-full pointer-events-none z-20 overflow-visible" viewBox="0 0 100 100" preserveAspectRatio="none">
+                {/* 2px glowing blue stroke */}
+                <path d="M 15,0 Q 0,50 15,100" fill="none" stroke="rgba(59, 130, 246, 0.95)" strokeWidth="0.4" className="filter drop-shadow-[0_0_8px_rgba(59,130,246,0.95)]" vectorEffect="non-scaling-stroke" />
+              </svg>
+
               {/* Soft feather overlay gradient where the arc meets the video */}
               <div className="absolute inset-y-0 left-0 w-32 bg-gradient-to-r from-slate-950 to-transparent z-10 pointer-events-none" />
             </div>
