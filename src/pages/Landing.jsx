@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import introVideo from "../assets/intro.mp4";
 import demoVideo from "../assets/demo.mp4";
+import inVideo from "../assets/in.mp4";
 import { 
   Printer, 
   UploadCloud, 
@@ -291,56 +292,62 @@ function Landing() {
         </div>
 
         {/* Right Side: Premium Glass Video Showcase with Gentle Floating Animation */}
-        <motion.div 
-          className="relative rounded-3xl p-2 bg-white/40 backdrop-blur-md border border-white/80 shadow-[0_20px_50px_rgba(37,99,235,0.1)] overflow-hidden cursor-pointer"
-          initial={{ y: 0 }}
-          animate={{ 
-            y: [0, -10, 0],
-          }}
-          transition={{ 
-            duration: 6,
-            repeat: Infinity,
-            ease: "easeInOut"
-          }}
-          whileHover={{ 
-            scale: 1.02,
-            boxShadow: "0 25px 60px rgba(37,99,235,0.25)",
-            borderColor: "rgba(59,130,246,0.5)"
-          }}
-        >
-          <div className="relative rounded-2xl overflow-hidden aspect-video bg-slate-950">
-            <video 
-              ref={demoVideoRef}
-              src={demoVideo}
-              autoPlay 
-              muted 
-              loop 
-              playsInline
-              className="w-full h-full object-cover opacity-90 hover:opacity-100 transition-opacity duration-300"
-              controls
-            />
+        <div className="w-full flex justify-center lg:justify-end">
+          <motion.div 
+            className="w-full lg:max-w-[75%] rounded-[24px] p-2 bg-white/10 backdrop-blur-md border border-white/20 shadow-[0_20px_50px_rgba(37,99,235,0.15)] relative cursor-pointer"
+            initial={{ y: 0 }}
+            animate={{ 
+              y: [0, -5, 0],
+            }}
+            transition={{ 
+              duration: 5,
+              repeat: Infinity,
+              ease: "easeInOut"
+            }}
+            whileHover={{ 
+              scale: 1.02,
+              boxShadow: "0 25px 60px rgba(37,99,235,0.3)",
+              borderColor: "rgba(59,130,246,0.6)"
+            }}
+            style={{ transition: "all 0.3s ease" }}
+          >
+            <div className="relative rounded-[20px] overflow-hidden aspect-video bg-slate-950">
+              <video 
+                src={inVideo}
+                autoPlay 
+                muted 
+                loop 
+                playsInline
+                preload="auto"
+                controls={false}
+                controlsList="nodownload nofullscreen"
+                disablePictureInPicture
+                draggable="false"
+                className="w-full h-full object-cover pointer-events-none select-none"
+              />
 
-            {/* Top-Right Badge */}
-            <div className="absolute top-4 right-4 px-3 py-1.5 rounded-full bg-blue-600/90 backdrop-blur-md text-white text-[10px] font-black uppercase tracking-wider shadow-md">
-              ▶ Live Product Demo
-            </div>
+              {/* Top-Right Badge */}
+              <div className="absolute top-4 right-4 px-3 py-1.5 rounded-full bg-blue-600/90 backdrop-blur-md text-white text-[10px] font-black uppercase tracking-wider shadow-md z-10">
+                ▶ Live Product Demo
+              </div>
 
-            {/* Bottom-Left Badge info overlay */}
-            <div className="absolute bottom-4 left-4 p-4 rounded-2xl bg-slate-950/70 border border-white/10 backdrop-blur-md text-left text-white max-w-[240px] shadow-lg">
-              <div className="flex items-center gap-1.5 text-[9px] font-black text-emerald-400 uppercase tracking-widest">
-                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping" />
-                🟢 Real Campus Workflow
-              </div>
-              <p className="text-[10px] text-slate-300 font-bold mt-1.5 leading-relaxed">
-                Student → Upload → Pay → OTP → Kiosk → Print → Done
-              </p>
-              <div className="mt-3 pt-2.5 border-t border-white/10 flex justify-between items-center gap-4">
-                <span className="text-[9px] font-black uppercase text-slate-400">Average Print Time</span>
-                <span className="text-sm font-black text-emerald-400">&lt; 10 Seconds</span>
+              {/* Bottom-Left Badge info overlay */}
+              <div className="absolute bottom-4 left-4 p-4 rounded-2xl bg-slate-950/70 border border-white/10 backdrop-blur-md text-left text-white max-w-[240px] shadow-lg z-10">
+                <div className="flex items-center gap-1.5 text-[9px] font-black text-emerald-400 uppercase tracking-widest">
+                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping" />
+                  🟢 Real Campus Workflow
+                </div>
+                <p className="text-[10px] text-slate-300 font-bold mt-1.5 leading-relaxed">
+                  Student → Upload → Pay → OTP → Kiosk → Print → Done
+                </p>
+                <div className="mt-3 pt-2.5 border-t border-white/10 flex justify-between items-center gap-4">
+                  <span className="text-[9px] font-black uppercase text-slate-400">Average Print Time</span>
+                  <span className="text-sm font-black text-emerald-400">&lt; 10 Seconds</span>
+                </div>
               </div>
             </div>
-          </div>
-        </motion.div>
+          </motion.div>
+        </div>
       </section>
 
       {/* Live Statistics Section */}
