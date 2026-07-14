@@ -485,14 +485,34 @@ function DisplayPanel() {
                         </AnimatePresence>
                     </div>
 
-                    {/* Right Column: AI Generated Student Offers Advertisement Poster */}
+                    {/* Right Column: Premium ambient loop video & AI Generated ad image */}
                     {!hasActiveOrPendingOrders && (
-                        <div className="hidden lg:block relative overflow-hidden h-[calc(100vh-210px)] w-full rounded-3xl border border-white/10 shadow-2xl">
-                            <img
-                                src={studentAd}
-                                alt="Student Offers Advertisement"
-                                className="w-full h-full object-cover"
-                            />
+                        <div className="hidden lg:grid grid-rows-2 gap-4 h-[calc(100vh-210px)] w-full">
+                            <div className="relative overflow-hidden rounded-3xl border border-white/10 shadow-lg">
+                                <video
+                                    autoPlay
+                                    loop
+                                    muted
+                                    playsInline
+                                    className="w-full h-full object-cover opacity-80"
+                                >
+                                    <source src="/assets/printer_rollers.mp4" type="video/mp4" />
+                                </video>
+                                {/* Smooth horizontal gradient overlay that blends into the background on the left side */}
+                                <div 
+                                    className="absolute inset-0"
+                                    style={{
+                                        background: `linear-gradient(to right, ${theme.background} 0%, ${theme.background}40 40%, transparent 100%)`
+                                    }}
+                                />
+                            </div>
+                            <div className="relative overflow-hidden rounded-3xl border border-white/10 shadow-lg">
+                                <img
+                                    src={studentAd}
+                                    alt="Student Offers Advertisement"
+                                    className="w-full h-full object-cover"
+                                />
+                            </div>
                         </div>
                     )}
                 </div>
