@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate, Link, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { loginUser, persistUser } from "../services/auth";
-import api from "../services/api";
+import api, { API_BASE } from "../services/api";
 import PopupManager from "../components/PopupManager";
 import loginHero from "../assets/login_hero.mp4";
 import introVideo from "../assets/intro_video1.mp4";
@@ -14,6 +14,15 @@ function Login() {
     const [successMessage, setSuccessMessage] = useState("");
     const [dbOffline, setDbOffline] = useState(false);
     const [resending, setResending] = useState(false);
+    const [oauthRedirecting, setOauthRedirecting] = useState(null);
+
+    const handleOAuth = (provider) => {
+        setOauthRedirecting(provider);
+        setTimeout(() => {
+            const endpoint = provider.toLowerCase() === "google" ? "google" : "azure";
+            window.location.href = `${API_BASE}/oauth2/authorization/${endpoint}`;
+        }, 1500);
+    };
 
     const navigate = useNavigate();
     const location = useLocation();
@@ -105,6 +114,23 @@ function Login() {
     return (
 
         <main className="auth-shell relative">
+            <AnimatePresence>
+                {oauthRedirecting && (
+                    <motion.div
+                        className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-950/90 backdrop-blur-md text-white text-center p-6"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                    >
+                        <div className="w-16 h-16 border-4 border-t-blue-500 border-r-transparent border-l-transparent border-b-transparent rounded-full animate-spin mb-6" />
+                        <h3 className="text-xl font-black">🔄 Redirecting to {oauthRedirecting}...</h3>
+                        <p className="mt-3 text-sm text-slate-300 max-w-sm font-bold">
+                            Please choose your {oauthRedirecting} account to continue. This will only take a moment.
+                        </p>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
             {/* Mobile/Tablet Fullscreen Background Video Fallback */}
             <div className="absolute inset-0 z-0 lg:hidden pointer-events-none overflow-hidden">
                 <video 
@@ -275,6 +301,31 @@ function Login() {
                             </button>
 
                         </form>
+
+                        {/* Social OAuth Sign-ins */}
+                        <div className="relative flex items-center justify-center my-6">
+                            <span className="h-px bg-slate-200 w-full absolute" />
+                            <span className="bg-white px-3.5 text-[10px] font-black text-slate-400 uppercase tracking-widest relative z-10">
+                                or continue with
+                            </span>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-3">
+                            <button
+                                type="button"
+                                onClick={() => handleOAuth("Google")}
+                                className="btn secondary py-2.5 px-4 min-h-0 text-xs font-black flex items-center justify-center gap-2 rounded-xl"
+                            >
+                                Google
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => handleOAuth("Microsoft")}
+                                className="btn secondary py-2.5 px-4 min-h-0 text-xs font-black flex items-center justify-center gap-2 rounded-xl"
+                            >
+                                Microsoft
+                            </button>
+                        </div>
 
                         <div className="mt-6 flex flex-col gap-3 text-center text-sm text-slate-600">
 
