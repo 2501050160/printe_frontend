@@ -27,7 +27,6 @@ function AdminDashboard() {
     const [supportTickets, setSupportTickets] = useState([]);
     const [selectedPricingBlock, setSelectedPricingBlock] = useState("C Block");
     const [activeTab, setActiveTab] = useState("queue");
-    const [sidebarCollapsed, setSidebarCollapsed] = useState(true);
 
     // Dynamic settings & blocks
     const [blocks, setBlocks] = useState([]);
