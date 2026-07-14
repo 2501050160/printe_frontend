@@ -258,12 +258,12 @@ function Landing() {
           }}
           style={{ transition: "all 0.3s ease" }}        >
           {/* Subtle Blue Ambient Glow Behind Arc */}
-          <div className="absolute top-1/2 left-[45%] -translate-y-1/2 -translate-x-1/2 w-[350px] h-[350px] bg-blue-500/10 rounded-full blur-[100px] pointer-events-none z-0" />
+          <div className="absolute top-1/2 left-[42%] -translate-y-1/2 -translate-x-1/2 w-[400px] h-[400px] bg-blue-500/10 rounded-full blur-[120px] pointer-events-none z-0" />
 
           {/* Background Split Layout & Curved Arc Divider Container */}
           <div className="absolute inset-0 z-0 flex w-full h-full">
-            {/* Left 45% Pane: Masked Background (Opacity 20-35%) */}
-            <div className="w-[45%] h-full bg-slate-950/95 relative z-10 flex-shrink-0 border-r border-white/5" />
+            {/* Left 42% Pane: Masked Background (Opacity 25%) */}
+            <div className="w-[42%] h-full bg-slate-950/95 relative z-10 flex-shrink-0 border-r border-white/5" />
             
             {/* Large Curved SVG Divider */}
             <div className="w-[10%] h-full relative z-10 -ml-[1px] flex-shrink-0">
@@ -271,19 +271,19 @@ function Landing() {
                 {/* Arc shape masks left side */}
                 <path d="M 0,0 Q 10,50 0,100 L 100,100 L 100,0 Z" className="text-slate-950" />
                 {/* Glowing neon stroke */}
-                <path d="M 0,0 Q 10,50 0,100" fill="none" stroke="rgba(59, 130, 246, 0.6)" strokeWidth="1.5" className="filter drop-shadow-[0_0_8px_rgba(59,130,246,0.6)]" />
+                <path d="M 0,0 Q 10,50 0,100" fill="none" stroke="rgba(59, 130, 246, 0.65)" strokeWidth="1.5" className="filter drop-shadow-[0_0_12px_rgba(59,130,246,0.65)]" />
               </svg>
             </div>
             
-            {/* Right 45% Pane: Fully Visible background grid */}
-            <div className="w-[45%] h-full relative z-0 flex-shrink-0 bg-slate-900/10" />
+            {/* Right 48% Pane: Fully Visible background video pane */}
+            <div className="w-[48%] h-full relative z-0 flex-shrink-0 bg-transparent" />
           </div>
 
-          {/* Foreground Grid Layout */}
-          <div className="relative z-10 w-full px-8 md:px-12 lg:px-16 flex flex-col lg:flex-row justify-between items-center gap-8 min-h-[70vh]">
+          {/* Foreground Grid Layout (42% Left, 58% Right) */}
+          <div className="relative z-10 w-full px-8 md:px-12 lg:px-16 flex flex-col lg:flex-row justify-between items-center gap-6 min-h-[80vh]">
             
-            {/* Left Side: ~45% width overlay */}
-            <div className="w-full lg:w-[45%] text-white text-left z-20">
+            {/* Left Side: 42% width overlay with max-width 560px */}
+            <div className="w-full lg:w-[42%] max-w-[560px] text-white text-left z-20">
               <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider text-blue-400 bg-blue-950/80 border border-blue-800/60">
                 <Sparkles className="w-3.5 h-3.5" /> Next-Gen Kiosk Printing
               </span>
@@ -333,10 +333,10 @@ function Landing() {
               </div>
             </div>
 
-            {/* Right Side: ~55% width Video Showcase beginning 20px from curved divider */}
-            <div className="w-full lg:w-[55%] flex justify-center lg:justify-end pl-[20px] z-20">
+            {/* Right Side: 58% width Video Showcase beginning exactly 20px from curved divider */}
+            <div className="w-full lg:w-[58%] flex justify-center lg:justify-end pl-[20px] z-20 h-[75vh] min-h-[480px]">
               <motion.div 
-                className="w-full rounded-[24px] p-1.5 bg-white/10 backdrop-blur-md border border-white/20 shadow-[0_20px_50px_rgba(37,99,235,0.15)] relative"
+                className="w-full h-full max-w-[95%] rounded-[24px] p-1.5 bg-white/10 backdrop-blur-md border border-white/20 shadow-[0_20px_50px_rgba(37,99,235,0.15)] relative"
                 whileHover={{ 
                   scale: 1.02,
                   boxShadow: "0 25px 60px rgba(37,99,235,0.3)",
@@ -344,7 +344,7 @@ function Landing() {
                 }}
                 style={{ transition: "all 0.3s ease" }}
               >
-                <div className="relative rounded-[20px] overflow-hidden aspect-video bg-slate-950 shadow-[0_0_20px_rgba(59,130,246,0.15)]">
+                <div className="relative w-full h-full rounded-[20px] overflow-hidden bg-slate-950 shadow-[0_0_20px_rgba(59,130,246,0.15)]">
                   <video 
                     src={inVideo}
                     autoPlay 
