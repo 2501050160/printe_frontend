@@ -14,6 +14,7 @@ function DisplayPanel() {
     const [activePickup, setActivePickup] = useState(null);
     const [queuePageIndex, setQueuePageIndex] = useState(0);
     const [isFullscreen, setIsFullscreen] = useState(false);
+    const [showFullscreenAd, setShowFullscreenAd] = useState(false);
 
     const toggleFullscreen = () => {
         if (!document.fullscreenElement) {
@@ -35,6 +36,16 @@ function DisplayPanel() {
         };
         document.addEventListener("fullscreenchange", handleFullscreenChange);
         return () => document.removeEventListener("fullscreenchange", handleFullscreenChange);
+    }, []);
+
+    useEffect(() => {
+        const interval = setInterval(() => {
+            setShowFullscreenAd(true);
+            setTimeout(() => {
+                setShowFullscreenAd(false);
+            }, 4000); // show ad for 4 seconds
+        }, 14000); // 10 seconds showing queue + 4 seconds showing ad
+        return () => clearInterval(interval);
     }, []);
 
     const theme = getBlockTheme(displayBlock);
@@ -485,34 +496,25 @@ function DisplayPanel() {
                         </AnimatePresence>
                     </div>
 
-                    {/* Right Column: Premium ambient loop video & AI Generated ad image */}
+                    {/* Right Column: Premium ambient loop video presentation */}
                     {!hasActiveOrPendingOrders && (
-                        <div className="hidden lg:grid grid-rows-2 gap-4 h-[calc(100vh-210px)] w-full">
-                            <div className="relative overflow-hidden rounded-3xl border border-white/10 shadow-lg">
-                                <video
-                                    autoPlay
-                                    loop
-                                    muted
-                                    playsInline
-                                    className="w-full h-full object-cover opacity-80"
-                                >
-                                    <source src="/assets/printer_rollers.mp4" type="video/mp4" />
-                                </video>
-                                {/* Smooth horizontal gradient overlay that blends into the background on the left side */}
-                                <div 
-                                    className="absolute inset-0"
-                                    style={{
-                                        background: `linear-gradient(to right, ${theme.background} 0%, ${theme.background}40 40%, transparent 100%)`
-                                    }}
-                                />
-                            </div>
-                            <div className="relative overflow-hidden rounded-3xl border border-white/10 shadow-lg">
-                                <img
-                                    src={studentAd}
-                                    alt="Student Offers Advertisement"
-                                    className="w-full h-full object-cover"
-                                />
-                            </div>
+                        <div className="hidden lg:block relative overflow-hidden h-[calc(100vh-210px)] w-full rounded-3xl">
+                            <video
+                                autoPlay
+                                loop
+                                muted
+                                playsInline
+                                className="w-full h-full object-cover opacity-80"
+                            >
+                                <source src="/assets/printer_rollers.mp4" type="video/mp4" />
+                            </video>
+                            {/* Smooth horizontal gradient overlay that blends into the background on the left side */}
+                            <div 
+                                className="absolute inset-0"
+                                style={{
+                                    background: `linear-gradient(to right, ${theme.background} 0%, ${theme.background}40 40%, transparent 100%)`
+                                }}
+                            />
                         </div>
                     )}
                 </div>
@@ -523,6 +525,30 @@ function DisplayPanel() {
                     <span>{new Date().toLocaleTimeString()}</span>
                 </footer>
             </section>
+
+            <AnimatePresence>
+                {showFullscreenAd && !activePickup && (
+                    <motion.div
+                        className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/95 backdrop-blur-md"
+                        initial={{ opacity: 0, scale: 0.95 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0, scale: 0.98 }}
+                        transition={{ duration: 0.5 }}
+                    >
+                        <div className="relative w-full h-full max-w-[90vw] max-h-[90vh] flex items-center justify-center p-4">
+                            <img
+                                src={studentAd}
+                                alt="Special Offers"
+                                className="w-full h-full object-contain rounded-3xl border border-white/10 shadow-2xl"
+                            />
+                            {/* Countdown banner */}
+                            <div className="absolute top-8 right-8 px-4 py-2 rounded-full bg-black/60 backdrop-blur-md border border-white/10 text-xs font-black text-slate-300">
+                                Returning to Queue soon...
+                            </div>
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </main>
     );
 }
