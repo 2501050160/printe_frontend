@@ -1297,16 +1297,7 @@ function AdminDashboard() {
                                             transition={{ delay: index * 0.03 }}
                                         >
                                             <td className="font-black">
-                                                <div className="flex items-center gap-2">
-                                                    <span>{order.orderId}</span>
-                                                    <button
-                                                        onClick={() => downloadPdf(order.id)}
-                                                        className="text-xs text-sky-600 hover:text-sky-800 font-bold underline cursor-pointer"
-                                                        title="Download PDF"
-                                                    >
-                                                        📥 PDF
-                                                    </button>
-                                                </div>
+                                                <span>{order.orderId}</span>
                                             </td>
                                             <td className="font-bold">
                                                 {order.blockLocation || "C Block"}
@@ -1406,16 +1397,7 @@ function AdminDashboard() {
                                         transition={{ delay: index * 0.03 }}
                                     >
                                         <td className="font-black">
-                                            <div className="flex items-center gap-2">
-                                                <span>{order.orderId}</span>
-                                                <button
-                                                    onClick={() => downloadPdf(order.id)}
-                                                    className="text-xs text-sky-600 hover:text-sky-800 font-bold underline cursor-pointer"
-                                                    title="Download PDF"
-                                                >
-                                                    📥 PDF
-                                                </button>
-                                            </div>
+                                            <span>{order.orderId}</span>
                                         </td>
                                         <td className="font-bold">{order.blockLocation || "—"}</td>
                                         <td className="font-bold text-slate-900">{order.customerName || "Customer"}</td>
