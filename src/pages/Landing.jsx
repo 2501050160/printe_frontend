@@ -30,6 +30,8 @@ function Landing() {
   const [activeFaq, setActiveFaq] = useState(null);
   const [activeFlowStep, setActiveFlowStep] = useState(0);
   const [showIntro, setShowIntro] = useState(false);
+  const [isMuted, setIsMuted] = useState(true);
+  const introVideoRef = useRef(null);
   const [showDemo, setShowDemo] = useState(false);
   const statsRef = useRef(null);
   const statsStarted = useRef(false);
@@ -693,7 +695,9 @@ function Landing() {
             transition={{ duration: 0.6 }}
           >
             <video
+              ref={introVideoRef}
               autoPlay
+              muted
               playsInline
               className="w-full h-full object-cover absolute inset-0 z-0"
               onEnded={handleSkipIntro}
@@ -703,6 +707,20 @@ function Landing() {
 
             <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20 z-10 pointer-events-none" />
 
+            {/* Unmute button */}
+            <button
+              onClick={() => {
+                const v = introVideoRef.current;
+                if (!v) return;
+                v.muted = !v.muted;
+                setIsMuted(v.muted);
+              }}
+              className="absolute bottom-10 left-10 z-20 px-4 py-2.5 bg-white/10 hover:bg-white/25 text-white font-black text-xs tracking-wider uppercase rounded-full border border-white/25 backdrop-blur-md transition-all flex items-center gap-2"
+            >
+              {isMuted ? "🔇 Tap for Sound" : "🔊 Sound On"}
+            </button>
+
+            {/* Skip button */}
             <button
               onClick={handleSkipIntro}
               className="absolute bottom-10 right-10 z-20 px-6 py-3 bg-white/10 hover:bg-white/25 text-white font-black text-sm tracking-wider uppercase rounded-full border border-white/25 backdrop-blur-md transition-all shadow-2xl hover:scale-105 active:scale-95 flex items-center gap-2"
