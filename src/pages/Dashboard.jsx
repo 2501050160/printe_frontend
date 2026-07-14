@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+﻿import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import axios from "axios";
@@ -252,7 +252,7 @@ function Dashboard() {
                 if (publicSettings.referralEnabled && publicSettings.popupEnabled && !hasPaidOrders && !shown) {
                     sessionStorage.setItem("referralWelcomeShown", "true");
                     showAlert(
-                        "🎉 Welcome Offer!",
+                        "ðŸŽ‰ Welcome Offer!",
                         publicSettings.popupMessage || `Refer your friends and earn rewards! Your code is: ${referralCode}`,
                         "success"
                     );
@@ -430,7 +430,7 @@ function Dashboard() {
             });
 
             if (response.data.success) {
-                showAlert("Claim Successful 🎉", response.data.message || "Wallet balance credited successfully!", "success");
+                showAlert("Claim Successful ðŸŽ‰", response.data.message || "Wallet balance credited successfully!", "success");
                 setRewardCode("");
                 getWalletBalance(userId).then(setWalletBalance);
             } else {
@@ -475,10 +475,10 @@ function Dashboard() {
     const displayAdText = settings.adEnabled && settings.adText ? settings.adText.replace("{referralCode}", referralCode) : "";
 
     const tabs = [
-        { id: "print", label: "Print Dashboard", icon: "🖨️" },
-        { id: "orders", label: "My Orders", icon: "📄" },
-        { id: "coupons", label: "Coupons & Rewards", icon: "🎁" },
-        { id: "support", label: "Support Desk", icon: "📞" }
+        { id: "print", label: "Print Dashboard", icon: "Print" },
+        { id: "orders", label: "My Orders", icon: "Docs" },
+        { id: "coupons", label: "Coupons & Rewards", icon: "Gift" },
+        { id: "support", label: "Support Desk", icon: "Help" }
     ];
 
     const orderStatusClass = (status) => {
@@ -500,7 +500,7 @@ function Dashboard() {
                     activeTab={activeTab}
                     onTabChange={setActiveTab}
                     actions={[
-                        { label: `Wallet: ₹${walletBalance}`, onClick: () => setShowWalletModal(true), className: "btn success cursor-pointer !border-emerald-500 !bg-emerald-600/20 !text-emerald-400" },
+                        { label: `Wallet: Rs. ${walletBalance}`, onClick: () => setShowWalletModal(true), className: "btn success cursor-pointer" },
                         { label: "Change Location", path: "/blocks", className: "btn secondary" }
                     ]}
                 />
@@ -541,7 +541,7 @@ function Dashboard() {
                         boxShadow: "0 0 15px rgba(249, 115, 22, 0.3)"
                     }}>
                         <marquee scrollamount="4">
-                            ⚠️ Please try again later as the machine is under maintenance.
+                            âš ï¸ Please try again later as the machine is under maintenance.
                         </marquee>
                     </div>
                 )}
@@ -616,7 +616,7 @@ function Dashboard() {
                                         <source src={howToUpload} type="video/mp4" />
                                     </video>
                                     <div className="absolute bottom-4 left-4 right-4 bg-slate-900/75 backdrop-blur-sm px-3 py-1.5 rounded-lg text-white text-[10px] font-black uppercase tracking-wider text-center">
-                                        🎬 Tutorial: How to Upload
+                                        ðŸŽ¬ Tutorial: How to Upload
                                     </div>
                                 </div>
 
@@ -765,7 +765,7 @@ function Dashboard() {
                                 </div>
                                 <div>
                                     <p className="eyebrow">Your Wallet</p>
-                                    <p className="text-xl font-black text-slate-900">₹{walletBalance}</p>
+                                    <p className="text-xl font-black text-slate-900">â‚¹{walletBalance}</p>
                                 </div>
                             </div>
 
@@ -828,7 +828,7 @@ function Dashboard() {
                                             marginBottom: "16px",
                                             boxShadow: "0 0 15px rgba(239, 68, 68, 0.3)"
                                         }}>
-                                            <marquee scrollamount="4">⚠️ Print cannot be done due to low paper levels. Selected pages ({estimatedTotalPages}) exceed printer sheets ({paperCount}).</marquee>
+                                            <marquee scrollamount="4">âš ï¸ Print cannot be done due to low paper levels. Selected pages ({estimatedTotalPages}) exceed printer sheets ({paperCount}).</marquee>
                                         </div>
                                     )}
 
@@ -978,7 +978,7 @@ function Dashboard() {
                                             </div>
                                             {sec.redirectUrl && (
                                                 <a href={sec.redirectUrl} target="_blank" rel="noopener noreferrer" className="block-card-cta mt-4 inline-block hover:underline">
-                                                    Learn More →
+                                                    Learn More â†’
                                                 </a>
                                             )}
                                         </motion.div>
@@ -1089,7 +1089,7 @@ function Dashboard() {
                                                                  }}
                                                                  className="bg-emerald-500 hover:bg-emerald-600 active:scale-95 text-white font-black px-2.5 py-1 rounded text-xs transition-all cursor-pointer shadow flex items-center gap-1 min-h-[28px]"
                                                              >
-                                                                 Receipt 🧾
+                                                                 Receipt ðŸ§¾
                                                              </button>
                                                          )}
                                                      </div>
@@ -1101,7 +1101,7 @@ function Dashboard() {
                                             <tr>
                                                 <td colSpan="7">
                                                     <div className="empty-state">
-                                                        <div className="empty-state-icon">📄</div>
+                                                        <div className="empty-state-icon">ðŸ“„</div>
                                                         <p>No orders yet</p>
                                                         <button
                                                             onClick={() => setActiveTab("print")}
@@ -1188,7 +1188,7 @@ function Dashboard() {
                             </div>
 
                             <div className="text-xs font-bold text-slate-400 bg-slate-100 border border-slate-200/60 p-3 rounded-lg">
-                                ℹ️ Note: Credits are added instantly after the referred customer places their first paid print order.
+                                â„¹ï¸ Note: Credits are added instantly after the referred customer places their first paid print order.
                             </div>
                         </motion.section>
 
@@ -1248,7 +1248,7 @@ function Dashboard() {
                         transition={{ duration: 0.4 }}
                     >
                         <p className="eyebrow">Help & Feedback</p>
-                        <h2 className="text-2xl font-black text-slate-900 mt-1 mb-2">📞 Support Desk</h2>
+                        <h2 className="text-2xl font-black text-slate-900 mt-1 mb-2">ðŸ“ž Support Desk</h2>
                         <p className="text-sm text-slate-500 mb-6 leading-relaxed">
                             Submit your request below. Tickets will be processed by our administration. Once solved, work related mails are dispatched to <span className="font-bold text-sky-600">saipraveendasari2@gmail.com</span>, and we will contact you back immediately.
                         </p>
@@ -1328,7 +1328,7 @@ function Dashboard() {
 
                             <div className="flex flex-col items-center text-center">
                                 <div className="flex h-14 w-14 items-center justify-center rounded-full border-2 text-2xl font-black shadow-inner mb-4 text-sky-500 bg-sky-50 border-sky-100">
-                                    🔒
+                                    ðŸ”’
                                 </div>
 
                                 <h3 className="text-xl font-black text-slate-900 mb-2">
@@ -1395,7 +1395,7 @@ function Dashboard() {
 
                             <div className="flex flex-col items-center text-center">
                                 <div className="flex h-14 w-14 items-center justify-center rounded-full border-2 text-2xl font-black shadow-inner mb-4 text-indigo-500 bg-indigo-50 border-indigo-100">
-                                    📢
+                                    ðŸ“¢
                                 </div>
 
                                 <h3 className="text-xl font-black text-slate-900 mb-2">
@@ -1486,7 +1486,7 @@ function Dashboard() {
                                 onClick={() => setShowWalletModal(false)}
                                 className="absolute top-4 right-4 text-slate-400 hover:text-slate-600 transition-colors cursor-pointer text-xl font-bold"
                             >
-                                ✕
+                                âœ•
                             </button>
 
                             {/* Wallet Coins Video Loop */}
@@ -1510,7 +1510,7 @@ function Dashboard() {
                             {/* Balance Card */}
                             <div className="w-full bg-emerald-50 border border-emerald-100 rounded-xl p-4 mb-6 flex flex-col items-center">
                                 <span className="text-xs font-black uppercase tracking-widest text-emerald-700">Available Balance</span>
-                                <span className="text-3xl font-black text-emerald-950 mt-1">₹{walletBalance}</span>
+                                <span className="text-3xl font-black text-emerald-950 mt-1">â‚¹{walletBalance}</span>
                             </div>
 
                             {/* Add Balance Mockup Action */}
@@ -1550,7 +1550,7 @@ function Dashboard() {
                 <div id="printable-invoice">
                     <div className="invoice-box">
                         <div className="invoice-header">
-                            <div className="invoice-logo">🖨️ CLOUD PRINT</div>
+                            <div className="invoice-logo">ðŸ–¨ï¸ CLOUD PRINT</div>
                             <div className="invoice-title">PAYMENT RECEIPT</div>
                         </div>
 
@@ -1747,3 +1747,4 @@ function Dashboard() {
 }
 
 export default Dashboard;
+
