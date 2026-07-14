@@ -505,7 +505,7 @@ function DisplayPanel() {
 
                 <footer className="flex flex-wrap items-center justify-between gap-3 border-t border-white/10 pt-5 text-sm font-bold uppercase tracking-[0.18em] text-slate-300">
                     <span>Cloud Print · {displayBlock}</span>
-                    <span className="text-cyan-300 font-black normal-case tracking-normal">🌐 Upload & Print: www.saipraveen.site</span>
+                    <span className="text-cyan-300 font-black normal-case tracking-normal">🌐 Upload & Print: {window.location.host}</span>
                     <span>{new Date().toLocaleTimeString()}</span>
                 </footer>
             </section>
@@ -513,8 +513,8 @@ function DisplayPanel() {
             <div className="fixed bottom-24 left-8 z-40 flex items-center gap-6 p-6 rounded-2xl bg-slate-950/90 backdrop-blur-md border border-white/10 shadow-2xl max-w-md transition-all hover:scale-105">
                 <div className="p-2.5 bg-white rounded-xl shadow-md shrink-0">
                     <img 
-                        src="https://api.qrserver.com/v1/create-qr-code/?size=170x170&data=https://www.saipraveen.site&color=0f172a" 
-                        alt="www.saipraveen.site QR Code"
+                        src={`https://api.qrserver.com/v1/create-qr-code/?size=170x170&data=${encodeURIComponent(window.location.origin)}&color=0f172a`} 
+                        alt="Kiosk QR Code"
                         className="w-[170px] h-[170px] block"
                     />
                 </div>

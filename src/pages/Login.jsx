@@ -29,6 +29,21 @@ function Login() {
     const [showIntro, setShowIntro] = useState(false);
 
     useEffect(() => {
+        const params = new URLSearchParams(location.search);
+        const oauthSuccess = params.get("oauth_success");
+        if (oauthSuccess === "true") {
+            const user = {
+                id: params.get("id"),
+                name: params.get("name"),
+                email: params.get("email"),
+                walletBalance: parseFloat(params.get("walletBalance") || "0.0")
+            };
+            persistUser(user);
+            navigate("/blocks");
+        }
+    }, [location, navigate]);
+
+    useEffect(() => {
         const introShown = sessionStorage.getItem("introShown");
         if (!introShown) {
             setShowIntro(true);

@@ -583,7 +583,7 @@ function Landing() {
             <h4 className="text-xs font-black uppercase tracking-widest text-slate-900 mb-4">Support & Documentation</h4>
             <div className="flex flex-col gap-2.5">
               <Link to="/admin-login" className="hover:text-slate-900 transition-colors">Admin Login</Link>
-              <span className="normal-case font-black text-blue-600 block">🌐 www.saipraveen.site</span>
+              <span className="normal-case font-black text-blue-600 block">🌐 {window.location.host || 'saipraveen.soye'}</span>
             </div>
           </div>
 
