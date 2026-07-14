@@ -901,370 +901,238 @@ function AdminDashboard() {
     };
 
     return (
-        <main className="admin-dashboard-shell">
-            {/* Immersive Header Operations Center */}
-            <header className="sticky top-0 z-50 bg-white/80 border-b border-slate-200/80 backdrop-blur-md px-8 py-4 mb-8 -mx-8 -mt-8 flex flex-wrap items-center justify-between gap-4 shadow-sm">
-                <div className="flex items-center gap-3">
-                    <div className="p-2.5 rounded-xl bg-blue-600 text-white shadow-md shadow-blue-500/20">
-                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
-                        </svg>
-                    </div>
-                    <div>
-                        <h1 className="text-xl font-black tracking-tight text-slate-900 flex items-center gap-2">
-                            CloudPrint Admin Dashboard
-                            <span className="px-2 py-0.5 text-[9px] font-black uppercase bg-blue-100 text-blue-700 rounded-full">HQ v2</span>
-                        </h1>
-                        <p className="text-xs font-bold text-slate-400">Campus Printing Operations Center</p>
-                    </div>
+        <main className="page-shell page-shell-decorated">
+            <div className="content-wrap">
+                <Navbar
+                    title="Admin Dashboard"
+                    subtitle="Operations Control Panel"
+                    badge="Stats refresh live every 3 seconds."
+                    actions={[
+                        { label: "📋 Queue Kanban", path: "/admin/queue", className: "btn secondary text-xs py-2 px-3 min-h-0 font-bold" },
+                        { label: "👥 Users", path: "/admin/users", className: "btn secondary text-xs py-2 px-3 min-h-0 font-bold" },
+                        { label: "📊 Analytics", path: "/admin/analytics", className: "btn secondary text-xs py-2 px-3 min-h-0 font-bold" },
+                        { label: "⚙️ Settings", path: "/admin/settings", className: "btn secondary text-xs py-2 px-3 min-h-0 font-bold" },
+                        { label: "Printer Settings", path: "/printer-settings", className: "btn text-xs py-2 px-3 min-h-0 font-bold" },
+                        { label: "Display Panel", path: "/display-panel", className: "btn secondary text-xs py-2 px-3 min-h-0 font-bold" }
+                    ]}
+                />
+
+                {/* Tabs Navigation */}
+                <div className="flex flex-wrap gap-2 border-b border-slate-200/60 pb-3 mb-6 mt-6">
+                    <button
+                        onClick={() => setActiveTab("queue")}
+                        className={`px-4 py-2 font-bold text-sm rounded-lg transition-all ${
+                            activeTab === "queue"
+                                ? "bg-slate-900 text-white shadow-md"
+                                : "text-slate-600 hover:bg-slate-100/60"
+                        }`}
+                    >
+                        Queue & Analytics
+                    </button>
+                    <button
+                        onClick={() => setActiveTab("order-queue")}
+                        className={`px-4 py-2 font-bold text-sm rounded-lg transition-all ${
+                            activeTab === "order-queue"
+                                ? "bg-slate-900 text-white shadow-md"
+                                : "text-slate-600 hover:bg-slate-100/60"
+                        }`}
+                    >
+                        🖨️ Order Queue
+                    </button>
+                    <button
+                        onClick={() => {
+                            setActiveTab("settings");
+                            fetchPrices(selectedPricingBlock);
+                            fetchCoupons();
+                            fetchBlocks();
+                        }}
+                        className={`px-4 py-2 font-bold text-sm rounded-lg transition-all ${
+                            activeTab === "settings"
+                                ? "bg-slate-900 text-white shadow-md"
+                                : "text-slate-600 hover:bg-slate-100/60"
+                        }`}
+                    >
+                        Pricing & Coupons
+                    </button>
+                    <button
+                        onClick={() => {
+                            setActiveTab("blocks");
+                            fetchBlocks();
+                        }}
+                        className={`px-4 py-2 font-bold text-sm rounded-lg transition-all ${
+                            activeTab === "blocks"
+                                ? "bg-slate-900 text-white shadow-md"
+                                : "text-slate-600 hover:bg-slate-100/60"
+                        }`}
+                    >
+                        🏛️ Manage Blocks
+                    </button>
+                    <button
+                        onClick={() => {
+                            setActiveTab("users");
+                            fetchUsers();
+                        }}
+                        className={`px-4 py-2 font-bold text-sm rounded-lg transition-all ${
+                            activeTab === "users"
+                                ? "bg-slate-900 text-white shadow-md"
+                                : "text-slate-600 hover:bg-slate-100/60"
+                        }`}
+                    >
+                        User Moderation
+                    </button>
+                    <button
+                        onClick={() => {
+                            setActiveTab("support");
+                            fetchSupportTickets();
+                        }}
+                        className={`px-4 py-2 font-bold text-sm rounded-lg transition-all ${
+                            activeTab === "support"
+                                ? "bg-slate-900 text-white shadow-md"
+                                : "text-slate-600 hover:bg-slate-100/60"
+                        }`}
+                    >
+                        Support Tickets
+                    </button>
+                    <button
+                        onClick={() => {
+                            setActiveTab("frontend");
+                            fetchSystemSettings();
+                            fetchSections();
+                        }}
+                        className={`px-4 py-2 font-bold text-sm rounded-lg transition-all ${
+                            activeTab === "frontend"
+                                ? "bg-slate-900 text-white shadow-md"
+                                : "text-slate-600 hover:bg-slate-100/60"
+                        }`}
+                    >
+                        Frontend Manager
+                    </button>
+                    <button
+                        onClick={() => {
+                            setActiveTab("system");
+                            fetchSystemSettings();
+                            fetchBlocks();
+                            fetchPrinters();
+                        }}
+                        className={`px-4 py-2 font-bold text-sm rounded-lg transition-all ${
+                            activeTab === "system"
+                                ? "bg-slate-900 text-white shadow-md"
+                                : "text-slate-600 hover:bg-slate-100/60"
+                        }`}
+                    >
+                        System Config
+                    </button>
+                    <button
+                        onClick={() => {
+                            setActiveTab("rewards");
+                            fetchRewards();
+                            fetchSystemSettings();
+                        }}
+                        className={`px-4 py-2 font-bold text-sm rounded-lg transition-all ${
+                            activeTab === "rewards"
+                                ? "bg-slate-900 text-white shadow-md"
+                                : "text-slate-600 hover:bg-slate-100/60"
+                        }`}
+                    >
+                        Rewards Panel
+                    </button>
+                    <button
+                        onClick={() => {
+                            setActiveTab("sql");
+                            setSqlResult(null);
+                            setSqlError("");
+                        }}
+                        className={`px-4 py-2 font-bold text-sm rounded-lg transition-all ${
+                            activeTab === "sql"
+                                ? "bg-slate-900 text-white shadow-md"
+                                : "text-slate-600 hover:bg-slate-100/60"
+                        }`}
+                    >
+                        SQL Terminal
+                    </button>
                 </div>
-
-                {/* Right utility items */}
-                <div className="flex items-center gap-6">
-                    <div className="relative hidden md:block">
-                        <span className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                            <svg className="h-4 w-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                            </svg>
-                        </span>
-                        <input 
-                            type="text" 
-                            placeholder="Quick search commands..." 
-                            className="pl-9 pr-4 py-1.5 w-60 rounded-xl bg-slate-100 border-none text-xs font-bold focus:bg-white focus:ring-2 focus:ring-blue-500/25 transition-all outline-none"
-                        />
-                    </div>
-
-                    <div className="flex items-center gap-4 text-slate-500">
-                        {/* Notifications */}
-                        <button className="p-2 rounded-xl hover:bg-slate-100 hover:text-slate-900 transition-colors relative cursor-pointer">
-                            <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-blue-600 animate-ping" />
-                            <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-blue-600" />
-                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-                            </svg>
-                        </button>
-                        
-                        {/* Messages */}
-                        <button className="p-2 rounded-xl hover:bg-slate-100 hover:text-slate-900 transition-colors relative cursor-pointer">
-                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-                            </svg>
-                        </button>
-
-                        <div className="h-6 w-px bg-slate-200" />
-
-                        {/* Clock */}
-                        <span className="text-xs font-black text-slate-800 tracking-wider">
-                            {new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                        </span>
-                    </div>
-
-                    <div className="flex items-center gap-3">
-                        <div className="text-right hidden sm:block">
-                            <p className="text-xs font-black text-slate-900">Sai Praveen</p>
-                            <p className="text-[10px] font-bold text-slate-400">System Admin</p>
-                        </div>
-                        <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-blue-600 to-indigo-600 text-white flex items-center justify-center font-black text-sm shadow-md">
-                            SP
-                        </div>
-                    </div>
-                </div>
-            </header>
-
-            {/* Welcome Back Hero Banner */}
-            <section className="admin-glass-card mb-8 flex flex-wrap justify-between items-center gap-6 bg-gradient-to-r from-white/80 to-blue-50/20 border-white/60">
-                <div>
-                    <h2 className="text-2xl font-black text-slate-900">👋 Welcome Back, Admin</h2>
-                    <p className="text-sm font-bold text-slate-500 mt-1">
-                        Monitor every printer, print job, revenue stream, and campus activity in real time.
-                    </p>
-                </div>
-                <div className="flex items-center gap-6">
-                    <div className="text-center">
-                        <span className="text-[10px] font-black uppercase text-slate-400 tracking-wider">System Clock</span>
-                        <p className="text-sm font-black text-slate-800 mt-0.5">{new Date().toLocaleDateString()}</p>
-                    </div>
-                    <div className="h-8 w-px bg-slate-200" />
-                    <div className="text-center">
-                        <span className="text-[10px] font-black uppercase text-slate-400 tracking-wider">Server Status</span>
-                        <div className="flex items-center gap-1.5 mt-0.5 justify-center">
-                            <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping" />
-                            <span className="text-xs font-black text-emerald-600">ONLINE</span>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            {/* Tab Navigation */}
-            <div className="flex flex-wrap gap-2 border-b border-slate-200/60 pb-3 mb-8">
-                <button
-                    onClick={() => setActiveTab("queue")}
-                    className={`px-4 py-2.5 font-black text-xs uppercase tracking-wider rounded-xl transition-all ${
-                        activeTab === "queue"
-                            ? "bg-blue-600 text-white shadow-md shadow-blue-500/20"
-                            : "text-slate-500 hover:bg-white hover:text-slate-900"
-                    }`}
-                >
-                    📊 Operations Room
-                </button>
-                <button
-                    onClick={() => setActiveTab("order-queue")}
-                    className={`px-4 py-2.5 font-black text-xs uppercase tracking-wider rounded-xl transition-all ${
-                        activeTab === "order-queue"
-                            ? "bg-blue-600 text-white shadow-md shadow-blue-500/20"
-                            : "text-slate-500 hover:bg-white hover:text-slate-900"
-                    }`}
-                >
-                    🖨️ Live Queue
-                </button>
-                <button
-                    onClick={() => {
-                        setActiveTab("settings");
-                        fetchPrices(selectedPricingBlock);
-                        fetchCoupons();
-                        fetchBlocks();
-                    }}
-                    className={`px-4 py-2.5 font-black text-xs uppercase tracking-wider rounded-xl transition-all ${
-                        activeTab === "settings"
-                            ? "bg-blue-600 text-white shadow-md shadow-blue-500/20"
-                            : "text-slate-500 hover:bg-white hover:text-slate-900"
-                    }`}
-                >
-                    🏷️ Pricing & Coupons
-                </button>
-                <button
-                    onClick={() => {
-                        setActiveTab("blocks");
-                        fetchBlocks();
-                    }}
-                    className={`px-4 py-2.5 font-black text-xs uppercase tracking-wider rounded-xl transition-all ${
-                        activeTab === "blocks"
-                            ? "bg-blue-600 text-white shadow-md shadow-blue-500/20"
-                            : "text-slate-500 hover:bg-white hover:text-slate-900"
-                    }`}
-                >
-                    🏛️ Campus Blocks
-                </button>
-                <button
-                    onClick={() => {
-                        setActiveTab("users");
-                        fetchUsers();
-                    }}
-                    className={`px-4 py-2.5 font-black text-xs uppercase tracking-wider rounded-xl transition-all ${
-                        activeTab === "users"
-                            ? "bg-blue-600 text-white shadow-md shadow-blue-500/20"
-                            : "text-slate-500 hover:bg-white hover:text-slate-900"
-                    }`}
-                >
-                    👥 User Moderator
-                </button>
-                <button
-                    onClick={() => {
-                        setActiveTab("support");
-                        fetchSupportTickets();
-                    }}
-                    className={`px-4 py-2.5 font-black text-xs uppercase tracking-wider rounded-xl transition-all ${
-                        activeTab === "support"
-                            ? "bg-blue-600 text-white shadow-md shadow-blue-500/20"
-                            : "text-slate-500 hover:bg-white hover:text-slate-900"
-                    }`}
-                >
-                    🎫 Tickets
-                </button>
-                <button
-                    onClick={() => {
-                        setActiveTab("frontend");
-                        fetchSystemSettings();
-                        fetchSections();
-                    }}
-                    className={`px-4 py-2.5 font-black text-xs uppercase tracking-wider rounded-xl transition-all ${
-                        activeTab === "frontend"
-                            ? "bg-blue-600 text-white shadow-md shadow-blue-500/20"
-                            : "text-slate-500 hover:bg-white hover:text-slate-900"
-                    }`}
-                >
-                    📢 Frontend Manager
-                </button>
-                <button
-                    onClick={() => {
-                        setActiveTab("system");
-                        fetchSystemSettings();
-                        fetchBlocks();
-                        fetchPrinters();
-                    }}
-                    className={`px-4 py-2.5 font-black text-xs uppercase tracking-wider rounded-xl transition-all ${
-                        activeTab === "system"
-                            ? "bg-blue-600 text-white shadow-md shadow-blue-500/20"
-                            : "text-slate-500 hover:bg-white hover:text-slate-900"
-                    }`}
-                >
-                    ⚙️ Configs
-                </button>
-                <button
-                    onClick={() => {
-                        setActiveTab("rewards");
-                        fetchRewards();
-                        fetchSystemSettings();
-                    }}
-                    className={`px-4 py-2.5 font-black text-xs uppercase tracking-wider rounded-xl transition-all ${
-                        activeTab === "rewards"
-                            ? "bg-blue-600 text-white shadow-md shadow-blue-500/20"
-                            : "text-slate-500 hover:bg-white hover:text-slate-900"
-                    }`}
-                >
-                    🎁 Rewards
-                </button>
-                <button
-                    onClick={() => {
-                        setActiveTab("sql");
-                        setSqlResult(null);
-                        setSqlError("");
-                    }}
-                    className={`px-4 py-2.5 font-black text-xs uppercase tracking-wider rounded-xl transition-all ${
-                        activeTab === "sql"
-                        ? "bg-blue-600 text-white shadow-md shadow-blue-500/20"
-                            : "text-slate-500 hover:bg-white hover:text-slate-900"
-                    }`}
-                >
-                    💻 SQL Console
-                </button>
-            </div>
 
                 {/* Queue & Analytics Tab */}
                 {activeTab === "queue" && (
-                    <div className="mt-8 space-y-8">
-                        {/* Immersive KPI Cards Grid */}
-                        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
-                            {[
-                                { label: "Today's Revenue", value: `₹${stats.todayRevenue || 0}`, growth: "+18%", color: "text-emerald-500", desc: "Gross daily income" },
-                                { label: "Total Orders", value: stats.totalOrders || 0, growth: "+12%", color: "text-blue-500", desc: "All-time prints" },
-                                { label: "Total Pages", value: stats.totalPages || 0, growth: "+15%", color: "text-indigo-500", desc: "Pages outputted" },
-                                { label: "Pending", value: stats.pendingOrders || 0, growth: "Active", color: "text-amber-500", desc: "Awaiting print" },
-                                { label: "Printing", value: stats.printingOrders || 0, growth: "Live", color: "text-cyan-500", desc: "Actively spooling" },
-                                { label: "Completed", value: stats.completedOrders || 0, growth: "99.9%", color: "text-emerald-500", desc: "Success rate" }
-                            ].map((card, idx) => (
-                                <motion.div
-                                    key={card.label}
-                                    className="admin-glass-card admin-kpi-card relative overflow-hidden group"
-                                    initial={{ opacity: 0, y: 15 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    transition={{ delay: idx * 0.05 }}
-                                >
-                                    <div className="flex justify-between items-start">
-                                        <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">{card.label}</span>
-                                        <span className={`text-[10px] font-black px-2 py-0.5 rounded-full ${card.color} bg-slate-100`}>
-                                            {card.growth}
-                                        </span>
-                                    </div>
-                                    <div className="mt-4">
-                                        <h3 className="text-2xl font-black text-slate-900 tracking-tight">{card.value}</h3>
-                                        <p className="text-[10px] font-bold text-slate-400 mt-1">{card.desc}</p>
-                                    </div>
-                                    {/* Subtle hover background decoration */}
-                                    <div className="absolute -bottom-4 -right-4 w-12 h-12 bg-blue-500/5 rounded-full blur-xl group-hover:scale-150 transition-transform" />
-                                </motion.div>
-                            ))}
-                        </div>
-
-                        {/* Immersive Printer Kiosks Grid */}
-                        <div>
-                            <div className="flex items-center justify-between mb-4">
-                                <div>
-                                    <h3 className="text-lg font-black text-slate-900">Campus Printer Status</h3>
-                                    <p className="text-xs font-bold text-slate-400">Live hardware logs and spooling loads</p>
-                                </div>
-                            </div>
-                            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                                {printers.map((p, idx) => {
-                                    const paperPct = Math.min(100, Math.max(0, ((p.paperCount || 0) / 500) * 100));
-                                    const isLowPaper = p.paperCount < 50;
-                                    return (
-                                        <motion.div
-                                            key={p.id}
-                                            className="admin-glass-card flex flex-col justify-between group"
-                                            initial={{ opacity: 0, scale: 0.98 }}
-                                            animate={{ opacity: 1, scale: 1 }}
-                                            transition={{ delay: idx * 0.05 }}
-                                        >
+                    <div className="mt-6 space-y-6">
+                        {/* Live Printer Stock & Status Map */}
+                        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                            {printers.map((p) => {
+                                const paperPct = Math.min(100, Math.max(0, ((p.paperCount || 0) / 500) * 100));
+                                const isLowPaper = p.paperCount < 50;
+                                return (
+                                    <motion.div
+                                        key={p.id}
+                                        className="panel p-5 relative overflow-hidden flex flex-col justify-between border-slate-100 hover:shadow-md transition-all duration-300"
+                                        initial={{ opacity: 0, scale: 0.98 }}
+                                        animate={{ opacity: 1, scale: 1 }}
+                                    >
+                                        <div className="flex items-start justify-between">
                                             <div>
-                                                <div className="flex items-start justify-between">
-                                                    <div>
-                                                        <h4 className="font-black text-slate-900 text-lg tracking-tight">{p.blockLocation}</h4>
-                                                        <p className="text-xs text-slate-400 font-bold mt-0.5">{p.printerName || "Terminal Kiosk"}</p>
-                                                    </div>
-                                                    <span className={`px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-wider ${
-                                                        p.online 
-                                                            ? "bg-emerald-500/10 text-emerald-600 border border-emerald-500/20" 
-                                                            : "bg-slate-500/10 text-slate-500 border border-slate-500/15"
-                                                    }`}>
-                                                        {p.online ? "● Online" : "○ Offline"}
-                                                    </span>
-                                                </div>
-
-                                                <div className="grid grid-cols-2 gap-4 mt-6">
-                                                    <div>
-                                                        <span className="text-[10px] font-black text-slate-400 block uppercase">Ink Level</span>
-                                                        <span className="text-sm font-black text-slate-800">92%</span>
-                                                    </div>
-                                                    <div>
-                                                        <span className="text-[10px] font-black text-slate-400 block uppercase">Temperature</span>
-                                                        <span className="text-sm font-black text-slate-800">38°C</span>
-                                                    </div>
-                                                </div>
-
-                                                <div className="mt-6">
-                                                    <div className="flex items-center justify-between text-xs font-bold text-slate-500 mb-1.5">
-                                                        <span>Paper Remaining</span>
-                                                        <span className={isLowPaper ? "text-rose-500 font-black animate-pulse" : "text-slate-800 font-black"}>
-                                                            {p.paperCount} / 500 sheets
-                                                        </span>
-                                                    </div>
-                                                    <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
-                                                        <div 
-                                                            className={`h-full rounded-full transition-all duration-500 ${
-                                                                isLowPaper ? "bg-rose-500" : "bg-blue-600"
-                                                            }`} 
-                                                            style={{ width: `${paperPct}%` }}
-                                                        />
-                                                    </div>
-                                                </div>
+                                                <h4 className="font-black text-slate-900 text-lg leading-tight">{p.blockLocation}</h4>
+                                                <p className="text-xs text-slate-400 font-bold mt-0.5">{p.printerName || "Printer Terminal"}</p>
                                             </div>
+                                            <span className={`px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider ${
+                                                p.online 
+                                                    ? "bg-emerald-500/10 text-emerald-500 border border-emerald-500/20" 
+                                                    : "bg-slate-500/10 text-slate-400 border border-slate-500/15"
+                                            }`}>
+                                                {p.online ? "Online" : "Offline"}
+                                            </span>
+                                        </div>
 
-                                            <div className="mt-6 border-t border-slate-100 pt-4 flex items-center justify-between text-xs font-bold">
-                                                <span className="text-slate-400">Spooling queue load:</span>
-                                                <span className="text-slate-800 font-black bg-slate-100 px-2 py-0.5 rounded-md">{p.queueLoad || 0} jobs pending</span>
+                                        <div className="mt-4">
+                                            <div className="flex items-center justify-between text-xs font-bold text-slate-500 mb-1">
+                                                <span>Paper Stock</span>
+                                                <span className={isLowPaper ? "text-rose-500 font-black" : "text-slate-800"}>
+                                                    {p.paperCount} / 500 sheets {isLowPaper && "⚠️"}
+                                                </span>
                                             </div>
-                                        </motion.div>
-                                    );
-                                })}
-                            </div>
+                                            <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
+                                                <div 
+                                                    className={`h-full rounded-full transition-all duration-300 ${
+                                                        isLowPaper ? "bg-rose-500" : "bg-sky-500"
+                                                    }`} 
+                                                    style={{ width: `${paperPct}%` }}
+                                                />
+                                            </div>
+                                        </div>
+
+                                        <div className="mt-4 border-t border-slate-100 pt-3 flex items-center justify-between text-xs font-bold text-slate-400">
+                                            <span>Active Queue Load:</span>
+                                            <span className="text-slate-700 font-black">{p.queueLoad || 0} active jobs</span>
+                                        </div>
+                                    </motion.div>
+                                );
+                            })}
                         </div>
-
-                        {/* Revenue Period Graph & Analytics Section */}
                         <motion.section
-                            className="admin-glass-card"
-                            initial={{ opacity: 0, y: 15 }}
+                            className="panel p-6"
+                            initial={{ opacity: 0, y: 18 }}
                             animate={{ opacity: 1, y: 0 }}
                         >
-                            <div className="flex flex-wrap justify-between items-center gap-6 border-b border-slate-100 pb-5 mb-6">
+                            <div className="section-header">
                                 <div>
-                                    <span className="text-[10px] font-black uppercase text-blue-600 tracking-wider">Revenue Audit</span>
-                                    <h2 className="text-xl font-black text-slate-900 mt-1">
+                                    <p className="eyebrow">Revenue Analytics</p>
+                                    <h2 className="text-2xl font-black text-slate-900">
                                         Gross vs Net After Coupons
                                     </h2>
+                                    <p className="subtitle">
+                                        Net revenue = gross revenue − coupon discounts
+                                    </p>
                                 </div>
 
                                 <div className="flex flex-wrap items-center gap-3">
-                                    <div className="flex bg-slate-100 p-1 rounded-xl">
+                                    <div className="revenue-filter">
                                         {revenueFilters.map(([value, label]) => (
                                             <button
                                                 key={value}
                                                 onClick={() => setRevenuePeriod(value)}
-                                                className={`px-3.5 py-1.5 text-xs font-black rounded-lg transition-all cursor-pointer ${
+                                                className={
                                                     revenuePeriod === value
-                                                        ? "bg-white text-slate-900 shadow-sm"
-                                                        : "text-slate-500 hover:text-slate-900"
-                                                }`}
+                                                        ? "revenue-filter-btn active"
+                                                        : "revenue-filter-btn"
+                                                }
                                             >
                                                 {label}
                                             </button>
@@ -1272,33 +1140,60 @@ function AdminDashboard() {
                                     </div>
                                     <button
                                         onClick={resetStats}
-                                        className="btn danger px-4 py-2 text-xs font-black min-h-0 rounded-xl"
+                                        className="btn danger px-4 py-2 text-sm font-bold min-h-0"
                                     >
                                         Reset Stats
                                     </button>
                                 </div>
                             </div>
 
-                            <div className="grid gap-6 md:grid-cols-3">
-                                {[
-                                    { label: "Gross Revenue", value: stats.grossRevenue || 0, gradient: "from-blue-600 to-blue-500" },
-                                    { label: "Coupon Discounts", value: stats.totalDiscounts || 0, gradient: "from-amber-600 to-amber-500" },
-                                    { label: "Net Revenue", value: stats.netRevenue || 0, gradient: "from-emerald-600 to-emerald-500" }
-                                ].map((card) => (
-                                    <div key={card.label} className={`p-6 rounded-2xl bg-gradient-to-br ${card.gradient} text-white shadow-md flex flex-col justify-between min-h-[120px]`}>
-                                        <span className="text-xs font-black text-white/80 uppercase tracking-wider">{card.label}</span>
-                                        <h3 className="text-3xl font-black mt-4">₹{Number(card.value).toFixed(2)}</h3>
-                                    </div>
+                            <div className="grid gap-4 md:grid-cols-3">
+                                {revenueCards.map(([label, value, background], index) => (
+                                    <motion.div
+                                        key={label}
+                                        className="revenue-card"
+                                        style={{ background }}
+                                        initial={{ opacity: 0, y: 18 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        transition={{ delay: index * 0.06 }}
+                                    >
+                                        <p className="relative z-10 text-sm font-bold text-white/80">
+                                            {label}
+                                        </p>
+                                        <p className="relative z-10 mt-3 text-4xl font-black">
+                                            Rs. {Number(value).toFixed(2)}
+                                        </p>
+                                    </motion.div>
                                 ))}
                             </div>
                         </motion.section>
 
-                        {/* Interactive Visual Analytics Charts */}
-                        <div className="grid gap-6 md:grid-cols-2">
+                        <section className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
+                            {statCards.map(([label, value, background], index) => (
+                                <motion.div
+                                    key={label}
+                                    className="stat-card"
+                                    style={{ background }}
+                                    initial={{ opacity: 0, y: 18 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    transition={{ delay: index * 0.04 }}
+                                >
+                                    <p className="text-sm font-bold text-white/80">
+                                        {label}
+                                    </p>
+                                    <p className="text-2xl font-black">
+                                        {value}
+                                    </p>
+                                </motion.div>
+                            ))}
+                        </section>
+
+                        {/* Visual Analytics Charts */}
+                        <div className="grid gap-6 md:grid-cols-2 mt-6">
                             {/* Chart 1: Print Volume by Block Location */}
-                            <div className="admin-glass-card">
-                                <p className="font-black text-slate-800 text-sm mb-6 uppercase tracking-wider">Print Volume by Block Location</p>
-                                <div className="h-64 flex items-end justify-around pb-4 border-b border-slate-100">
+                            <div className="panel p-6 bg-white rounded-2xl shadow-sm border border-slate-100">
+                                <p className="font-bold text-slate-500 mb-4 text-sm">Print Volume by Block Location</p>
+                                <div className="h-64 flex items-end justify-around pb-4 border-b border-slate-200">
                                     {(() => {
                                         const blockCounts = orders.reduce((acc, order) => {
                                             const loc = order.blockLocation || "C Block";
@@ -1314,14 +1209,14 @@ function AdminDashboard() {
                                             const pct = (count / maxCount) * 100;
                                             return (
                                                 <div key={block} className="flex flex-col items-center w-16 group h-full justify-end">
-                                                    <span className="text-[10px] font-black text-slate-500 mb-1.5 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">{count} orders</span>
-                                                    <div className="h-40 w-full flex items-end justify-center bg-slate-100/50 rounded-xl p-1 border border-slate-200/30">
+                                                    <span className="text-xs font-bold text-slate-500 mb-1 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">{count} orders</span>
+                                                    <div className="h-44 w-full flex items-end justify-center bg-slate-50/50 rounded-lg p-1 border border-slate-100/30">
                                                         <div 
                                                             style={{ height: `${Math.max(10, pct)}%` }} 
-                                                            className="w-8 bg-gradient-to-t from-blue-600 to-cyan-500 hover:from-blue-700 hover:to-cyan-600 rounded-lg transition-all duration-500 cursor-pointer shadow-md"
+                                                            className="w-8 bg-sky-500 hover:bg-sky-600 rounded-t-md transition-all duration-500 cursor-pointer shadow-sm"
                                                         />
                                                     </div>
-                                                    <span className="text-xs font-black text-slate-700 mt-2">{block}</span>
+                                                    <span className="text-xs font-bold text-slate-700 mt-2">{block}</span>
                                                 </div>
                                             );
                                         });
@@ -1330,9 +1225,9 @@ function AdminDashboard() {
                             </div>
 
                             {/* Chart 2: Hourly Peak Printing Volumes */}
-                            <div className="admin-glass-card">
-                                <p className="font-black text-slate-800 text-sm mb-6 uppercase tracking-wider">Hourly Printing Volume (Peak Hours)</p>
-                                <div className="h-64 flex items-end justify-between px-2 pb-4 border-b border-slate-100">
+                            <div className="panel p-6 bg-white rounded-2xl shadow-sm border border-slate-100">
+                                <p className="font-bold text-slate-500 mb-4 text-sm">Hourly Printing Volume (Peak Hours)</p>
+                                <div className="h-64 flex items-end justify-between px-2 pb-4 border-b border-slate-200">
                                     {(() => {
                                         const hours = ["08:00", "10:00", "12:00", "14:00", "16:00", "18:00", "20:00"];
                                         const counts = [12, 45, 87, 65, 34, 78, 23];
@@ -1342,14 +1237,14 @@ function AdminDashboard() {
                                             const pct = (count / maxCount) * 100;
                                             return (
                                                 <div key={index} className="flex flex-col items-center flex-1 group h-full justify-end">
-                                                    <span className="text-[9px] font-black text-slate-500 mb-1.5 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">{count} prints</span>
-                                                    <div className="h-40 w-full flex items-end justify-center bg-slate-100/50 rounded-xl p-1 border border-slate-200/30 mx-1">
+                                                    <span className="text-[10px] font-bold text-slate-500 mb-1 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">{count} prints</span>
+                                                    <div className="h-44 w-full flex items-end justify-center bg-slate-50/50 rounded-lg p-1 border border-slate-100/30 mx-1">
                                                         <div 
                                                             style={{ height: `${Math.max(10, pct)}%` }} 
-                                                            className="w-6 bg-gradient-to-t from-purple-600 to-indigo-500 hover:from-purple-700 hover:to-indigo-600 rounded-lg transition-all duration-500 cursor-pointer shadow-md"
+                                                            className="w-6 bg-indigo-500 hover:bg-indigo-600 rounded-t-md transition-all duration-500 cursor-pointer shadow-sm"
                                                         />
                                                     </div>
-                                                    <span className="text-[10px] font-black text-slate-700 mt-2">{hours[index]}</span>
+                                                    <span className="text-[10px] font-bold text-slate-700 mt-2">{hours[index]}</span>
                                                 </div>
                                             );
                                         });
@@ -1358,101 +1253,93 @@ function AdminDashboard() {
                             </div>
                         </div>
 
-                        {/* Recent Activity Log & Order History */}
-                        <div className="grid gap-6 lg:grid-cols-3">
-                            {/* Recent Activity Feed */}
-                            <div className="admin-glass-card lg:col-span-1">
-                                <p className="font-black text-slate-800 text-sm mb-6 uppercase tracking-wider">Live System Activity</p>
-                                <div className="space-y-4 max-h-[360px] overflow-y-auto pr-2">
-                                    {[
-                                        { time: "10:34 AM", user: "Sai Praveen", doc: "Thesis_v2.pdf", action: "uploaded", status: "success", statusText: "Completed" },
-                                        { time: "10:35 AM", user: "Gokul", doc: "Order Ref #8271", action: "paid ₹120.00", status: "success", statusText: "Received" },
-                                        { time: "10:36 AM", user: "Kiosk C", doc: "Queue spooler", action: "started printing", status: "info", statusText: "Active" },
-                                        { time: "10:38 AM", user: "System Monitor", doc: "Job #4721", action: "finished output", status: "success", statusText: "Ready" }
-                                    ].map((act, i) => (
-                                        <div key={i} className="flex gap-3 items-start text-xs border-b border-slate-50 pb-3 last:border-0 last:pb-0">
-                                            <span className="text-slate-400 font-bold shrink-0">{act.time}</span>
-                                            <div className="flex-1">
-                                                <p className="font-black text-slate-800">
-                                                    {act.user} <span className="font-bold text-slate-500">{act.action}</span>
-                                                </p>
-                                                <p className="text-[10px] text-slate-400 font-bold mt-0.5">{act.doc}</p>
-                                            </div>
-                                            <span className={`px-2 py-0.5 rounded-full text-[9px] font-black ${
-                                                act.status === "success" ? "bg-emerald-100 text-emerald-700" : "bg-sky-100 text-sky-700"
-                                            }`}>
-                                                {act.statusText}
-                                            </span>
-                                        </div>
-                                    ))}
+                        <motion.section
+                            className="panel mt-6 overflow-x-auto p-6"
+                            initial={{ opacity: 0, y: 18 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.12 }}
+                        >
+                            <div className="section-header pb-4 flex flex-wrap justify-between items-center gap-4">
+                                <div>
+                                    <p className="eyebrow">Order history</p>
+                                    <h2 className="text-2xl font-black text-slate-900">
+                                        All Orders History
+                                    </h2>
                                 </div>
+                                <button
+                                    onClick={() => exportToCSV(orders, "active_orders", ["Order ID", "Location", "Customer", "Pages", "Copies", "Price", "Payment", "Order Status"])}
+                                    className="btn secondary px-4 py-2 text-sm font-bold min-h-0"
+                                >
+                                    📥 Export Excel
+                                </button>
                             </div>
 
-                            {/* Orders Table Overview */}
-                            <div className="admin-glass-card lg:col-span-2 overflow-x-auto">
-                                <div className="flex justify-between items-center mb-6">
-                                    <p className="font-black text-slate-800 text-sm uppercase tracking-wider">All Orders History</p>
-                                    <button
-                                        onClick={() => exportToCSV(
-                                            orders,
-                                            "all_orders",
-                                            ["Order ID", "Location", "Customer", "Pages", "Copies", "Price", "Payment", "Order Status"]
-                                        )}
-                                        className="text-xs font-black text-blue-600 hover:text-blue-800 hover:underline cursor-pointer"
-                                    >
-                                        📥 Export History
-                                    </button>
-                                </div>
-                                <table className="w-full text-left border-collapse text-xs">
-                                    <thead>
-                                        <tr className="border-b border-slate-100 text-slate-400 font-black uppercase text-[10px] pb-3">
-                                            <th className="pb-3">Order ID</th>
-                                            <th className="pb-3">Location</th>
-                                            <th className="pb-3">Customer</th>
-                                            <th className="pb-3">Pages</th>
-                                            <th className="pb-3">Price</th>
-                                            <th className="pb-3">Payment</th>
-                                            <th className="pb-3 text-right">Status</th>
+                            <table className="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Order ID</th>
+                                        <th>Location</th>
+                                        <th>Customer</th>
+                                        <th>Pages</th>
+                                        <th>Copies</th>
+                                        <th>Price</th>
+                                        <th>Payment</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+
+                                <tbody>
+                                    {orders.map((order, index) => (
+                                        <motion.tr
+                                            key={order.id}
+                                            initial={{ opacity: 0, y: 8 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            transition={{ delay: index * 0.03 }}
+                                        >
+                                            <td className="font-black">
+                                                <span>{order.orderId}</span>
+                                            </td>
+                                            <td className="font-bold">
+                                                {order.blockLocation || "C Block"}
+                                            </td>
+                                            <td className="font-bold text-slate-900">
+                                                {order.customerName || "Customer"}
+                                            </td>
+                                            <td>
+                                                <button
+                                                    onClick={() => showPagesDetails(order)}
+                                                    className="text-sky-600 hover:text-sky-800 font-bold underline cursor-pointer"
+                                                >
+                                                    {getPagesCount(order)}
+                                                </button>
+                                            </td>
+                                            <td>{order.copies}</td>
+                                            <td className="font-black text-slate-900">
+                                                Rs. {order.price}
+                                            </td>
+                                            <td>
+                                                <span className={paymentClass(order.paymentStatus)}>
+                                                    {order.paymentStatus}
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <span className={statusClass(order.status)}>
+                                                    {order.status}
+                                                </span>
+                                            </td>
+                                        </motion.tr>
+                                    ))}
+
+                                    {orders.length === 0 && (
+                                        <tr>
+                                            <td colSpan="8" className="text-center font-bold text-slate-500 py-6">
+                                                No print orders in queue
+                                            </td>
                                         </tr>
-                                    </thead>
-                                    <tbody className="divide-y divide-slate-50 font-bold text-slate-600">
-                                        {orders.slice(0, 5).map((order) => (
-                                            <tr key={order.id} className="admin-table-row">
-                                                <td className="py-3 font-black text-slate-900">{order.orderId}</td>
-                                                <td className="py-3">{order.blockLocation || "C Block"}</td>
-                                                <td className="py-3 text-slate-900">{order.customerName || "Customer"}</td>
-                                                <td className="py-3">
-                                                    <button
-                                                        onClick={() => showPagesDetails(order)}
-                                                        className="text-blue-600 hover:underline cursor-pointer"
-                                                    >
-                                                        {getPagesCount(order)}
-                                                    </button>
-                                                </td>
-                                                <td className="py-3 font-black text-slate-900">₹{order.price}</td>
-                                                <td className="py-3">
-                                                    <span className={`px-2 py-0.5 rounded-full text-[9px] font-black ${
-                                                        order.paymentStatus === "PAID" ? "bg-emerald-100 text-emerald-700" : "bg-amber-100 text-amber-700"
-                                                    }`}>
-                                                        {order.paymentStatus}
-                                                    </span>
-                                                </td>
-                                                <td className="py-3 text-right">
-                                                    <span className={`px-2 py-0.5 rounded-full text-[9px] font-black uppercase ${
-                                                        order.status === "COMPLETED" ? "bg-emerald-100 text-emerald-700" :
-                                                        order.status === "PRINTING" ? "bg-blue-100 text-blue-700" :
-                                                        order.status === "PENDING_SCAN" ? "bg-amber-100 text-amber-700" :
-                                                        "bg-rose-100 text-rose-700"
-                                                    }`}>
-                                                        {order.status}
-                                                    </span>
-                                                </td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
+                                    )}
+                                </tbody>
+                            </table>
+                        </motion.section>
                     </div>
                 )}
 
@@ -2961,6 +2848,7 @@ function AdminDashboard() {
                         )}
                     </motion.section>
                 )}
+            </div>
 
             {/* Custom Premium Modal */}
             <CustomModal
