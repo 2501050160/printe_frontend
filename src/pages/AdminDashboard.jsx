@@ -900,137 +900,148 @@ function AdminDashboard() {
         }
     };
 
-    const handleLogout = () => {
-        localStorage.removeItem("adminId");
-        navigate("/admin-login");
-    };
-
     return (
-        <main className="min-h-screen bg-[#F8FAFC] flex text-[#1E293B] font-sans">
-            {/* Fixed Icon-Only Navigation Sidebar */}
-            <aside className="w-[72px] bg-[#0F172A] text-slate-400 flex flex-col justify-between border-r border-slate-800 shrink-0 sticky top-0 h-screen z-40">
-                <div className="py-6 flex flex-col h-full justify-between items-center overflow-hidden">
-                    <div className="flex flex-col items-center w-full">
-                        {/* Logo symbol */}
-                        <div className="p-2.5 rounded-xl bg-blue-600 text-white shadow-md shadow-blue-500/20 shrink-0 mb-6">
-                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
-                            </svg>
-                        </div>
+        <main className="page-shell page-shell-decorated !px-0 !py-0">
+            <div className="!max-w-none !w-full px-8 py-6">
+                <Navbar
+                    title="Admin Dashboard"
+                    subtitle="Operations Control Panel"
+                    badge="Stats refresh live every 3 seconds."
+                    actions={[
+                        { label: "📋 Queue Kanban", path: "/admin/queue", className: "btn secondary text-xs py-2 px-3 min-h-0 font-bold" },
+                        { label: "👥 Users", path: "/admin/users", className: "btn secondary text-xs py-2 px-3 min-h-0 font-bold" },
+                        { label: "📊 Analytics", path: "/admin/analytics", className: "btn secondary text-xs py-2 px-3 min-h-0 font-bold" },
+                        { label: "⚙️ Settings", path: "/admin/settings", className: "btn secondary text-xs py-2 px-3 min-h-0 font-bold" },
+                        { label: "Printer Settings", path: "/printer-settings", className: "btn text-xs py-2 px-3 min-h-0 font-bold" },
+                        { label: "Display Panel", path: "/display-panel", className: "btn secondary text-xs py-2 px-3 min-h-0 font-bold" }
+                    ]}
+                />
 
-                        <div className="w-8 h-px bg-slate-800 mb-5" />
+                {/* Tabs Navigation */}
+                <div className="flex flex-wrap gap-2 border-b border-slate-200/60 pb-3 mb-6 mt-6">
+                    <button
+                        onClick={() => setActiveTab("queue")}
+                        className={`px-4 py-2 font-bold text-sm rounded-lg transition-all ${
+                            activeTab === "queue"
+                                ? "bg-slate-900 text-white shadow-md"
+                                : "text-slate-600 hover:bg-slate-100/60"
+                        }`}
+                    >
+                        Queue & Analytics
+                    </button>
 
-                        {/* Symbol-Only Navigation Items */}
-                        <nav className="space-y-2.5 flex flex-col items-center w-full">
-                            {[
-                                { id: "queue", label: "Dashboard", icon: "🏠" },
-                                { id: "order-queue", label: "Queue Kanban", icon: "📋" },
-                                { id: "users", label: "Users", icon: "👥", onClick: fetchUsers },
-                                { id: "frontend", label: "Analytics", icon: "📊", onClick: () => { fetchSystemSettings(); fetchSections(); } },
-                                { id: "system", label: "Printer Settings", icon: "🖨️", onClick: () => { fetchSystemSettings(); fetchBlocks(); fetchPrinters(); } },
-                                { id: "rewards", label: "Display Panel", icon: "📺", onClick: () => { fetchRewards(); fetchSystemSettings(); } },
-                                { id: "settings", label: "Settings", icon: "⚙️", onClick: () => { fetchPrices(selectedPricingBlock); fetchCoupons(); fetchBlocks(); } }
-                            ].map((item) => (
-                                <button
-                                    key={item.id}
-                                    onClick={() => {
-                                        setActiveTab(item.id);
-                                        if (item.onClick) item.onClick();
-                                    }}
-                                    className={`w-11 h-11 flex items-center justify-center rounded-xl text-lg transition-all cursor-pointer relative group ${
-                                        activeTab === item.id
-                                            ? "bg-blue-600 text-white shadow-md shadow-blue-500/20"
-                                            : "text-slate-400 hover:bg-slate-800 hover:text-white"
-                                    }`}
-                                    title={item.label}
-                                >
-                                    <span>{item.icon}</span>
-                                    {/* Tooltip on hover */}
-                                    <span className="absolute left-16 px-2.5 py-1 text-[10px] font-black uppercase bg-[#0F172A] text-white rounded-md opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none shadow-lg whitespace-nowrap z-50 border border-slate-800">
-                                        {item.label}
-                                    </span>
-                                </button>
-                            ))}
-                        </nav>
-                    </div>
-
-                    {/* Compact Profile Footer */}
-                    <div className="flex flex-col items-center gap-4 w-full">
-                        <div className="w-9 h-9 rounded-full bg-gradient-to-tr from-blue-600 to-indigo-600 text-white flex items-center justify-center font-black text-xs shadow-md shrink-0 relative group">
-                            SA
-                            <span className="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-emerald-500 border-2 border-[#0F172A]" />
-                            <span className="absolute left-16 px-2.5 py-1 text-[10px] font-black uppercase bg-[#0F172A] text-white rounded-md opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none shadow-lg whitespace-nowrap z-50 border border-slate-800">
-                                Sai (Online)
-                            </span>
-                        </div>
-                        <button
-                            onClick={handleLogout}
-                            className="p-2 rounded-lg text-slate-500 hover:text-rose-450 hover:bg-rose-500/10 transition-all cursor-pointer"
-                            title="Logout"
-                        >
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                            </svg>
-                        </button>
-                    </div>
+                    <button
+                        onClick={() => {
+                            setActiveTab("settings");
+                            fetchPrices(selectedPricingBlock);
+                            fetchCoupons();
+                            fetchBlocks();
+                        }}
+                        className={`px-4 py-2 font-bold text-sm rounded-lg transition-all ${
+                            activeTab === "settings"
+                                ? "bg-slate-900 text-white shadow-md"
+                                : "text-slate-600 hover:bg-slate-100/60"
+                        }`}
+                    >
+                        Pricing & Coupons
+                    </button>
+                    <button
+                        onClick={() => {
+                            setActiveTab("blocks");
+                            fetchBlocks();
+                        }}
+                        className={`px-4 py-2 font-bold text-sm rounded-lg transition-all ${
+                            activeTab === "blocks"
+                                ? "bg-slate-900 text-white shadow-md"
+                                : "text-slate-600 hover:bg-slate-100/60"
+                        }`}
+                    >
+                        🏛️ Manage Blocks
+                    </button>
+                    <button
+                        onClick={() => {
+                            setActiveTab("users");
+                            fetchUsers();
+                        }}
+                        className={`px-4 py-2 font-bold text-sm rounded-lg transition-all ${
+                            activeTab === "users"
+                                ? "bg-slate-900 text-white shadow-md"
+                                : "text-slate-600 hover:bg-slate-100/60"
+                        }`}
+                    >
+                        User Moderation
+                    </button>
+                    <button
+                        onClick={() => {
+                            setActiveTab("support");
+                            fetchSupportTickets();
+                        }}
+                        className={`px-4 py-2 font-bold text-sm rounded-lg transition-all ${
+                            activeTab === "support"
+                                ? "bg-slate-900 text-white shadow-md"
+                                : "text-slate-600 hover:bg-slate-100/60"
+                        }`}
+                    >
+                        Support Tickets
+                    </button>
+                    <button
+                        onClick={() => {
+                            setActiveTab("frontend");
+                            fetchSystemSettings();
+                            fetchSections();
+                        }}
+                        className={`px-4 py-2 font-bold text-sm rounded-lg transition-all ${
+                            activeTab === "frontend"
+                                ? "bg-slate-900 text-white shadow-md"
+                                : "text-slate-600 hover:bg-slate-100/60"
+                        }`}
+                    >
+                        Frontend Manager
+                    </button>
+                    <button
+                        onClick={() => {
+                            setActiveTab("system");
+                            fetchSystemSettings();
+                            fetchBlocks();
+                            fetchPrinters();
+                        }}
+                        className={`px-4 py-2 font-bold text-sm rounded-lg transition-all ${
+                            activeTab === "system"
+                                ? "bg-slate-900 text-white shadow-md"
+                                : "text-slate-600 hover:bg-slate-100/60"
+                        }`}
+                    >
+                        System Config
+                    </button>
+                    <button
+                        onClick={() => {
+                            setActiveTab("rewards");
+                            fetchRewards();
+                            fetchSystemSettings();
+                        }}
+                        className={`px-4 py-2 font-bold text-sm rounded-lg transition-all ${
+                            activeTab === "rewards"
+                                ? "bg-slate-900 text-white shadow-md"
+                                : "text-slate-600 hover:bg-slate-100/60"
+                        }`}
+                    >
+                        Rewards Panel
+                    </button>
+                    <button
+                        onClick={() => {
+                            setActiveTab("sql");
+                            setSqlResult(null);
+                            setSqlError("");
+                        }}
+                        className={`px-4 py-2 font-bold text-sm rounded-lg transition-all ${
+                            activeTab === "sql"
+                                ? "bg-slate-900 text-white shadow-md"
+                                : "text-slate-600 hover:bg-slate-100/60"
+                        }`}
+                    >
+                        SQL Terminal
+                    </button>
                 </div>
-            </aside>
-
-            {/* Immersive Main Display Pane */}
-            <div className="flex-1 min-w-0 flex flex-col min-h-screen">
-                {/* Simplified Sticky Header */}
-                <header className="sticky top-0 z-30 bg-white/80 border-b border-slate-200/80 backdrop-blur-md px-8 py-4 flex items-center justify-between gap-4 shadow-sm">
-                    <div className="flex items-center gap-3">
-                        <h2 className="text-xs font-black uppercase tracking-widest text-slate-400">HQ Operations Console</h2>
-                    </div>
-
-                    <div className="flex items-center gap-6">
-                        <div className="relative hidden md:block">
-                            <span className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                <svg className="h-4 w-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                                </svg>
-                            </span>
-                            <input 
-                                type="text" 
-                                placeholder="Search console..." 
-                                className="pl-9 pr-4 py-1.5 w-60 rounded-xl bg-slate-100 border-none text-xs font-bold focus:bg-white focus:ring-2 focus:ring-blue-500/25 transition-all outline-none"
-                            />
-                        </div>
-
-                        <div className="flex items-center gap-4 text-slate-500">
-                            {/* Clock */}
-                            <span className="text-xs font-black text-slate-800 tracking-wider">
-                                {new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                            </span>
-                        </div>
-                    </div>
-                </header>
-
-                <div className="p-8 flex-1">
-                    {/* Welcome Banner Hero */}
-                    <section className="p-6 rounded-2xl bg-white border border-slate-200/80 shadow-sm mb-8 flex flex-wrap justify-between items-center gap-6">
-                        <div>
-                            <h2 className="text-2xl font-black text-slate-900">Welcome Back, Administrator 👋</h2>
-                            <p className="text-sm font-bold text-slate-400 mt-1">
-                                Monitor every printer, every order, every student, and every transaction from one intelligent dashboard.
-                            </p>
-                        </div>
-                        <div className="flex items-center gap-6">
-                            <div className="text-center">
-                                <span className="text-[10px] font-black uppercase text-slate-400 tracking-wider">System Clock</span>
-                                <p className="text-sm font-black text-slate-800 mt-0.5">{new Date().toLocaleDateString()}</p>
-                            </div>
-                            <div className="h-8 w-px bg-slate-200" />
-                            <div className="text-center">
-                                <span className="text-[10px] font-black uppercase text-slate-400 tracking-wider">Server Status</span>
-                                <div className="flex items-center gap-1.5 mt-0.5 justify-center">
-                                    <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping" />
-                                    <span className="text-xs font-black text-emerald-600">ONLINE</span>
-                                </div>
-                            </div>
-                        </div>
-                    </section>
 
                 {/* Queue & Analytics Tab */}
                 {activeTab === "queue" && (
@@ -2828,7 +2839,6 @@ function AdminDashboard() {
                         )}
                     </motion.section>
                 )}
-            </div>
             </div>
 
             {/* Custom Premium Modal */}
