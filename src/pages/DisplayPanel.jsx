@@ -421,75 +421,59 @@ function DisplayPanel() {
                             ) : (
                                 <motion.div
                                     key={`welcome-${displayBlock}-${slideIndex}`}
-                                    className="display-glass w-full max-w-5xl p-8 mx-auto"
+                                    className="display-glass w-full max-w-5xl p-10 text-center mx-auto"
                                     initial={{ opacity: 0, y: 24, scale: 0.98 }}
                                     animate={{ opacity: 1, y: 0, scale: 1 }}
                                     exit={{ opacity: 0, y: -24, scale: 0.98 }}
                                     transition={{ duration: 0.55 }}
                                 >
-                                    <div className="grid md:grid-cols-[1.4fr_0.6fr] gap-8 items-center text-left">
-                                        <div>
-                                            <motion.p
-                                                className="text-xs font-black uppercase tracking-[0.25em]"
-                                                style={{ color: theme.accent }}
-                                            >
-                                                Welcome to Cloud Print
-                                            </motion.p>
+                                    <motion.p
+                                        className="text-lg font-black uppercase tracking-[0.25em]"
+                                        style={{ color: theme.accent }}
+                                        initial={{ opacity: 0 }}
+                                        animate={{ opacity: 1 }}
+                                    >
+                                        Welcome
+                                    </motion.p>
 
-                                            <motion.h2
-                                                className="mt-3 text-4xl font-black leading-tight md:text-5xl"
-                                            >
-                                                {currentSlide.title}
-                                            </motion.h2>
+                                    <motion.h2
+                                        className="mt-5 text-5xl font-black leading-tight md:text-7xl"
+                                        initial={{ opacity: 0, y: 16 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        transition={{ delay: 0.08 }}
+                                    >
+                                        {currentSlide.title}
+                                    </motion.h2>
 
-                                            <motion.p
-                                                className="mt-4 text-base font-bold leading-relaxed text-slate-200"
-                                            >
-                                                {currentSlide.text}
-                                            </motion.p>
-                                            
-                                            <div className="mt-8 flex gap-2">
-                                                {welcomeSlides.map((slide, index) => (
-                                                    <motion.span
-                                                        key={slide.title}
-                                                        className="rounded-full"
-                                                        style={{
-                                                            background:
-                                                                index === slideIndex
-                                                                    ? theme.accent
-                                                                    : "rgba(255,255,255,0.25)"
-                                                        }}
-                                                        animate={{
-                                                            width: index === slideIndex ? 32 : 8,
-                                                            height: 8
-                                                        }}
-                                                    />
-                                                ))}
-                                            </div>
-                                        </div>
+                                    <motion.p
+                                        className="mx-auto mt-7 max-w-3xl text-xl font-bold leading-relaxed text-slate-200 md:text-2xl"
+                                        initial={{ opacity: 0, y: 12 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        transition={{ delay: 0.16 }}
+                                    >
+                                        {currentSlide.text}
+                                    </motion.p>
 
-                                        {/* Website & QR Code Panel */}
-                                        <div className="flex flex-col items-center justify-center p-6 rounded-2xl bg-white/10 backdrop-blur-md border border-white/10 text-center shadow-lg">
-                                            <p className="text-[10px] font-black uppercase tracking-widest text-slate-300">
-                                                No App Needed!
-                                            </p>
-                                            <h4 className="text-sm font-black text-white mt-1 mb-3">
-                                                Scan to Upload & Print
-                                            </h4>
-                                            <div className="p-2 bg-white rounded-xl shadow-md">
-                                                <img 
-                                                    src="https://api.qrserver.com/v1/create-qr-code/?size=140x140&data=https://www.saipraveen.site&color=0f172a" 
-                                                    alt="www.saipraveen.site QR Code"
-                                                    className="w-[140px] h-[140px]"
-                                                />
-                                            </div>
-                                            <p className="mt-3 text-xs font-bold text-slate-200">
-                                                Go to website:
-                                            </p>
-                                            <code className="text-xs font-black text-cyan-300 mt-1 select-all hover:scale-105 transition-all">
-                                                www.saipraveen.site
-                                            </code>
-                                        </div>
+                                    <div className="mt-10 flex justify-center gap-3">
+                                        {welcomeSlides.map((slide, index) => (
+                                            <motion.span
+                                                key={slide.title}
+                                                className="rounded-full"
+                                                style={{
+                                                    background:
+                                                        index === slideIndex
+                                                            ? theme.accent
+                                                            : "rgba(255,255,255,0.25)"
+                                                }}
+                                                animate={{
+                                                    width:
+                                                        index === slideIndex
+                                                            ? 48
+                                                            : 12,
+                                                    height: 12
+                                                }}
+                                            />
+                                        ))}
                                     </div>
                                 </motion.div>
                             )}
@@ -525,6 +509,30 @@ function DisplayPanel() {
                     <span>{new Date().toLocaleTimeString()}</span>
                 </footer>
             </section>
+
+            <div className="fixed bottom-24 left-8 z-40 flex items-center gap-4 p-4 rounded-2xl bg-slate-950/90 backdrop-blur-md border border-white/10 shadow-2xl max-w-xs transition-all hover:scale-105">
+                <div className="p-1.5 bg-white rounded-xl shadow-md shrink-0">
+                    <img 
+                        src="https://api.qrserver.com/v1/create-qr-code/?size=90x90&data=https://www.saipraveen.site&color=0f172a" 
+                        alt="www.saipraveen.site QR Code"
+                        className="w-[90px] h-[90px] block"
+                    />
+                </div>
+                <div className="text-left">
+                    <span className="text-[9px] font-black uppercase tracking-widest text-slate-400 bg-white/5 border border-white/10 px-2 py-0.5 rounded-full">
+                        No App Needed
+                    </span>
+                    <h4 className="text-sm font-black text-white mt-1.5">
+                        Scan to Print
+                    </h4>
+                    <p className="text-[10px] font-bold text-slate-400 mt-2">
+                        Website Link:
+                    </p>
+                    <code className="text-xs font-black text-cyan-300 block mt-0.5 select-all">
+                        www.saipraveen.site
+                    </code>
+                </div>
+            </div>
 
             <AnimatePresence>
                 {showFullscreenAd && !activePickup && (
