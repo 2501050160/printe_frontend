@@ -209,7 +209,7 @@ function Landing() {
       <svg className="h-0 w-0 absolute pointer-events-none" aria-hidden="true">
         <defs>
           <clipPath id="hero-clip" clipPathUnits="objectBoundingBox">
-            <path d="M 0.40,0 Q 0.30,0.5 0.40,1 L 1,1 L 1,0 Z" />
+            <path d="M 0.40,0 Q 0.30,0.5 0.40,1 L 0.92,1 L 0.92,0 Z" />
           </clipPath>
         </defs>
       </svg>
