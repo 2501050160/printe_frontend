@@ -929,16 +929,13 @@ function AdminDashboard() {
                         {/* Navigation Modules */}
                         <nav className="space-y-1 max-h-[calc(100vh-220px)] overflow-y-auto pr-1">
                             {[
-                                { id: "queue", label: "🏠 Dashboard Overview" },
-                                { id: "order-queue", label: "📦 Live Order Queue" },
-                                { id: "settings", label: "💰 Pricing & Coupons", onClick: () => { fetchPrices(selectedPricingBlock); fetchCoupons(); fetchBlocks(); } },
-                                { id: "blocks", label: "🏛️ Manage Blocks", onClick: fetchBlocks },
+                                { id: "queue", label: "🏠 Dashboard" },
+                                { id: "order-queue", label: "📋 Queue Kanban" },
                                 { id: "users", label: "👥 User Management", onClick: fetchUsers },
-                                { id: "support", label: "🎫 Support Tickets", onClick: fetchSupportTickets },
-                                { id: "frontend", label: "🖥 Frontend Manager", onClick: () => { fetchSystemSettings(); fetchSections(); } },
-                                { id: "system", label: "⚙️ System Config", onClick: () => { fetchSystemSettings(); fetchBlocks(); fetchPrinters(); } },
-                                { id: "rewards", label: "🎁 Rewards Panel", onClick: () => { fetchRewards(); fetchSystemSettings(); } },
-                                { id: "sql", label: "🗄 SQL Terminal", onClick: () => { setSqlResult(null); setSqlError(""); } }
+                                { id: "frontend", label: "📊 Business Analytics", onClick: () => { fetchSystemSettings(); fetchSections(); } },
+                                { id: "system", label: "🖨 Printer Settings", onClick: () => { fetchSystemSettings(); fetchBlocks(); fetchPrinters(); } },
+                                { id: "rewards", label: "📺 Display Panel", onClick: () => { fetchRewards(); fetchSystemSettings(); } },
+                                { id: "settings", label: "⚙️ Settings", onClick: () => { fetchPrices(selectedPricingBlock); fetchCoupons(); fetchBlocks(); } }
                             ].map((item) => (
                                 <button
                                     key={item.id}
