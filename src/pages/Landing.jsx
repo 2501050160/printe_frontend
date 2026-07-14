@@ -280,7 +280,7 @@ function Landing() {
           </div>
 
           {/* Foreground Grid Layout */}
-          <div className="relative z-10 w-full pl-8 pr-8 md:pl-16 md:pr-16 flex flex-col lg:flex-row justify-between items-center gap-12 min-h-[70vh]">
+          <div className="relative z-10 w-full px-8 md:px-12 lg:px-16 flex flex-col lg:flex-row justify-between items-center gap-8 min-h-[70vh]">
             
             {/* Left Side: ~45% width overlay */}
             <div className="w-full lg:w-[45%] text-white text-left z-20">
@@ -334,7 +334,7 @@ function Landing() {
             </div>
 
             {/* Right Side: ~55% width Video Showcase beginning 20px from curved divider */}
-            <div className="w-full lg:w-[50%] flex justify-center lg:justify-end pl-[20px] z-20">
+            <div className="w-full lg:w-[55%] flex justify-center lg:justify-end pl-[20px] z-20">
               <motion.div 
                 className="w-full rounded-[24px] p-1.5 bg-white/10 backdrop-blur-md border border-white/20 shadow-[0_20px_50px_rgba(37,99,235,0.15)] relative"
                 whileHover={{ 
