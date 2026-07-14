@@ -242,7 +242,7 @@ function Landing() {
       {/* Hero Section */}
       <section className="w-full max-w-none px-0 pt-0 pb-24 relative z-10">
         <motion.div 
-          className="relative w-full rounded-none min-h-[80vh] py-16 md:py-24 bg-slate-950 border-y border-white/10 shadow-[0_30px_60px_rgba(37,99,235,0.2)] overflow-hidden cursor-pointer flex items-center"
+          className="relative w-full rounded-none min-h-[85vh] py-16 md:py-24 bg-slate-950 border-y border-white/10 shadow-[0_30px_60px_rgba(37,99,235,0.2)] overflow-hidden cursor-pointer flex items-center"
           initial={{ y: 0 }}
           animate={{ 
             y: [0, -4, 0],
@@ -258,23 +258,37 @@ function Landing() {
           }}
           style={{ transition: "all 0.3s ease" }}
         >
-          {/* Background Video */}
-          <div className="absolute inset-0 z-0">
-            <video 
-              src={inVideo}
-              autoPlay 
-              muted 
-              loop 
-              playsInline
-              preload="auto"
-              controls={false}
-              controlsList="nodownload nofullscreen"
-              disablePictureInPicture
-              draggable="false"
-              className="w-full h-full object-cover pointer-events-none select-none opacity-65 hover:opacity-75 transition-opacity duration-300"
-            />
-            {/* Dark glassmorphic gradient overlay to guarantee text readability */}
-            <div className="absolute inset-0 bg-gradient-to-r from-slate-950 via-slate-950/90 to-slate-950/30" />
+          {/* Custom Split-Pane Background Video with SVG Arc Separator */}
+          <div className="absolute inset-0 z-0 flex w-full h-full">
+            {/* Left side background overlay (Less Opacity for Text Contrast) */}
+            <div className="w-[45%] h-full bg-slate-950/95 relative z-10 flex-shrink-0" />
+            
+            {/* SVG Arc Divider */}
+            <div className="w-[10%] h-full relative z-10 -ml-[1px] flex-shrink-0">
+              <svg className="h-full w-full text-slate-950 fill-current overflow-visible" viewBox="0 0 100 100" preserveAspectRatio="none">
+                {/* Arc path */}
+                <path d="M 0,0 Q 80,50 0,100 L 100,100 L 100,0 Z" className="text-slate-950" />
+                {/* Glowing neon stroke */}
+                <path d="M 0,0 Q 80,50 0,100" fill="none" stroke="rgba(59, 130, 246, 0.4)" strokeWidth="1.5" />
+              </svg>
+            </div>
+            
+            {/* Right side background video (More Opacity and Left Margin of 20px) */}
+            <div className="w-[45%] h-full relative z-0 flex-shrink-0 pl-[20px] bg-slate-950">
+              <video 
+                src={inVideo}
+                autoPlay 
+                muted 
+                loop 
+                playsInline
+                preload="auto"
+                controls={false}
+                controlsList="nodownload nofullscreen"
+                disablePictureInPicture
+                draggable="false"
+                className="w-full h-full object-cover pointer-events-none select-none opacity-90 hover:opacity-100 transition-opacity duration-300"
+              />
+            </div>
           </div>
 
           {/* Foreground Overlay Text Content Container */}
