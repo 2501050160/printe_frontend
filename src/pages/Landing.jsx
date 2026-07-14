@@ -1,6 +1,8 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
+import introVideo from "../assets/Background.mp4";
+import demoVideo from "../assets/how_to_upload.mp4";
 import { 
   Printer, 
   UploadCloud, 
@@ -27,6 +29,10 @@ function Landing() {
   const [activeBuilding, setActiveBuilding] = useState("C Block");
   const [activeFaq, setActiveFaq] = useState(null);
   const [activeFlowStep, setActiveFlowStep] = useState(0);
+  const [showIntro, setShowIntro] = useState(false);
+  const [showDemo, setShowDemo] = useState(false);
+  const statsRef = useRef(null);
+  const statsStarted = useRef(false);
 
   // Statistics counters (animated manually using state timers on mount)
   const [stats, setStats] = useState({
@@ -37,26 +43,41 @@ function Landing() {
   });
 
   useEffect(() => {
-    // Animate statistics counting up
-    const interval = setInterval(() => {
-      setStats((prev) => {
-        const nextPrinted = prev.printed < 15000 ? prev.printed + 500 : 15000;
-        const nextLocations = prev.locations < 8 ? prev.locations + 1 : 8;
-        const nextSuccess = prev.success < 99.9 ? parseFloat((prev.success + 3.3).toFixed(1)) : 99.9;
-        const nextStudents = prev.students < 12500 ? prev.students + 400 : 12500;
-        
-        if (nextPrinted === 15000 && nextLocations === 8 && nextSuccess === 99.9 && nextStudents === 12500) {
-          clearInterval(interval);
+    const introShown = sessionStorage.getItem("landingIntroShown");
+    if (!introShown) {
+      setShowIntro(true);
+    }
+  }, []);
+
+  const handleSkipIntro = () => {
+    sessionStorage.setItem("landingIntroShown", "true");
+    setShowIntro(false);
+  };
+
+  // Trigger stats count-up only when section scrolls into view
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && !statsStarted.current) {
+          statsStarted.current = true;
+          const interval = setInterval(() => {
+            setStats((prev) => {
+              const nextPrinted = prev.printed < 15000 ? prev.printed + 300 : 15000;
+              const nextLocations = prev.locations < 8 ? prev.locations + 1 : 8;
+              const nextSuccess = prev.success < 99.9 ? parseFloat((prev.success + 2.0).toFixed(1)) : 99.9;
+              const nextStudents = prev.students < 12500 ? prev.students + 250 : 12500;
+              if (nextPrinted === 15000 && nextLocations === 8 && nextSuccess === 99.9 && nextStudents === 12500) {
+                clearInterval(interval);
+              }
+              return { printed: nextPrinted, locations: nextLocations, success: nextSuccess, students: nextStudents };
+            });
+          }, 30);
         }
-        return {
-          printed: nextPrinted,
-          locations: nextLocations,
-          success: nextSuccess,
-          students: nextStudents
-        };
-      });
-    }, 40);
-    return () => clearInterval(interval);
+      },
+      { threshold: 0.3 }
+    );
+    if (statsRef.current) observer.observe(statsRef.current);
+    return () => observer.disconnect();
   }, []);
 
   // Workflow auto-stepping effect for the 3D ecosystem column
@@ -186,9 +207,12 @@ function Landing() {
             <Link to="/login" className="btn success px-6 py-3.5 rounded-xl font-black text-sm shadow-lg shadow-emerald-500/20">
               ⚡ Upload Document
             </Link>
-            <a href="#how-it-works" className="btn secondary px-6 py-3.5 rounded-xl font-black text-sm flex items-center gap-1.5">
+            <button
+              onClick={() => setShowDemo(true)}
+              className="btn secondary px-6 py-3.5 rounded-xl font-black text-sm flex items-center gap-1.5"
+            >
               <Play className="w-4 h-4 fill-slate-900" /> Watch Demo
-            </a>
+            </button>
             <Link to="/blocks" className="btn secondary px-6 py-3.5 rounded-xl font-black text-sm flex items-center gap-1.5">
               <QrCode className="w-4 h-4" /> Scan QR
             </Link>
@@ -242,7 +266,7 @@ function Landing() {
       </section>
 
       {/* Live Statistics Section */}
-      <section className="bg-slate-900 text-white py-16 border-y border-slate-800">
+      <section className="bg-slate-900 text-white py-16 border-y border-slate-800" ref={statsRef}>
         <div className="max-w-6xl mx-auto px-6 grid grid-cols-2 lg:grid-cols-4 gap-8 text-center">
           <div>
             <h3 className="text-4xl font-black tracking-tight text-white">{stats.printed.toLocaleString()}+</h3>
@@ -600,6 +624,85 @@ function Landing() {
         </div>
       </footer>
     </div>
+
+      {/* Intro Video Overlay */}
+      <AnimatePresence>
+        {showIntro && (
+          <motion.div
+            className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-black"
+            initial={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.6 }}
+          >
+            <video
+              autoPlay
+              playsInline
+              className="w-full h-full object-cover absolute inset-0 z-0"
+              onEnded={handleSkipIntro}
+            >
+              <source src={introVideo} type="video/mp4" />
+            </video>
+
+            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20 z-10 pointer-events-none" />
+
+            <button
+              onClick={handleSkipIntro}
+              className="absolute bottom-10 right-10 z-20 px-6 py-3 bg-white/10 hover:bg-white/25 text-white font-black text-sm tracking-wider uppercase rounded-full border border-white/25 backdrop-blur-md transition-all shadow-2xl hover:scale-105 active:scale-95 flex items-center gap-2"
+            >
+              Skip Intro →
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Demo Video Modal */}
+      <AnimatePresence>
+        {showDemo && (
+          <motion.div
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-sm p-4"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setShowDemo(false)}
+          >
+            <motion.div
+              className="relative w-full max-w-4xl rounded-2xl overflow-hidden shadow-2xl border border-white/10"
+              initial={{ scale: 0.92, y: 30 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.92, y: 30 }}
+              transition={{ type: "spring", stiffness: 260, damping: 22 }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Close button */}
+              <button
+                onClick={() => setShowDemo(false)}
+                className="absolute top-3 right-3 z-10 w-9 h-9 rounded-full bg-black/60 hover:bg-black/80 text-white font-black text-lg flex items-center justify-center border border-white/20 backdrop-blur-sm transition-all"
+              >
+                ✕
+              </button>
+
+              {/* Header bar */}
+              <div className="bg-slate-950 px-5 py-3 flex items-center gap-2 border-b border-white/10">
+                <div className="flex gap-1.5">
+                  <span className="w-3 h-3 rounded-full bg-red-500" />
+                  <span className="w-3 h-3 rounded-full bg-yellow-400" />
+                  <span className="w-3 h-3 rounded-full bg-emerald-500" />
+                </div>
+                <span className="text-xs font-black text-slate-400 ml-2 uppercase tracking-widest">CloudPrint — How It Works</span>
+              </div>
+
+              <video
+                src={demoVideo}
+                autoPlay
+                controls
+                className="w-full aspect-video bg-black"
+                onEnded={() => setShowDemo(false)}
+              />
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </>
   );
 }
 
