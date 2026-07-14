@@ -1204,12 +1204,14 @@ function AdminDashboard() {
                                         return Object.entries(blockCounts).map(([block, count]) => {
                                             const pct = (count / maxCount) * 100;
                                             return (
-                                                <div key={block} className="flex flex-col items-center w-12 group">
-                                                    <span className="text-xs font-bold text-slate-500 mb-1 opacity-0 group-hover:opacity-100 transition-opacity">{count} orders</span>
-                                                    <div 
-                                                        style={{ height: `${Math.max(15, pct)}%` }} 
-                                                        className="w-8 bg-sky-500 hover:bg-sky-600 rounded-t-md transition-all duration-500 cursor-pointer"
-                                                    />
+                                                <div key={block} className="flex flex-col items-center w-16 group h-full justify-end">
+                                                    <span className="text-xs font-bold text-slate-500 mb-1 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">{count} orders</span>
+                                                    <div className="h-44 w-full flex items-end justify-center bg-slate-50/50 rounded-lg p-1 border border-slate-100/30">
+                                                        <div 
+                                                            style={{ height: `${Math.max(10, pct)}%` }} 
+                                                            className="w-8 bg-sky-500 hover:bg-sky-600 rounded-t-md transition-all duration-500 cursor-pointer shadow-sm"
+                                                        />
+                                                    </div>
                                                     <span className="text-xs font-bold text-slate-700 mt-2">{block}</span>
                                                 </div>
                                             );
@@ -1230,12 +1232,14 @@ function AdminDashboard() {
                                         return counts.map((count, index) => {
                                             const pct = (count / maxCount) * 100;
                                             return (
-                                                <div key={index} className="flex flex-col items-center flex-1 group">
-                                                    <span className="text-[10px] font-bold text-slate-500 mb-1 opacity-0 group-hover:opacity-100 transition-opacity">{count} prints</span>
-                                                    <div 
-                                                        style={{ height: `${Math.max(15, pct)}%` }} 
-                                                        className="w-6 bg-indigo-500 hover:bg-indigo-600 rounded-t-md transition-all duration-500 cursor-pointer"
-                                                    />
+                                                <div key={index} className="flex flex-col items-center flex-1 group h-full justify-end">
+                                                    <span className="text-[10px] font-bold text-slate-500 mb-1 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">{count} prints</span>
+                                                    <div className="h-44 w-full flex items-end justify-center bg-slate-50/50 rounded-lg p-1 border border-slate-100/30 mx-1">
+                                                        <div 
+                                                            style={{ height: `${Math.max(10, pct)}%` }} 
+                                                            className="w-6 bg-indigo-500 hover:bg-indigo-600 rounded-t-md transition-all duration-500 cursor-pointer shadow-sm"
+                                                        />
+                                                    </div>
                                                     <span className="text-[10px] font-bold text-slate-700 mt-2">{hours[index]}</span>
                                                 </div>
                                             );
