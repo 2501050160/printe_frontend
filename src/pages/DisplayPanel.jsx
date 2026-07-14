@@ -281,9 +281,8 @@ function DisplayPanel() {
                                             </p>
                                             <p className="mt-2 text-sm font-bold text-white/60">
                                                 {currentOrder.status === "PRINTING"
-                                                    ? "Printing in progress..."
-                                                    : currentOrder.status ===
-                                                      "CANCEL_WINDOW"
+                                                    ? `Printing page ${currentOrder.printedPages || 0} of ${currentOrder.totalPages || 1} (${Math.min(100, Math.round(((currentOrder.printedPages || 0) / (currentOrder.totalPages || 1)) * 100))}%)`
+                                                    : currentOrder.status === "CANCEL_WINDOW"
                                                     ? "Confirming Payment"
                                                     : "Up Next"}
                                             </p>
@@ -321,17 +320,26 @@ function DisplayPanel() {
                                                 ))}
                                             </div>
 
-                                            <div className="mt-8 h-3 overflow-hidden rounded-full bg-white/10">
-                                                <motion.div
-                                                    className="h-full rounded-full"
-                                                    style={{ background: theme.accent }}
-                                                    animate={{ x: ["-100%", "120%"] }}
-                                                    transition={{
-                                                        duration: 1.6,
-                                                        repeat: Infinity,
-                                                        ease: "easeInOut"
-                                                    }}
-                                                />
+                                            <div className="mt-8 h-3 overflow-hidden rounded-full bg-white/10 relative">
+                                                {currentOrder.status === "PRINTING" ? (
+                                                    <motion.div
+                                                        className="h-full rounded-full"
+                                                        style={{ background: theme.accent }}
+                                                        animate={{ width: `${Math.min(100, Math.round(((currentOrder.printedPages || 0) / (currentOrder.totalPages || 1)) * 100))}%` }}
+                                                        transition={{ duration: 0.5, ease: "easeOut" }}
+                                                    />
+                                                ) : (
+                                                    <motion.div
+                                                        className="h-full rounded-full"
+                                                        style={{ background: theme.accent }}
+                                                        animate={{ x: ["-100%", "120%"] }}
+                                                        transition={{
+                                                            duration: 1.6,
+                                                            repeat: Infinity,
+                                                            ease: "easeInOut"
+                                                        }}
+                                                    />
+                                                )}
                                             </div>
                                         </section>
                                     )}
