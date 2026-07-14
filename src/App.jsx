@@ -3,7 +3,7 @@ from "react-router-dom";
 
 import Landing from "./pages/Landing";
 import Login from "./pages/Login";
-import Register from "./pages/Register";
+import { Navigate } from "react-router-dom";
 import Dashboard from "./pages/Dashboard";
 import AdminLogin
 from "./pages/AdminLogin";
@@ -99,7 +99,7 @@ function App() {
 
         <Route
           path="/register"
-          element={<Register />}
+          element={<Navigate to="/login" replace />}
         />
         <Route
           path="/verify"

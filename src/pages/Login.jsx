@@ -389,16 +389,6 @@ function Login() {
 
                         <div className="mt-6 flex flex-col gap-3 text-center text-sm text-slate-600">
 
-                            <p>
-                                New customer?{" "}
-                                <Link
-                                    to="/register"
-                                    className="link-action"
-                                >
-                                    Create an account
-                                </Link>
-                            </p>
-
                             <Link
                                 to="/admin-login"
                                 className="btn secondary w-full"

@@ -53,6 +53,7 @@ function Dashboard() {
     // Rewards & Claim Codes
     const [rewardCode, setRewardCode] = useState("");
     const [claimingReward, setClaimingReward] = useState(false);
+    const [rewardPoints, setRewardPoints] = useState(0);
 
     // Dynamic state
     const [paperCount, setPaperCount] = useState(0);

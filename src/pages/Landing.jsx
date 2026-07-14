@@ -159,7 +159,7 @@ function Landing() {
             <Link to="/login" className="px-4 py-2 text-sm font-black text-slate-600 hover:text-slate-900 transition-colors">
               Login
             </Link>
-            <Link to="/register" className="btn success min-h-0 py-2.5 px-5 rounded-xl font-black text-sm shadow-md shadow-blue-500/10">
+            <Link to="/login" className="btn success min-h-0 py-2.5 px-5 rounded-xl font-black text-sm shadow-md shadow-blue-500/10">
               Upload Document
             </Link>
           </div>
@@ -183,7 +183,7 @@ function Landing() {
           </p>
 
           <div className="mt-8 flex flex-wrap gap-3">
-            <Link to="/register" className="btn success px-6 py-3.5 rounded-xl font-black text-sm shadow-lg shadow-emerald-500/20">
+            <Link to="/login" className="btn success px-6 py-3.5 rounded-xl font-black text-sm shadow-lg shadow-emerald-500/20">
               ⚡ Upload Document
             </Link>
             <a href="#how-it-works" className="btn secondary px-6 py-3.5 rounded-xl font-black text-sm flex items-center gap-1.5">
@@ -541,11 +541,11 @@ function Landing() {
             </p>
 
             <div className="mt-10 flex flex-wrap justify-center gap-4">
-              <Link to="/register" className="btn success px-8 py-4 rounded-xl font-black text-base shadow-lg shadow-emerald-500/20">
-                Upload Document ⚡
+              <Link to="/login" className="btn success px-8 py-4 rounded-xl font-black text-base shadow-lg shadow-emerald-500/20">
+                Sign In & Upload ⚡
               </Link>
-              <Link to="/register" className="px-8 py-4 rounded-xl font-black text-base border border-white/20 bg-white/10 hover:bg-white/20 transition-all">
-                Create Free Account
+              <Link to="/login" className="px-8 py-4 rounded-xl font-black text-base border border-white/20 bg-white/10 hover:bg-white/20 transition-all">
+                Sign In with Google
               </Link>
             </div>
           </div>
