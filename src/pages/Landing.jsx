@@ -240,9 +240,9 @@ function Landing() {
       </header>
 
       {/* Hero Section */}
-      <section className="max-w-6xl mx-auto px-6 pt-16 pb-24 relative z-10">
+      <section className="w-full max-w-none px-0 pt-0 pb-24 relative z-10">
         <motion.div 
-          className="relative w-full rounded-[32px] p-8 md:p-16 bg-slate-950 border border-white/10 shadow-[0_30px_60px_rgba(37,99,235,0.2)] overflow-hidden cursor-pointer"
+          className="relative w-full rounded-none min-h-[80vh] py-16 md:py-24 bg-slate-950 border-y border-white/10 shadow-[0_30px_60px_rgba(37,99,235,0.2)] overflow-hidden cursor-pointer flex items-center"
           initial={{ y: 0 }}
           animate={{ 
             y: [0, -4, 0],
@@ -253,7 +253,6 @@ function Landing() {
             ease: "easeInOut"
           }}
           whileHover={{ 
-            scale: 1.01,
             boxShadow: "0 35px 80px rgba(37,99,235,0.35)",
             borderColor: "rgba(59,130,246,0.4)"
           }}
@@ -278,8 +277,9 @@ function Landing() {
             <div className="absolute inset-0 bg-gradient-to-r from-slate-950 via-slate-950/80 to-transparent" />
           </div>
 
-          {/* Foreground Overlay Text Content */}
-          <div className="relative z-10 max-w-2xl text-white text-left">
+          {/* Foreground Overlay Text Content Container */}
+          <div className="relative z-10 max-w-6xl mx-auto w-full px-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-12">
+            <div className="max-w-2xl text-white text-left">
             <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider text-blue-400 bg-blue-950/80 border border-blue-800/60">
               <Sparkles className="w-3.5 h-3.5" /> Next-Gen Kiosk Printing
             </span>
@@ -327,6 +327,7 @@ function Landing() {
                 <span>Secure OTP & QR Printing</span>
               </div>
             </div>
+          </div>
           </div>
 
           {/* Floating UI Live Demo overlay badge top-right */}
