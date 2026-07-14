@@ -64,7 +64,7 @@ function Landing() {
         if (entries[0].isIntersecting && !statsStarted.current) {
           statsStarted.current = true;
           
-          fetch("https://www.saipraveen.site/api/system/public-stats")
+          fetch("/api/system/public-stats")
             .then(res => res.json())
             .then(data => {
               const targetPrinted = data.documentCount || 15000;
