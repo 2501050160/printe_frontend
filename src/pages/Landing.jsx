@@ -58,59 +58,48 @@ function Landing() {
     setShowIntro(false);
   };
 
-  // Trigger stats count-up only when section scrolls into view
+  // Load stats from database immediately on page mount
   useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries[0].isIntersecting && !statsStarted.current) {
-          statsStarted.current = true;
-          
-          fetch("/api/system/public-stats")
-            .then(res => res.json())
-            .then(data => {
-              const targetPrinted = data.documentCount || 15000;
-              const targetLocations = data.campusLocations || 8;
-              const targetSuccess = data.successRate || 99.9;
-              const targetStudents = data.studentCount || 12500;
-              
-              const stepPrinted = Math.max(1, Math.floor(targetPrinted / 50));
-              const stepStudents = Math.max(1, Math.floor(targetStudents / 50));
+    fetch("/api/system/public-stats")
+      .then(res => res.json())
+      .then(data => {
+        const targetPrinted = data.documentCount || 102540;
+        const targetLocations = data.campusLocations || 26;
+        const targetSuccess = data.successRate || 99.9;
+        const targetStudents = data.studentCount || 15420;
+        
+        const stepPrinted = Math.max(1, Math.floor(targetPrinted / 50));
+        const stepStudents = Math.max(1, Math.floor(targetStudents / 50));
 
-              const interval = setInterval(() => {
-                setStats((prev) => {
-                  const nextPrinted = prev.printed < targetPrinted ? Math.min(targetPrinted, prev.printed + stepPrinted) : targetPrinted;
-                  const nextLocations = prev.locations < targetLocations ? prev.locations + 1 : targetLocations;
-                  const nextSuccess = prev.success < targetSuccess ? parseFloat((prev.success + 2.0).toFixed(1)) : targetSuccess;
-                  const nextStudents = prev.students < targetStudents ? Math.min(targetStudents, prev.students + stepStudents) : targetStudents;
-                  
-                  if (nextPrinted === targetPrinted && nextLocations === targetLocations && nextSuccess === targetSuccess && nextStudents === targetStudents) {
-                    clearInterval(interval);
-                  }
-                  return { printed: nextPrinted, locations: nextLocations, success: nextSuccess, students: nextStudents };
-                });
-              }, 30);
-            })
-            .catch(() => {
-              // Fallback if backend is down
-              const interval = setInterval(() => {
-                setStats((prev) => {
-                  const nextPrinted = prev.printed < 15000 ? prev.printed + 300 : 15000;
-                  const nextLocations = prev.locations < 8 ? prev.locations + 1 : 8;
-                  const nextSuccess = prev.success < 99.9 ? parseFloat((prev.success + 2.0).toFixed(1)) : 99.9;
-                  const nextStudents = prev.students < 12500 ? prev.students + 250 : 12500;
-                  if (nextPrinted === 15000 && nextLocations === 8 && nextSuccess === 99.9 && nextStudents === 12500) {
-                    clearInterval(interval);
-                  }
-                  return { printed: nextPrinted, locations: nextLocations, success: nextSuccess, students: nextStudents };
-                });
-              }, 30);
-            });
-        }
-      },
-      { threshold: 0.3 }
-    );
-    if (statsRef.current) observer.observe(statsRef.current);
-    return () => observer.disconnect();
+        const interval = setInterval(() => {
+          setStats((prev) => {
+            const nextPrinted = prev.printed < targetPrinted ? Math.min(targetPrinted, prev.printed + stepPrinted) : targetPrinted;
+            const nextLocations = prev.locations < targetLocations ? prev.locations + 1 : targetLocations;
+            const nextSuccess = prev.success < targetSuccess ? parseFloat((prev.success + 2.0).toFixed(1)) : targetSuccess;
+            const nextStudents = prev.students < targetStudents ? Math.min(targetStudents, prev.students + stepStudents) : targetStudents;
+            
+            if (nextPrinted === targetPrinted && nextLocations === targetLocations && nextSuccess === targetSuccess && nextStudents === targetStudents) {
+              clearInterval(interval);
+            }
+            return { printed: nextPrinted, locations: nextLocations, success: nextSuccess, students: nextStudents };
+          });
+        }, 20);
+      })
+      .catch(() => {
+        // Fallback default values if backend is offline
+        const interval = setInterval(() => {
+          setStats((prev) => {
+            const nextPrinted = prev.printed < 102540 ? prev.printed + 2050 : 102540;
+            const nextLocations = prev.locations < 26 ? prev.locations + 1 : 26;
+            const nextSuccess = prev.success < 99.9 ? parseFloat((prev.success + 2.0).toFixed(1)) : 99.9;
+            const nextStudents = prev.students < 15420 ? prev.students + 308 : 15420;
+            if (nextPrinted === 102540 && nextLocations === 26 && nextSuccess === 99.9 && nextStudents === 15420) {
+              clearInterval(interval);
+            }
+            return { printed: nextPrinted, locations: nextLocations, success: nextSuccess, students: nextStudents };
+          });
+        }, 20);
+      });
   }, []);
 
   // Auto-play demo video with audio when #how-it-works scrolls into view
@@ -219,7 +208,7 @@ function Landing() {
       <div className="absolute bottom-10 left-0 w-[40rem] h-[40rem] bg-gradient-to-tr from-emerald-500/10 to-blue-500/10 rounded-full blur-[120px] pointer-events-none" />
 
       {/* Floating Transparent Navbar */}
-      <header className="sticky top-0 z-50 w-full h-20 transition-all bg-slate-950/30 backdrop-blur-md border-b border-white/5 flex items-center">
+      <header className="sticky top-0 z-50 w-full h-20 transition-all bg-transparent flex items-center">
         <nav className="w-full h-full px-12 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <div className="p-2 rounded-xl bg-blue-600 text-white shadow-md shadow-blue-500/20">
@@ -230,19 +219,16 @@ function Landing() {
             </span>
           </div>
 
-          <div className="hidden md:flex items-center gap-6 text-sm font-black text-slate-400">
+          <div className="hidden lg:flex items-center gap-16 text-sm font-black text-slate-400">
             <a href="#features" className="hover:text-white transition-colors">Features</a>
             <a href="#locations" className="hover:text-white transition-colors">Campus Locations</a>
             <a href="#how-it-works" className="hover:text-white transition-colors">How it Works</a>
             <a href="#faq" className="hover:text-white transition-colors">FAQ</a>
           </div>
 
-          <div className="flex items-center gap-3">
-            <Link to="/login" className="px-4 py-2 text-sm font-black text-slate-300 hover:text-white transition-colors">
-              Login
-            </Link>
+          <div className="flex items-center">
             <Link to="/login" className="btn success min-h-0 py-2.5 px-5 rounded-xl font-black text-sm shadow-md shadow-blue-500/10">
-              Upload Document
+              ⚡ Upload Document
             </Link>
           </div>
         </nav>
@@ -323,28 +309,25 @@ function Landing() {
                 >
                   <Play className="w-4 h-4 fill-white" /> Watch Demo
                 </button>
-                <Link to="/admin-login" className="btn secondary !bg-white/10 !text-white !border-white/10 hover:!bg-white/20 px-6 py-3.5 rounded-xl font-black text-sm">
-                  Admin Portal
-                </Link>
               </div>
 
               {/* Left-Side Trust Section */}
               <div className="mt-10 pt-8 border-t border-white/10 grid grid-cols-2 gap-4 text-slate-400">
                 <div className="flex items-center gap-2 text-xs font-bold">
                   <span className="text-base">🖨️</span>
-                  <span>25+ Campus Printers</span>
+                  <span>{stats.locations} Campus Printers</span>
                 </div>
                 <div className="flex items-center gap-2 text-xs font-bold">
                   <span className="text-base">📄</span>
-                  <span>100,000+ Pages Printed</span>
+                  <span>{stats.printed.toLocaleString()} Pages Printed</span>
                 </div>
                 <div className="flex items-center gap-2 text-xs font-bold">
                   <span className="text-base">👨‍🎓</span>
-                  <span>Thousands of Students</span>
+                  <span>{stats.students.toLocaleString()} Students Served</span>
                 </div>
                 <div className="flex items-center gap-2 text-xs font-bold">
                   <span className="text-base">⚡</span>
-                  <span>Secure OTP & QR Printing</span>
+                  <span>{stats.success}% Success Rate</span>
                 </div>
               </div>
             </div>
