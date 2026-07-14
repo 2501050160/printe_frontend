@@ -1,4 +1,4 @@
-﻿import { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import Navbar from "../components/Navbar";
@@ -8,7 +8,7 @@ import PopupManager from "../components/PopupManager";
 import mapPin from "../assets/map_pin.mp4";
 import CustomModal from "../components/CustomModal";
 
-const defaultIcons = ["A", "B", "C", "D", "E", "F"];
+const defaultIcons = ["🏛️", "⚡", "📘", "🏛️", "⚡", "📘"];
 const defaultAccents = ["#0891b2", "#059669", "#7c3aed", "#e11d48", "#ea580c", "#db2777"];
 
 function BlockSelection() {
@@ -148,7 +148,7 @@ function BlockSelection() {
                 }
 
                 if (otpBypassed) {
-                    showAlert("Direct Printing Released! ðŸš€", `OTP is bypassed for ${blockLoc}. Your document has been sent directly to the printer spooler!`, "success");
+                    showAlert("Direct Printing Released! 🚀", `OTP is bypassed for ${blockLoc}. Your document has been sent directly to the printer spooler!`, "success");
                     navigate("/my-orders");
                 } else {
                     setOtpError("");
@@ -234,7 +234,7 @@ function BlockSelection() {
             setOtpError("");
             setShowOtpModal(false);
             setInputOtp("");
-            showAlert("Printing Started! ðŸ–¨ï¸", "Successfully released your print job. Please collect your pages from the printer tray.", "success");
+            showAlert("Printing Started! 🖨️", "Successfully released your print job. Please collect your pages from the printer tray.", "success");
         } catch (err) {
             setOtpError(err.response?.data?.message || "Invalid OTP or Order.");
         } finally {
@@ -248,7 +248,7 @@ function BlockSelection() {
             <div className="content-wrap">
                 <Navbar
                     title="Choose Print Location"
-                    subtitle="Step 1 Â· Pickup Point"
+                    subtitle="Step 1 · Pickup Point"
                     badge="Required"
                 />
 
@@ -305,10 +305,10 @@ function BlockSelection() {
                             whileTap={{ scale: 0.98 }}
                         >
                             <span className="block-card-glow" />
-                            <span className="block-card-icon">OTP</span>
+                            <span className="block-card-icon">🔑</span>
                             <h3 className="block-card-title">Enter the OTP</h3>
                             <p className="block-card-text">enter otp to print</p>
-                            <span className="block-card-cta">Release Print</span>
+                            <span className="block-card-cta">Release Print →</span>
                         </motion.button>
 
                         {/* Dynamic Blocks */}
@@ -329,7 +329,7 @@ function BlockSelection() {
                                 <span className="block-card-icon">{block.icon}</span>
                                 <h3 className="block-card-title">{block.name}</h3>
                                 <p className="block-card-text">{block.description}</p>
-                                <span className="block-card-cta">Select location</span>
+                                <span className="block-card-cta">Select location →</span>
                             </motion.button>
                         ))}
                     </div>
@@ -392,7 +392,7 @@ function BlockSelection() {
 
                                 {selectedOrderId && pendingOrders.find(o => o.orderId === selectedOrderId) && (
                                     <div className="text-center text-xs font-bold text-amber-500 bg-amber-500/10 border border-amber-500/20 py-2 rounded-xl mt-2">
-                                        â±ï¸ OTP Expires in: <span className="font-mono text-sm font-black">{formatTime(otpTimeLeft)}</span>
+                                        ⏱️ OTP Expires in: <span className="font-mono text-sm font-black">{formatTime(otpTimeLeft)}</span>
                                     </div>
                                 )}
 
@@ -411,7 +411,7 @@ function BlockSelection() {
 
                             {otpError && (
                                 <p className="text-xs font-bold text-rose-500 mt-4 bg-rose-500/10 border border-rose-500/20 py-2 rounded-lg">
-                                    âš ï¸ {otpError}
+                                    ⚠️ {otpError}
                                 </p>
                             )}
 
@@ -443,4 +443,3 @@ function BlockSelection() {
 }
 
 export default BlockSelection;
-

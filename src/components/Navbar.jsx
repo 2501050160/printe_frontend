@@ -26,19 +26,19 @@ function Navbar({ title, subtitle, actions = [], badge, tabs = [], activeTab, on
 
     return (
         <motion.div
-            className="top-bar panel top-bar-glass nav-shell px-6 py-5 flex flex-col md:flex-row md:items-center justify-between gap-4 relative z-30"
+            className="top-bar panel top-bar-glass px-6 py-5 flex flex-col md:flex-row md:items-center justify-between gap-4 relative z-30"
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.45 }}
         >
             <div className="flex items-center gap-4 pr-36 md:pr-0">
                 <div className="brand-mark brand-mark-sm">CP</div>
-                <div className="nav-heading">
+                <div>
                     {subtitle && (
-                        <p className="eyebrow nav-subtitle !mb-0">{subtitle}</p>
+                        <p className="eyebrow !mb-0">{subtitle}</p>
                     )}
                     <div className="flex flex-wrap items-center gap-3">
-                        <h1 className="title nav-title !mt-0 !mb-0">{title}</h1>
+                        <h1 className="title !mt-0 !mb-0">{title}</h1>
                         {badge && (
                             <span className="status-pill status-created">
                                 {badge}
@@ -50,18 +50,18 @@ function Navbar({ title, subtitle, actions = [], badge, tabs = [], activeTab, on
 
             {/* Navigation Tabs */}
             {tabs && tabs.length > 0 && (
-                <div className="nav-tabs flex flex-wrap items-center gap-1 bg-slate-950/5 p-1.5 rounded-xl border border-slate-200/50">
+                <div className="flex flex-wrap items-center gap-1 bg-slate-950/5 p-1.5 rounded-xl border border-slate-200/50">
                     {tabs.map((tab) => (
                         <button
                             key={tab.id}
                             onClick={() => onTabChange && onTabChange(tab.id)}
-                            className={`nav-tab px-4 py-2 rounded-lg text-sm font-black transition-all flex items-center gap-1.5 ${
+                            className={`px-4 py-2 rounded-lg text-sm font-black transition-all flex items-center gap-1.5 ${
                                 activeTab === tab.id
-                                    ? "active bg-white text-sky-600 shadow-sm border border-slate-100"
+                                    ? "bg-white text-sky-600 shadow-sm border border-slate-100"
                                     : "text-slate-600 hover:text-slate-900 hover:bg-slate-100/50"
                             }`}
                         >
-                            {tab.icon && <span className="nav-tab-icon">{tab.icon}</span>}
+                            {tab.icon && <span>{tab.icon}</span>}
                             {tab.label}
                         </button>
                     ))}

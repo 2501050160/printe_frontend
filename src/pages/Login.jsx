@@ -48,7 +48,7 @@ function Login() {
                 } else {
                     setDbOffline(true);
                 }
-            } catch {
+            } catch (err) {
                 setDbOffline(true);
             }
         };
@@ -140,22 +140,8 @@ function Login() {
                     </video>
                     <div className="absolute inset-0 bg-gradient-to-br from-slate-950/85 via-sky-950/75 to-slate-950/85 z-10 pointer-events-none" />
 
-                    <div className="z-20 relative flex items-center justify-between gap-4">
+                    <div className="z-20 relative">
                         <div className="brand-mark">CP</div>
-                        <div className="hero-signal">
-                            <span />
-                            Live kiosk network
-                        </div>
-                    </div>
-
-                    <div className="hero-depth-stage" aria-hidden="true">
-                        <div className="printer-3d">
-                            <span className="printer-slot" />
-                            <span className="printer-light" />
-                            <span className="paper paper-one" />
-                            <span className="paper paper-two" />
-                            <span className="paper paper-three" />
-                        </div>
                     </div>
 
                     <div className="z-20 relative">
@@ -166,11 +152,6 @@ function Login() {
                         <h1 className="mt-3 text-4xl font-black leading-tight text-white">
                             Upload anywhere. Print here. Collect in minutes.
                         </h1>
-                        <div className="hero-metrics" aria-label="Cloud Print service highlights">
-                            <span>PDF</span>
-                            <span>Images</span>
-                            <span>OTP Release</span>
-                        </div>
                     </div>
 
                 </div>
