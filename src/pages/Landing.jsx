@@ -209,7 +209,7 @@ function Landing() {
       <svg className="h-0 w-0 absolute pointer-events-none" aria-hidden="true">
         <defs>
           <clipPath id="hero-clip" clipPathUnits="objectBoundingBox">
-            <path d="M 0.48,0 Q 0.38,0.5 0.48,1 L 1.0,1 L 1.0,0 Z" />
+            <path d="M 0.38,0 Q 0.33,0.5 0.38,1 L 1.0,1 L 1.0,0 Z" />
           </clipPath>
         </defs>
       </svg>
@@ -293,7 +293,7 @@ function Landing() {
           {/* Massive Curved Glowing Arc Divider Stroke Overlay (rendered directly on 100% width) */}
           <svg className="absolute inset-0 w-full h-full pointer-events-none z-20 overflow-visible" viewBox="0 0 100 100" preserveAspectRatio="none">
             {/* 2px glowing blue stroke */}
-            <path d="M 48,0 Q 38,50 48,100" fill="none" stroke="rgba(59, 130, 246, 0.95)" strokeWidth="0.4" className="filter drop-shadow-[0_0_8px_rgba(59,130,246,0.95)]" vectorEffect="non-scaling-stroke" />
+            <path d="M 38,0 Q 33,50 38,100" fill="none" stroke="rgba(59, 130, 246, 0.95)" strokeWidth="0.4" className="filter drop-shadow-[0_0_8px_rgba(59,130,246,0.95)]" vectorEffect="non-scaling-stroke" />
           </svg>
 
           {/* Foreground Content Wrapper */}
