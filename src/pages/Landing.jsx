@@ -33,6 +33,7 @@ function Landing() {
   const [showDemo, setShowDemo] = useState(false);
   const statsRef = useRef(null);
   const statsStarted = useRef(false);
+  const demoVideoRef = useRef(null);
 
   // Statistics counters (animated manually using state timers on mount)
   const [stats, setStats] = useState({
@@ -77,6 +78,24 @@ function Landing() {
       { threshold: 0.3 }
     );
     if (statsRef.current) observer.observe(statsRef.current);
+    return () => observer.disconnect();
+  }, []);
+
+  // Auto-play demo video with audio when #how-it-works scrolls into view
+  useEffect(() => {
+    const video = demoVideoRef.current;
+    if (!video) return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting) {
+          video.play().catch(() => {});
+        } else {
+          video.pause();
+        }
+      },
+      { threshold: 0.4 }
+    );
+    observer.observe(video);
     return () => observer.disconnect();
   }, []);
 
@@ -283,6 +302,44 @@ function Landing() {
           <div>
             <h3 className="text-4xl font-black tracking-tight text-purple-400">{stats.students.toLocaleString()}+</h3>
             <p className="mt-2 text-xs font-bold text-slate-400 uppercase tracking-widest">Students Served</p>
+          </div>
+        </div>
+      </section>
+
+      {/* How It Works — Demo Video Section */}
+      <section id="how-it-works" className="bg-slate-950 py-24">
+        <div className="max-w-6xl mx-auto px-6">
+          <div className="text-center max-w-2xl mx-auto mb-12">
+            <span className="text-xs font-black uppercase tracking-widest text-blue-400 bg-blue-950 border border-blue-800 px-3 py-1 rounded-full">
+              Live Demo
+            </span>
+            <h2 className="mt-4 text-3xl md:text-4xl font-black text-white">
+              See CloudPrint in Action
+            </h2>
+            <p className="mt-4 text-sm font-bold text-slate-400">
+              Upload, pay, and collect prints in seconds — watch the full workflow.
+            </p>
+          </div>
+
+          {/* Video player */}
+          <div className="relative rounded-[20px] overflow-hidden border border-white/10 shadow-2xl shadow-blue-500/10">
+            {/* macOS-style bar */}
+            <div className="bg-slate-900 px-5 py-3 flex items-center gap-2 border-b border-white/10">
+              <div className="flex gap-1.5">
+                <span className="w-3 h-3 rounded-full bg-red-500" />
+                <span className="w-3 h-3 rounded-full bg-yellow-400" />
+                <span className="w-3 h-3 rounded-full bg-emerald-500" />
+              </div>
+              <span className="text-xs font-black text-slate-400 ml-2 uppercase tracking-widest">CloudPrint — How It Works</span>
+            </div>
+            <video
+              ref={demoVideoRef}
+              src={demoVideo}
+              controls
+              playsInline
+              loop
+              className="w-full aspect-video bg-black"
+            />
           </div>
         </div>
       </section>
