@@ -929,16 +929,7 @@ function AdminDashboard() {
                     >
                         Queue & Analytics
                     </button>
-                    <button
-                        onClick={() => setActiveTab("order-queue")}
-                        className={`px-4 py-2 font-bold text-sm rounded-lg transition-all ${
-                            activeTab === "order-queue"
-                                ? "bg-slate-900 text-white shadow-md"
-                                : "text-slate-600 hover:bg-slate-100/60"
-                        }`}
-                    >
-                        🖨️ Order Queue
-                    </button>
+
                     <button
                         onClick={() => {
                             setActiveTab("settings");
