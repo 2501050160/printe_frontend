@@ -689,15 +689,13 @@ function Landing() {
       <AnimatePresence>
         {showIntro && (
           <motion.div
-            className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-black"
+            className="fixed inset-0 z-50 bg-black"
             initial={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.6 }}
           >
             <video
               ref={introVideoRef}
-              autoPlay
-              muted
               playsInline
               className="w-full h-full object-cover absolute inset-0 z-0"
               onEnded={handleSkipIntro}
@@ -707,23 +705,44 @@ function Landing() {
 
             <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20 z-10 pointer-events-none" />
 
-            {/* Unmute button */}
-            <button
-              onClick={() => {
-                const v = introVideoRef.current;
-                if (!v) return;
-                v.muted = !v.muted;
-                setIsMuted(v.muted);
-              }}
-              className="absolute bottom-10 left-10 z-20 px-4 py-2.5 bg-white/10 hover:bg-white/25 text-white font-black text-xs tracking-wider uppercase rounded-full border border-white/25 backdrop-blur-md transition-all flex items-center gap-2"
-            >
-              {isMuted ? "🔇 Tap for Sound" : "🔊 Sound On"}
-            </button>
+            {/* Tap to Start splash */}
+            <AnimatePresence>
+              {isMuted && (
+                <motion.div
+                  className="absolute inset-0 z-30 flex flex-col items-center justify-center cursor-pointer"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.3 }}
+                  onClick={() => {
+                    const v = introVideoRef.current;
+                    if (!v) return;
+                    v.muted = false;
+                    v.play().catch(() => {});
+                    setIsMuted(false);
+                  }}
+                >
+                  <motion.div
+                    className="flex flex-col items-center gap-5"
+                    animate={{ scale: [1, 1.04, 1] }}
+                    transition={{ repeat: Infinity, duration: 2 }}
+                  >
+                    <div className="w-24 h-24 rounded-full bg-white/10 border border-white/30 backdrop-blur-md flex items-center justify-center shadow-2xl">
+                      <svg className="w-10 h-10 text-white ml-1" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M8 5v14l11-7z"/>
+                      </svg>
+                    </div>
+                    <p className="text-white font-black text-lg tracking-widest uppercase">Tap to Start</p>
+                    <p className="text-white/50 font-bold text-xs tracking-wider">with sound</p>
+                  </motion.div>
+                </motion.div>
+              )}
+            </AnimatePresence>
 
             {/* Skip button */}
             <button
               onClick={handleSkipIntro}
-              className="absolute bottom-10 right-10 z-20 px-6 py-3 bg-white/10 hover:bg-white/25 text-white font-black text-sm tracking-wider uppercase rounded-full border border-white/25 backdrop-blur-md transition-all shadow-2xl hover:scale-105 active:scale-95 flex items-center gap-2"
+              className="absolute bottom-10 right-10 z-40 px-6 py-3 bg-white/10 hover:bg-white/25 text-white font-black text-sm tracking-wider uppercase rounded-full border border-white/25 backdrop-blur-md transition-all shadow-2xl hover:scale-105 active:scale-95"
             >
               Skip Intro →
             </button>
