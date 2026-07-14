@@ -3,6 +3,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import api from "../services/api";
 import QueueCard from "../components/QueueCard";
 import { getBlockTheme } from "../config/blockThemes";
+import studentAd from "../assets/cloud_print_student_offers_ad.png";
 
 function DisplayPanel() {
     const [orders, setOrders] = useState([]);
@@ -436,70 +437,16 @@ function DisplayPanel() {
                         </AnimatePresence>
                     </div>
 
-                    {/* Right Column: Premium ambient loop video presentation */}
+                    {/* Right Column: AI Generated Student Offers Advertisement Poster */}
                     {!hasActiveOrPendingOrders && (
-                        <div className="hidden lg:block relative overflow-hidden h-[calc(100vh-210px)] w-full rounded-3xl">
-                            <video
-                                autoPlay
-                                loop
-                                muted
-                                playsInline
-                                className="w-full h-full object-cover opacity-80"
-                            >
-                                <source src="/assets/printer_rollers.mp4" type="video/mp4" />
-                            </video>
-                            {/* Smooth horizontal gradient overlay that blends into the background on the left side */}
-                            <div 
-                                className="absolute inset-0"
-                                style={{
-                                    background: `linear-gradient(to right, ${theme.background} 0%, ${theme.background}40 40%, transparent 100%)`
-                                }}
+                        <div className="hidden lg:block relative overflow-hidden h-[calc(100vh-210px)] w-full rounded-3xl border border-white/10 shadow-2xl">
+                            <img
+                                src={studentAd}
+                                alt="Student Offers Advertisement"
+                                className="w-full h-full object-cover"
                             />
                         </div>
                     )}
-                </div>
-
-                <style>{`
-                    @keyframes marquee-scroll {
-                        0% { transform: translateX(0%); }
-                        100% { transform: translateX(-50%); }
-                    }
-                `}</style>
-
-                {/* Student Offers Live Ticker */}
-                <div className="relative w-full overflow-hidden bg-white/5 border border-white/10 rounded-2xl py-3 px-6 mb-5 mt-6">
-                    <div 
-                        className="flex whitespace-nowrap gap-12"
-                        style={{
-                            display: 'flex',
-                            width: 'max-content',
-                            animation: 'marquee-scroll 30s linear infinite'
-                        }}
-                    >
-                        <div className="flex gap-16 shrink-0">
-                            <span className="flex items-center gap-2 text-sm font-black text-cyan-300 uppercase tracking-wider">
-                                ⚡ OFF-PEAK HAPPY HOURS: Get 15% discount for printing from 7 AM - 9 AM & 9 PM - 7 AM daily!
-                            </span>
-                            <span className="flex items-center gap-2 text-sm font-black text-emerald-400 uppercase tracking-wider">
-                                📚 THESIS BULK DISCOUNT: Printing thesis or lab records? Enjoy 15% flat discount for files &gt; 50 pages!
-                            </span>
-                            <span className="flex items-center gap-2 text-sm font-black text-amber-300 uppercase tracking-wider">
-                                👥 SHARE & EARN: Refer your friends using your unique referral code to earn ₹10 wallet credits!
-                            </span>
-                        </div>
-                        {/* Duplicate for seamless looping */}
-                        <div className="flex gap-16 shrink-0" aria-hidden="true">
-                            <span className="flex items-center gap-2 text-sm font-black text-cyan-300 uppercase tracking-wider">
-                                ⚡ OFF-PEAK HAPPY HOURS: Get 15% discount for printing from 7 AM - 9 AM & 9 PM - 7 AM daily!
-                            </span>
-                            <span className="flex items-center gap-2 text-sm font-black text-emerald-400 uppercase tracking-wider">
-                                📚 THESIS BULK DISCOUNT: Printing thesis or lab records? Enjoy 15% flat discount for files &gt; 50 pages!
-                            </span>
-                            <span className="flex items-center gap-2 text-sm font-black text-amber-300 uppercase tracking-wider">
-                                👥 SHARE & EARN: Refer your friends using your unique referral code to earn ₹10 wallet credits!
-                            </span>
-                        </div>
-                    </div>
                 </div>
 
                 <footer className="flex flex-wrap items-center justify-between gap-3 border-t border-white/10 pt-5 text-sm font-bold uppercase tracking-[0.18em] text-slate-300">

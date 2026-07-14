@@ -74,6 +74,7 @@ function Dashboard() {
     // Welcome Privacy Modal States
     const [showPrivacyNotice, setShowPrivacyNotice] = useState(false);
     const [dontShowAgain, setDontShowAgain] = useState(false);
+    const [colorSupported, setColorSupported] = useState(false);
 
     // General Announcement Modal States
     const [showGeneralPopup, setShowGeneralPopup] = useState(false);
@@ -177,6 +178,28 @@ function Dashboard() {
             console.error("Failed to fetch paper count", err);
         }
     };
+
+    useEffect(() => {
+        const fetchPrinterConfig = async () => {
+            if (!blockLocation) return;
+            try {
+                const response = await api.get("/printer/byBlock", {
+                    params: { blockLocation }
+                });
+                const config = response.data;
+                const hasColor = config && config.colourSupported === true;
+                setColorSupported(hasColor);
+                if (!hasColor) {
+                    setPrintType("BW");
+                }
+            } catch (err) {
+                console.error("Failed to fetch printer config for color check", err);
+                setColorSupported(false);
+                setPrintType("BW");
+            }
+        };
+        fetchPrinterConfig();
+    }, [blockLocation]);
 
     useEffect(() => {
         const checkStatus = async () => {
@@ -833,7 +856,9 @@ function Dashboard() {
                                                 className="field"
                                             >
                                                 <option value="BW">Black & White</option>
-                                                <option value="COLOR">Color</option>
+                                                {colorSupported && (
+                                                    <option value="COLOR">Color</option>
+                                                )}
                                             </select>
                                         </label>
 

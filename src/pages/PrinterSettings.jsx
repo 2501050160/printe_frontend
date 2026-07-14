@@ -16,6 +16,9 @@ function PrinterSettings() {
     const [maintenance, setMaintenance] = useState(false);
     const [qrScanToPrint, setQrScanToPrint] = useState(false);
     const [otpEnabled, setOtpEnabled] = useState(true);
+    const [colourSupported, setColourSupported] = useState(false);
+    const [paused, setPaused] = useState(false);
+    const [editingId, setEditingId] = useState(null);
 
     useEffect(() => {
         const adminId = localStorage.getItem("adminId");
@@ -46,13 +49,16 @@ function PrinterSettings() {
 
         try {
             await api.post("/printer/save", {
+                id: editingId,
                 blockLocation,
                 printerName,
                 printerIp,
                 active,
                 maintenance,
                 qrScanToPrint,
-                otpEnabled
+                otpEnabled,
+                colourSupported,
+                paused
             });
 
             setPrinterName("");
@@ -61,12 +67,40 @@ function PrinterSettings() {
             setMaintenance(false);
             setQrScanToPrint(false);
             setOtpEnabled(true);
+            setColourSupported(false);
+            setPaused(false);
+            setEditingId(null);
             fetchPrinters();
-            alert("Printer saved");
+            alert(editingId ? "Printer updated successfully" : "Printer saved successfully");
         } catch (error) {
             console.error(error);
-            alert("Unable to save printer");
+            alert(editingId ? "Unable to update printer" : "Unable to save printer");
         }
+    };
+
+    const handleEdit = (printer) => {
+        setEditingId(printer.id);
+        setBlockLocation(printer.blockLocation);
+        setPrinterName(printer.printerName || "");
+        setPrinterIp(printer.printerIp || "");
+        setActive(printer.active !== false);
+        setMaintenance(printer.maintenance === true);
+        setQrScanToPrint(printer.qrScanToPrint === true);
+        setOtpEnabled(printer.otpEnabled !== false);
+        setColourSupported(printer.colourSupported === true);
+        setPaused(printer.paused === true);
+    };
+
+    const cancelEdit = () => {
+        setPrinterName("");
+        setPrinterIp("");
+        setActive(true);
+        setMaintenance(false);
+        setQrScanToPrint(false);
+        setOtpEnabled(true);
+        setColourSupported(false);
+        setPaused(false);
+        setEditingId(null);
     };
 
     const deletePrinter = async (id) => {
@@ -115,74 +149,127 @@ function PrinterSettings() {
                         Block Printer Mapping
                     </h2>
 
-                    <div className="mt-5 grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-7">
-                        <select
-                            value={blockLocation}
-                            onChange={(e) => setBlockLocation(e.target.value)}
-                            className="field"
-                        >
-                            <option value="C Block">C Block</option>
-                            <option value="R Block">R Block</option>
-                            <option value="L Block">L Block</option>
-                            <option value="Library">Library</option>
-                            <option value="Hostel">Hostel</option>
-                            <option value="Administration Building">Administration Building</option>
-                        </select>
+                    <div className="mt-5 grid gap-4 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5">
+                        <div className="flex flex-col gap-1">
+                            <label className="text-xs font-bold text-slate-500">Block Location</label>
+                            <select
+                                value={blockLocation}
+                                onChange={(e) => setBlockLocation(e.target.value)}
+                                className="field"
+                            >
+                                <option value="C Block">C Block</option>
+                                <option value="R Block">R Block</option>
+                                <option value="L Block">L Block</option>
+                                <option value="Library">Library</option>
+                                <option value="Hostel">Hostel</option>
+                                <option value="Administration Building">Administration Building</option>
+                            </select>
+                        </div>
 
-                        <input
-                            type="text"
-                            placeholder="Windows printer name"
-                            value={printerName}
-                            onChange={(e) => setPrinterName(e.target.value)}
-                            className="field"
-                        />
+                        <div className="flex flex-col gap-1">
+                            <label className="text-xs font-bold text-slate-500">Printer Name</label>
+                            <input
+                                type="text"
+                                placeholder="Windows printer name"
+                                value={printerName}
+                                onChange={(e) => setPrinterName(e.target.value)}
+                                className="field"
+                            />
+                        </div>
 
-                        <input
-                            type="text"
-                            placeholder="Printer IP (optional)"
-                            value={printerIp}
-                            onChange={(e) => setPrinterIp(e.target.value)}
-                            className="field"
-                        />
+                        <div className="flex flex-col gap-1">
+                            <label className="text-xs font-bold text-slate-500">Printer IP / USB</label>
+                            <input
+                                type="text"
+                                placeholder="Printer IP (optional)"
+                                value={printerIp}
+                                onChange={(e) => setPrinterIp(e.target.value)}
+                                className="field"
+                            />
+                        </div>
 
-                        <select
-                            value={active ? "true" : "false"}
-                            onChange={(e) => setActive(e.target.value === "true")}
-                            className="field"
-                        >
-                            <option value="true">Active</option>
-                            <option value="false">Inactive</option>
-                        </select>
+                        <div className="flex flex-col gap-1">
+                            <label className="text-xs font-bold text-slate-500">Operation Status</label>
+                            <select
+                                value={paused ? "paused" : active ? "active" : "inactive"}
+                                onChange={(e) => {
+                                    const val = e.target.value;
+                                    if (val === "paused") {
+                                        setPaused(true);
+                                        setActive(false);
+                                    } else if (val === "active") {
+                                        setPaused(false);
+                                        setActive(true);
+                                    } else {
+                                        setPaused(false);
+                                        setActive(false);
+                                    }
+                                }}
+                                className="field"
+                            >
+                                <option value="active">Active (Online & Ready)</option>
+                                <option value="paused">Paused ⏸️</option>
+                                <option value="inactive">Inactive 🚫</option>
+                            </select>
+                        </div>
 
-                        <select
-                            value={maintenance ? "true" : "false"}
-                            onChange={(e) => setMaintenance(e.target.value === "true")}
-                            className="field font-bold text-amber-600 bg-amber-50/50"
-                        >
-                            <option value="false">Normal Operation</option>
-                            <option value="true">Under Maintenance 🛠️</option>
-                        </select>
+                        <div className="flex flex-col gap-1">
+                            <label className="text-xs font-bold text-slate-500">Maintenance Status</label>
+                            <select
+                                value={maintenance ? "true" : "false"}
+                                onChange={(e) => setMaintenance(e.target.value === "true")}
+                                className="field font-bold text-amber-600 bg-amber-50/50"
+                            >
+                                <option value="false">Normal Operation</option>
+                                <option value="true">Under Maintenance 🛠️</option>
+                            </select>
+                        </div>
 
-                        <select
-                            value={qrScanToPrint ? "true" : "false"}
-                            onChange={(e) => setQrScanToPrint(e.target.value === "true")}
-                            className="field font-bold text-sky-600 bg-sky-50/50"
-                        >
-                            <option value="false">Direct Printing</option>
-                            <option value="true">Scan-to-Print 🔐</option>
-                        </select>
+                        <div className="flex flex-col gap-1">
+                            <label className="text-xs font-bold text-slate-500">Supported Output Type</label>
+                            <select
+                                value={colourSupported ? "true" : "false"}
+                                onChange={(e) => setColourSupported(e.target.value === "true")}
+                                className="field font-bold text-emerald-600 bg-emerald-50/50"
+                            >
+                                <option value="false">Black & White Only 📄</option>
+                                <option value="true">Supports Color & BW 🎨</option>
+                            </select>
+                        </div>
 
-                        <select
-                            value={otpEnabled ? "true" : "false"}
-                            onChange={(e) => setOtpEnabled(e.target.value === "true")}
-                            className="field font-bold text-violet-600 bg-violet-50/50"
-                        >
-                            <option value="true">OTP Required 🔑</option>
-                            <option value="false">No OTP Direct ⚡</option>
-                        </select>
+                        <div className="flex flex-col gap-1">
+                            <label className="text-xs font-bold text-slate-500">QR Scan Flow</label>
+                            <select
+                                value={qrScanToPrint ? "true" : "false"}
+                                onChange={(e) => setQrScanToPrint(e.target.value === "true")}
+                                className="field font-bold text-sky-600 bg-sky-50/50"
+                            >
+                                <option value="false">Direct Printing</option>
+                                <option value="true">Scan-to-Print 🔐</option>
+                            </select>
+                        </div>
 
-                        <button onClick={savePrinter} className="btn success">
-                            Save Printer
+                        <div className="flex flex-col gap-1">
+                            <label className="text-xs font-bold text-slate-500">OTP Release flow</label>
+                            <select
+                                value={otpEnabled ? "true" : "false"}
+                                onChange={(e) => setOtpEnabled(e.target.value === "true")}
+                                className="field font-bold text-violet-600 bg-violet-50/50"
+                            >
+                                <option value="true">OTP Required 🔑</option>
+                                <option value="false">No OTP Direct ⚡</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div className="flex gap-3 mt-6 justify-end">
+                        {editingId && (
+                            <button onClick={cancelEdit} className="btn secondary px-6 py-2.5">
+                                Cancel Edit
+                            </button>
+                        )}
+                        <button onClick={savePrinter} className="btn success px-8 py-2.5">
+                            {editingId ? "Update Printer" : "Save Printer"}
                         </button>
                     </div>
                 </motion.section>
@@ -192,6 +279,7 @@ function PrinterSettings() {
                         <PrinterCard
                             key={printer.id}
                             printer={printer}
+                            onEdit={handleEdit}
                             onDelete={deletePrinter}
                         />
                     ))}
