@@ -209,7 +209,7 @@ function Landing() {
       <svg className="h-0 w-0 absolute pointer-events-none" aria-hidden="true">
         <defs>
           <clipPath id="hero-clip" clipPathUnits="objectBoundingBox">
-            <path d="M 0.15,0 Q 0.0,0.5 0.15,1 L 1,1 L 1,0 Z" />
+            <path d="M 0.40,0 Q 0.30,0.5 0.40,1 L 1,1 L 1,0 Z" />
           </clipPath>
         </defs>
       </svg>
@@ -265,43 +265,36 @@ function Landing() {
           {/* Subtle Blue Ambient Glow Behind Arc */}
           <div className="absolute top-1/2 left-[40%] -translate-y-1/2 -translate-x-1/2 w-[400px] h-[400px] bg-blue-500/10 rounded-full blur-[120px] pointer-events-none z-0" />
 
-          {/* Background Split Layout & Curved Arc Divider Container */}
-          <div className="absolute inset-0 z-0 flex w-full h-full">
-            {/* Left 40% Pane: Masked Background (Opacity 30%) */}
-            <div className="w-[40%] h-full bg-slate-950/95 relative z-10 flex-shrink-0 border-r border-white/5" />
-            
-            {/* Right 60% Pane: Borderless Video Container filling 100% space, clipped exactly to the curve */}
-            <div 
-              className="absolute inset-y-0 right-0 left-[30%] z-0 bg-slate-950"
-              style={{
-                clipPath: "url(#hero-clip)",
-                WebkitClipPath: "url(#hero-clip)"
-              }}
-            >
-              <video 
-                src={inVideo}
-                autoPlay 
-                muted 
-                loop 
-                playsInline
-                preload="auto"
-                controls={false}
-                controlsList="nodownload nofullscreen"
-                disablePictureInPicture
-                draggable="false"
-                className="w-full h-full object-cover object-center pointer-events-none select-none opacity-100"
-              />
-              
-              {/* Massive Curved Glowing Arc Overlay (drawn on the exact same container path) */}
-              <svg className="absolute inset-0 w-full h-full pointer-events-none z-20 overflow-visible" viewBox="0 0 100 100" preserveAspectRatio="none">
-                {/* 2px glowing blue stroke */}
-                <path d="M 15,0 Q 0,50 15,100" fill="none" stroke="rgba(59, 130, 246, 0.95)" strokeWidth="0.4" className="filter drop-shadow-[0_0_8px_rgba(59,130,246,0.95)]" vectorEffect="non-scaling-stroke" />
-              </svg>
-
-              {/* Soft feather overlay gradient where the arc meets the video */}
-              <div className="absolute inset-y-0 left-0 w-32 bg-gradient-to-r from-slate-950 to-transparent z-10 pointer-events-none" />
-            </div>
+          {/* Background Video Showcase: occupies full hero area, clipped exactly to the curve */}
+          <div 
+            className="absolute inset-0 z-0 bg-transparent"
+            style={{
+              clipPath: "url(#hero-clip)",
+              WebkitClipPath: "url(#hero-clip)"
+            }}
+          >
+            <video 
+              src={inVideo}
+              autoPlay 
+              muted 
+              loop 
+              playsInline
+              preload="auto"
+              controls={false}
+              controlsList="nodownload nofullscreen"
+              disablePictureInPicture
+              draggable="false"
+              className="w-full h-full object-cover object-center pointer-events-none select-none opacity-100"
+            />
+            {/* Soft feather overlay gradient where the arc meets the video */}
+            <div className="absolute inset-y-0 left-0 w-32 bg-gradient-to-r from-slate-950 to-transparent z-10 pointer-events-none" />
           </div>
+
+          {/* Massive Curved Glowing Arc Divider Stroke Overlay (rendered directly on 100% width) */}
+          <svg className="absolute inset-0 w-full h-full pointer-events-none z-20 overflow-visible" viewBox="0 0 100 100" preserveAspectRatio="none">
+            {/* 2px glowing blue stroke */}
+            <path d="M 40,0 Q 30,50 40,100" fill="none" stroke="rgba(59, 130, 246, 0.95)" strokeWidth="0.4" className="filter drop-shadow-[0_0_8px_rgba(59,130,246,0.95)]" vectorEffect="non-scaling-stroke" />
+          </svg>
 
           {/* Foreground Content Wrapper */}
           <div className="relative z-10 w-full px-8 md:px-12 lg:px-16 flex flex-col lg:flex-row justify-between items-center min-h-[90vh]">
