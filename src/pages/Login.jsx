@@ -15,6 +15,13 @@ function Login() {
     const [dbOffline, setDbOffline] = useState(false);
     const [resending, setResending] = useState(false);
     const [oauthRedirecting, setOauthRedirecting] = useState(null);
+    
+    // States for setting OAuth passwords
+    const [oauthNewUser, setOauthNewUser] = useState(null);
+    const [oauthPassword, setOauthPassword] = useState("");
+    const [oauthPasswordConfirm, setOauthPasswordConfirm] = useState("");
+    const [settingPasswordLoading, setSettingPasswordLoading] = useState(false);
+    const [errorMessage, setErrorMessage] = useState("");
 
     const handleOAuth = (provider) => {
         setOauthRedirecting(provider);
@@ -32,16 +39,54 @@ function Login() {
         const params = new URLSearchParams(location.search);
         const oauthSuccess = params.get("oauth_success");
         if (oauthSuccess === "true") {
+            const isNew = params.get("is_new_user") === "true";
             const user = {
                 id: params.get("id"),
                 name: params.get("name"),
                 email: params.get("email"),
                 walletBalance: parseFloat(params.get("walletBalance") || "0.0")
             };
-            persistUser(user);
-            navigate("/blocks");
+            if (isNew) {
+                setOauthNewUser(user);
+            } else {
+                persistUser(user);
+                navigate("/blocks");
+            }
         }
     }, [location, navigate]);
+
+    const handleSetOauthPassword = async (e) => {
+        e.preventDefault();
+        if (!oauthPassword || oauthPassword.length < 6) {
+            setErrorMessage("Password must be at least 6 characters long.");
+            return;
+        }
+        if (oauthPassword !== oauthPasswordConfirm) {
+            setErrorMessage("Passwords do not match.");
+            return;
+        }
+        setSettingPasswordLoading(true);
+        setErrorMessage("");
+        try {
+            const formData = new URLSearchParams();
+            formData.append("email", oauthNewUser.email);
+            formData.append("newPassword", oauthPassword);
+
+            await api.post("/oauth/set-password", formData, {
+                headers: {
+                    "Content-Type": "application/x-www-form-urlencoded"
+                }
+            });
+
+            persistUser(oauthNewUser);
+            navigate("/blocks");
+        } catch (err) {
+            console.error(err);
+            setErrorMessage(err.response?.data || "Failed to set password.");
+        } finally {
+            setSettingPasswordLoading(false);
+        }
+    };
 
     useEffect(() => {
         const introShown = sessionStorage.getItem("introShown");
@@ -394,6 +439,74 @@ function Login() {
                         >
                             Skip Intro
                         </button>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
+            {/* New OAuth User Set Password Modal */}
+            <AnimatePresence>
+                {oauthNewUser && (
+                    <motion.div 
+                        className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/75 backdrop-blur-md p-4"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                    >
+                        <motion.div 
+                            className="bg-white rounded-[24px] p-8 max-w-md w-full shadow-2xl border border-slate-100 relative text-slate-800"
+                            initial={{ scale: 0.9, y: 20 }}
+                            animate={{ scale: 1, y: 0 }}
+                            exit={{ scale: 0.9, y: 20 }}
+                        >
+                            <h2 className="text-2xl font-black tracking-tight text-slate-900">
+                                Complete Registration 🔑
+                            </h2>
+                            <p className="mt-2.5 text-xs text-slate-500 font-bold leading-relaxed">
+                                Welcome, <span className="text-blue-600 font-black">{oauthNewUser.name}</span>! Since this is your first time logging in with Google, please set a password. 
+                            </p>
+                            <p className="mt-1 text-[11px] text-slate-400 font-bold">
+                                You can log in in the future using either Google Sign-In or this email & password.
+                            </p>
+
+                            <form onSubmit={handleSetOauthPassword} className="mt-6 flex flex-col gap-4">
+                                <div className="flex flex-col gap-1.5">
+                                    <label className="text-[10px] font-black uppercase tracking-wider text-slate-400">Choose Password</label>
+                                    <input 
+                                        type="password" 
+                                        required 
+                                        className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl font-bold text-sm focus:outline-none focus:border-blue-600 transition-colors" 
+                                        placeholder="Min 6 characters"
+                                        value={oauthPassword}
+                                        onChange={(e) => setOauthPassword(e.target.value)}
+                                    />
+                                </div>
+                                <div className="flex flex-col gap-1.5">
+                                    <label className="text-[10px] font-black uppercase tracking-wider text-slate-400">Confirm Password</label>
+                                    <input 
+                                        type="password" 
+                                        required 
+                                        className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl font-bold text-sm focus:outline-none focus:border-blue-600 transition-colors" 
+                                        placeholder="Repeat password"
+                                        value={oauthPasswordConfirm}
+                                        onChange={(e) => setOauthPasswordConfirm(e.target.value)}
+                                    />
+                                </div>
+
+                                {errorMessage && (
+                                    <p className="text-xs font-bold text-red-600">
+                                        ⚠️ {errorMessage}
+                                    </p>
+                                )}
+
+                                <button 
+                                    type="submit" 
+                                    className="btn w-full mt-2"
+                                    disabled={settingPasswordLoading}
+                                >
+                                    {settingPasswordLoading ? "Setting Password..." : "Complete & Log In"}
+                                </button>
+                            </form>
+                        </motion.div>
                     </motion.div>
                 )}
             </AnimatePresence>
