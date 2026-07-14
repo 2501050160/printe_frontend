@@ -269,9 +269,9 @@ function Landing() {
             <div className="w-[10%] h-full relative z-10 -ml-[1px] flex-shrink-0">
               <svg className="h-full w-full text-slate-950 fill-current overflow-visible" viewBox="0 0 100 100" preserveAspectRatio="none">
                 {/* Arc shape masks left side */}
-                <path d="M 0,0 Q 90,50 0,100 L 100,100 L 100,0 Z" className="text-slate-950" />
+                <path d="M 0,0 Q 10,50 0,100 L 100,100 L 100,0 Z" className="text-slate-950" />
                 {/* Glowing neon stroke */}
-                <path d="M 0,0 Q 90,50 0,100" fill="none" stroke="rgba(59, 130, 246, 0.6)" strokeWidth="1.5" className="filter drop-shadow-[0_0_8px_rgba(59,130,246,0.6)]" />
+                <path d="M 0,0 Q 10,50 0,100" fill="none" stroke="rgba(59, 130, 246, 0.6)" strokeWidth="1.5" className="filter drop-shadow-[0_0_8px_rgba(59,130,246,0.6)]" />
               </svg>
             </div>
             
