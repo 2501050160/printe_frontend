@@ -1281,7 +1281,6 @@ function AdminDashboard() {
                                         <th>Price</th>
                                         <th>Payment</th>
                                         <th>Status</th>
-                                        <th>Action</th>
                                     </tr>
                                 </thead>
 
@@ -1294,7 +1293,16 @@ function AdminDashboard() {
                                             transition={{ delay: index * 0.03 }}
                                         >
                                             <td className="font-black">
-                                                {order.orderId}
+                                                <div className="flex items-center gap-2">
+                                                    <span>{order.orderId}</span>
+                                                    <button
+                                                        onClick={() => downloadPdf(order.id)}
+                                                        className="text-xs text-sky-600 hover:text-sky-800 font-bold underline cursor-pointer"
+                                                        title="Download PDF"
+                                                    >
+                                                        📥 PDF
+                                                    </button>
+                                                </div>
                                             </td>
                                             <td className="font-bold">
                                                 {order.blockLocation || "C Block"}
@@ -1303,13 +1311,13 @@ function AdminDashboard() {
                                                 {order.customerName || "Customer"}
                                             </td>
                                             <td>
-                                             <button
-                                                 onClick={() => showPagesDetails(order)}
-                                                 className="text-sky-600 hover:text-sky-800 font-bold underline cursor-pointer"
-                                             >
-                                                 {getPagesCount(order)}
-                                             </button>
-                                         </td>
+                                                <button
+                                                    onClick={() => showPagesDetails(order)}
+                                                    className="text-sky-600 hover:text-sky-800 font-bold underline cursor-pointer"
+                                                >
+                                                    {getPagesCount(order)}
+                                                </button>
+                                            </td>
                                             <td>{order.copies}</td>
                                             <td className="font-black text-slate-900">
                                                 Rs. {order.price}
@@ -1320,33 +1328,16 @@ function AdminDashboard() {
                                                 </span>
                                             </td>
                                             <td>
-                                                <select
-                                                    value={order.status}
-                                                    onChange={(e) => updateStatus(order.id, e.target.value)}
-                                                    className="field py-1 px-2 text-xs font-bold"
-                                                    style={{ width: "auto", minHeight: "30px" }}
-                                                >
-                                                    <option value="CANCEL_WINDOW">CANCEL WINDOW</option>
-                                                    <option value="QUEUE">QUEUE</option>
-                                                    <option value="PRINTING">PRINTING</option>
-                                                    <option value="COMPLETED">COMPLETED</option>
-                                                    <option value="CANCELLED">CANCELLED</option>
-                                                </select>
-                                            </td>
-                                            <td>
-                                                <button
-                                                    onClick={() => downloadPdf(order.id)}
-                                                    className="btn secondary min-h-0 px-3 py-1.5 text-xs font-black"
-                                                >
-                                                    Download
-                                                </button>
+                                                <span className={statusClass(order.status)}>
+                                                    {order.status}
+                                                </span>
                                             </td>
                                         </motion.tr>
                                     ))}
 
                                     {orders.length === 0 && (
                                         <tr>
-                                            <td colSpan="9" className="text-center font-bold text-slate-500 py-6">
+                                            <td colSpan="8" className="text-center font-bold text-slate-500 py-6">
                                                 No print orders in queue
                                             </td>
                                         </tr>
@@ -1398,7 +1389,6 @@ function AdminDashboard() {
                                     <th>Payment</th>
                                     <th>Status</th>
                                     <th>OTP Code</th>
-                                    <th>Action</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -1411,7 +1401,18 @@ function AdminDashboard() {
                                         animate={{ opacity: 1, y: 0 }}
                                         transition={{ delay: index * 0.03 }}
                                     >
-                                        <td className="font-black">{order.orderId}</td>
+                                        <td className="font-black">
+                                            <div className="flex items-center gap-2">
+                                                <span>{order.orderId}</span>
+                                                <button
+                                                    onClick={() => downloadPdf(order.id)}
+                                                    className="text-xs text-sky-600 hover:text-sky-800 font-bold underline cursor-pointer"
+                                                    title="Download PDF"
+                                                >
+                                                    📥 PDF
+                                                </button>
+                                            </div>
+                                        </td>
                                         <td className="font-bold">{order.blockLocation || "—"}</td>
                                         <td className="font-bold text-slate-900">{order.customerName || "Customer"}</td>
                                              <td>
@@ -1437,27 +1438,12 @@ function AdminDashboard() {
                                         <td className="font-black text-sky-600 tracking-widest">
                                             {order.otpCode || "—"}
                                         </td>
-                                        <td>
-                                            <select
-                                                value={order.status}
-                                                onChange={(e) => updateStatus(order.id, e.target.value)}
-                                                className="field py-1 px-2 text-xs font-bold"
-                                                style={{ width: "auto", minHeight: "30px" }}
-                                            >
-                                                <option value="CANCEL_WINDOW">CANCEL WINDOW</option>
-                                                <option value="PENDING_SCAN">PENDING SCAN</option>
-                                                <option value="QUEUE">QUEUE</option>
-                                                <option value="PRINTING">PRINTING</option>
-                                                <option value="COMPLETED">COMPLETED</option>
-                                                <option value="CANCELLED">CANCELLED</option>
-                                            </select>
-                                        </td>
                                     </motion.tr>
                                 ))}
 
                                 {orders.filter(o => ["CANCEL_WINDOW", "PENDING_SCAN", "QUEUE", "PRINTING"].includes(o.status)).length === 0 && (
                                     <tr>
-                                        <td colSpan="10" className="text-center font-bold text-slate-500 py-6">
+                                        <td colSpan="9" className="text-center font-bold text-slate-500 py-6">
                                             No active orders in the print queue
                                         </td>
                                     </tr>

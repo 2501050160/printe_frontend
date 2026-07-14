@@ -1,4 +1,4 @@
-function PrinterCard({ printer, onDelete }) {
+function PrinterCard({ printer, onEdit, onDelete }) {
     return (
         <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
             <div className="flex items-start justify-between gap-4">
@@ -36,23 +36,41 @@ function PrinterCard({ printer, onDelete }) {
                     className={
                         printer.maintenance
                             ? "status-pill !bg-amber-500 !text-white !border-amber-600 font-bold"
+                            : printer.paused
+                            ? "status-pill !bg-slate-400 !text-white !border-slate-500 font-bold"
                             : printer.active
                             ? "status-pill status-paid"
                             : "status-pill status-unpaid"
                     }
                 >
-                    {printer.maintenance ? "Maintenance" : printer.active ? "Active" : "Inactive"}
+                    {printer.maintenance ? "Maintenance" : printer.paused ? "Paused" : printer.active ? "Active" : "Inactive"}
                 </span>
             </div>
 
-            {onDelete && (
-                <button
-                    onClick={() => onDelete(printer.id)}
-                    className="btn danger mt-4 min-h-0 px-3 py-2 text-sm"
-                >
-                    Delete
-                </button>
-            )}
+            <div className="mt-3 flex flex-col gap-1">
+                <span className={`text-xs font-bold ${printer.colourSupported ? "text-emerald-600" : "text-slate-500"}`}>
+                    🎨 Type: {printer.colourSupported ? "Supports Color & BW" : "Black & White Only"}
+                </span>
+            </div>
+
+            <div className="flex gap-2 mt-4">
+                {onEdit && (
+                    <button
+                        onClick={() => onEdit(printer)}
+                        className="btn secondary min-h-0 px-4 py-2 text-sm font-bold"
+                    >
+                        ✏️ Edit
+                    </button>
+                )}
+                {onDelete && (
+                    <button
+                        onClick={() => onDelete(printer.id)}
+                        className="btn danger min-h-0 px-4 py-2 text-sm font-bold"
+                    >
+                        🗑️ Delete
+                    </button>
+                )}
+            </div>
         </div>
     );
 }
