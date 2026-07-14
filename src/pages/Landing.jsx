@@ -171,6 +171,7 @@ function Landing() {
   ];
 
   return (
+    <>
     <div className="min-h-screen bg-white text-slate-900 dot-grid relative overflow-hidden font-sans">
       {/* Subtle Animated Background Mesh */}
       <div className="absolute top-0 right-0 w-[50rem] h-[50rem] bg-gradient-to-br from-blue-500/5 to-purple-500/5 rounded-full blur-[120px] pointer-events-none" />
