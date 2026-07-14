@@ -1,8 +1,8 @@
 import { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import introVideo from "../assets/Background.mp4";
-import demoVideo from "../assets/how_to_upload.mp4";
+import introVideo from "../assets/intro.mp4";
+import demoVideo from "../assets/demo.mp4";
 import { 
   Printer, 
   UploadCloud, 
