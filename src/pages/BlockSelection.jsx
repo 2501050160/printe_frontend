@@ -26,6 +26,34 @@ function BlockSelection() {
     const [inputOtp, setInputOtp] = useState("");
     const [otpError, setOtpError] = useState("");
     const [releasing, setReleasing] = useState(false);
+    const [otpTimeLeft, setOtpTimeLeft] = useState(0);
+
+    const formatTime = (seconds) => {
+        const mins = Math.floor(seconds / 60);
+        const secs = seconds % 60;
+        return `${mins}:${secs < 10 ? "0" : ""}${secs}`;
+    };
+
+    useEffect(() => {
+        if (!showOtpModal || !selectedOrderId) return;
+        
+        const selectedOrder = pendingOrders.find(o => o.orderId === selectedOrderId);
+        if (!selectedOrder) return;
+
+        const updateTimer = () => {
+            if (!selectedOrder.cancelWindowEndsAt) {
+                setOtpTimeLeft(600);
+                return;
+            }
+            const expireTime = new Date(selectedOrder.cancelWindowEndsAt).getTime() + 10 * 60 * 1000;
+            const left = Math.max(0, Math.floor((expireTime - Date.now()) / 1000));
+            setOtpTimeLeft(left);
+        };
+
+        updateTimer();
+        const interval = setInterval(updateTimer, 1000);
+        return () => clearInterval(interval);
+    }, [showOtpModal, selectedOrderId, pendingOrders]);
 
     // Custom Modal config
     const [modalConfig, setModalConfig] = useState({
@@ -103,7 +131,6 @@ function BlockSelection() {
                     showAlert("Direct Printing Released! 🚀", `OTP is bypassed for ${blockLoc}. Your document has been sent directly to the printer spooler!`, "success");
                     navigate("/my-orders");
                 } else {
-                    setShowOtpModal(true);
                     setOtpError("");
                     
                     if (redirectOtp) {
@@ -341,6 +368,12 @@ function BlockSelection() {
                                             </option>
                                         ))}
                                     </select>
+                                )}
+
+                                {selectedOrderId && pendingOrders.find(o => o.orderId === selectedOrderId) && (
+                                    <div className="text-center text-xs font-bold text-amber-500 bg-amber-500/10 border border-amber-500/20 py-2 rounded-xl mt-2">
+                                        ⏱️ OTP Expires in: <span className="font-mono text-sm font-black">{formatTime(otpTimeLeft)}</span>
+                                    </div>
                                 )}
 
                                 <input
