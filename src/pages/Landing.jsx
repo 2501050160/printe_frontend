@@ -205,13 +205,22 @@ function Landing() {
   return (
     <>
     <div className="min-h-screen bg-white text-slate-900 dot-grid relative overflow-hidden font-sans">
+      {/* Inline SVG Clip Path definition */}
+      <svg className="h-0 w-0 absolute pointer-events-none" aria-hidden="true">
+        <defs>
+          <clipPath id="hero-clip" clipPathUnits="objectBoundingBox">
+            <path d="M 0.2,0 Q 0.05,0.5 0.2,1 L 1,1 L 1,0 Z" />
+          </clipPath>
+        </defs>
+      </svg>
+
       {/* Subtle Animated Background Mesh */}
       <div className="absolute top-0 right-0 w-[50rem] h-[50rem] bg-gradient-to-br from-blue-500/5 to-purple-500/5 rounded-full blur-[120px] pointer-events-none" />
       <div className="absolute bottom-10 left-0 w-[40rem] h-[40rem] bg-gradient-to-tr from-emerald-500/5 to-blue-500/5 rounded-full blur-[120px] pointer-events-none" />
 
-      {/* Floating Glass Navbar */}
+      {/* Floating Transparent Navbar */}
       <header className="sticky top-0 z-50 px-6 py-4 transition-all">
-        <nav className="max-w-6xl mx-auto flex items-center justify-between p-4 rounded-2xl glass-panel shadow-sm border border-white/40">
+        <nav className="max-w-6xl mx-auto flex items-center justify-between p-4 bg-transparent backdrop-blur-md border border-white/10 rounded-2xl">
           <div className="flex items-center gap-2">
             <div className="p-2 rounded-xl bg-blue-600 text-white shadow-md shadow-blue-500/20">
               <Printer className="w-5 h-5" />
@@ -242,7 +251,7 @@ function Landing() {
       {/* Hero Section */}
       <section className="w-full max-w-none px-0 pt-0 pb-24 relative z-10">
         <motion.div 
-          className="relative w-full rounded-none min-h-[85vh] py-16 md:py-24 bg-slate-950 border-y border-white/10 shadow-[0_30px_60px_rgba(37,99,235,0.2)] overflow-hidden cursor-pointer flex items-center"
+          className="relative w-full rounded-none min-h-[90vh] bg-slate-950 border-y border-white/10 overflow-hidden flex items-center"
           initial={{ y: 0 }}
           animate={{ 
             y: [0, -4, 0],
@@ -252,31 +261,31 @@ function Landing() {
             repeat: Infinity,
             ease: "easeInOut"
           }}
-          whileHover={{ 
-            boxShadow: "0 35px 80px rgba(37,99,235,0.35)",
-            borderColor: "rgba(59,130,246,0.4)"
-          }}
           style={{ transition: "all 0.3s ease" }}        >
           {/* Subtle Blue Ambient Glow Behind Arc */}
           <div className="absolute top-1/2 left-[40%] -translate-y-1/2 -translate-x-1/2 w-[400px] h-[400px] bg-blue-500/10 rounded-full blur-[120px] pointer-events-none z-0" />
 
-          {/* Background Split Layout: Video fills the right 60% entirely */}
+          {/* Background Split Layout & Curved Arc Divider Container */}
           <div className="absolute inset-0 z-0 flex w-full h-full">
             {/* Left 40% Pane: Masked Background (Opacity 30%) */}
             <div className="w-[40%] h-full bg-slate-950/95 relative z-10 flex-shrink-0 border-r border-white/5" />
             
             {/* Large Curved SVG Divider Leaning Toward Text */}
-            <div className="w-[10%] h-full relative z-10 -ml-[1px] flex-shrink-0">
+            <div className="w-[20%] h-full relative z-20 -ml-[10%] flex-shrink-0">
               <svg className="h-full w-full text-slate-950 fill-current overflow-visible" viewBox="0 0 100 100" preserveAspectRatio="none">
-                {/* Arc shape masks left side */}
-                <path d="M 0,0 Q 10,50 0,100 L 100,100 L 100,0 Z" className="text-slate-950" />
                 {/* Glowing neon stroke with 2px width */}
-                <path d="M 0,0 Q 10,50 0,100" fill="none" stroke="rgba(59, 130, 246, 0.7)" strokeWidth="2" className="filter drop-shadow-[0_0_12px_rgba(59,130,246,0.7)]" />
+                <path d="M 20,0 Q 5,50 20,100" fill="none" stroke="rgba(59, 130, 246, 0.85)" strokeWidth="2" className="filter drop-shadow-[0_0_12px_rgba(59,130,246,0.85)]" />
               </svg>
             </div>
             
-            {/* Right 50% Pane: Borderless, Paddingless Video Container filling 100% space */}
-            <div className="w-[50%] h-full relative z-0 flex-shrink-0 pl-[20px] overflow-hidden bg-slate-950">
+            {/* Right 60% Pane: Borderless Video Container filling 100% space, clipped exactly to the curve */}
+            <div 
+              className="absolute inset-y-0 right-0 left-[30%] z-0 bg-slate-950"
+              style={{
+                clipPath: "url(#hero-clip)",
+                WebkitClipPath: "url(#hero-clip)"
+              }}
+            >
               <video 
                 src={inVideo}
                 autoPlay 
@@ -288,7 +297,7 @@ function Landing() {
                 controlsList="nodownload nofullscreen"
                 disablePictureInPicture
                 draggable="false"
-                className="w-full h-full object-cover object-center pointer-events-none select-none opacity-100 transition-opacity duration-300"
+                className="w-full h-full object-cover object-center pointer-events-none select-none opacity-100"
               />
               {/* Soft feather overlay gradient where the arc meets the video */}
               <div className="absolute inset-y-0 left-0 w-32 bg-gradient-to-r from-slate-950 to-transparent z-10 pointer-events-none" />
