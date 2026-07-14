@@ -24,33 +24,6 @@ function Checkout() {
 
     const [isScheduled, setIsScheduled] = useState(false);
     const [scheduledTime, setScheduledTime] = useState("");
-    const [smsPhone, setSmsPhone] = useState("");
-    const [pdfBlobUrl, setPdfBlobUrl] = useState(null);
-    const [loadingPdf, setLoadingPdf] = useState(true);
-
-    useEffect(() => {
-        const loadPdfPreview = async () => {
-            if (!order || !order.id) return;
-            try {
-                const response = await api.get(`/pdf/download/${order.id}`, {
-                    responseType: "blob"
-                });
-                const blobUrl = URL.createObjectURL(response.data);
-                setPdfBlobUrl(blobUrl);
-            } catch (err) {
-                console.error("Failed to load PDF preview:", err);
-            } finally {
-                setLoadingPdf(false);
-            }
-        };
-        loadPdfPreview();
-
-        return () => {
-            if (pdfBlobUrl) {
-                URL.revokeObjectURL(pdfBlobUrl);
-            }
-        };
-    }, [order?.id]);
 
     // Custom Modal config
     const [modalConfig, setModalConfig] = useState({
@@ -66,8 +39,7 @@ function Checkout() {
             await api.post("/pdf/updateScheduledInfo", null, {
                 params: {
                     orderId: order.orderId,
-                    scheduledTime: isScheduled ? scheduledTime : "",
-                    smsNotificationPhone: smsPhone
+                    scheduledTime: isScheduled ? scheduledTime : ""
                 }
             });
         } catch (err) {
@@ -400,35 +372,6 @@ function Checkout() {
                                 <p className="text-xs text-slate-500 font-bold mt-3 animate-pulse">Waiting for Payment...</p>
                             </div>
                         </div>
-
-                        {/* PDF Document Preview */}
-                        <div className="mt-6 border-t border-slate-100 pt-5">
-                            <p className="font-bold text-slate-500 mb-3 text-sm">Document Preview</p>
-                            <div className="rounded-xl border border-slate-200 bg-slate-50 overflow-hidden h-[300px] flex items-center justify-center relative shadow-inner">
-                                {loadingPdf ? (
-                                    <div className="flex flex-col items-center gap-2">
-                                        <svg className="animate-spin h-6 w-6 text-slate-500" fill="none" viewBox="0 0 24 24">
-                                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
-                                        </svg>
-                                        <p className="text-xs text-slate-500 font-bold">Loading preview...</p>
-                                    </div>
-                                ) : pdfBlobUrl ? (
-                                    <object
-                                        data={pdfBlobUrl}
-                                        type="application/pdf"
-                                        className="w-full h-full"
-                                    >
-                                        <p className="text-xs text-slate-500 p-4 text-center">
-                                            PDF preview not supported by your browser. 
-                                            <a href={pdfBlobUrl} download={order.fileName} className="text-sky-500 underline font-bold ml-1">Download File</a>
-                                        </p>
-                                    </object>
-                                ) : (
-                                    <p className="text-xs text-slate-400 font-bold">Preview unavailable</p>
-                                )}
-                            </div>
-                        </div>
                     </motion.section>
 
                     <motion.section
@@ -537,18 +480,6 @@ function Checkout() {
                                     />
                                 </div>
                             )}
-
-                            <div className="mt-4">
-                                <p className="text-sm font-bold text-slate-500 mb-1">Admin Low-Paper SMS Alert Number</p>
-                                <input
-                                    type="tel"
-                                    placeholder="Enter admin phone number"
-                                    value={smsPhone}
-                                    onChange={(e) => setSmsPhone(e.target.value)}
-                                    className="field w-full"
-                                />
-                                <span className="block text-[10px] text-slate-400 mt-1 font-medium">Triggers automated low-paper warning SMS logs to the admin when printer stock runs below 50 sheets.</span>
-                            </div>
                         </div>
 
                         {maintenance && (
