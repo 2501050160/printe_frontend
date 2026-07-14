@@ -510,25 +510,25 @@ function DisplayPanel() {
                 </footer>
             </section>
 
-            <div className="fixed bottom-24 left-8 z-40 flex items-center gap-5 p-5 rounded-2xl bg-slate-950/90 backdrop-blur-md border border-white/10 shadow-2xl max-w-sm transition-all hover:scale-105">
-                <div className="p-2 bg-white rounded-xl shadow-md shrink-0">
+            <div className="fixed bottom-24 left-8 z-40 flex items-center gap-6 p-6 rounded-2xl bg-slate-950/90 backdrop-blur-md border border-white/10 shadow-2xl max-w-md transition-all hover:scale-105">
+                <div className="p-2.5 bg-white rounded-xl shadow-md shrink-0">
                     <img 
-                        src="https://api.qrserver.com/v1/create-qr-code/?size=130x130&data=https://www.saipraveen.site&color=0f172a" 
+                        src="https://api.qrserver.com/v1/create-qr-code/?size=170x170&data=https://www.saipraveen.site&color=0f172a" 
                         alt="www.saipraveen.site QR Code"
-                        className="w-[130px] h-[130px] block"
+                        className="w-[170px] h-[170px] block"
                     />
                 </div>
                 <div className="text-left">
-                    <span className="text-[9px] font-black uppercase tracking-widest text-slate-400 bg-white/5 border border-white/10 px-2 py-0.5 rounded-full">
+                    <span className="text-[11px] font-black uppercase tracking-widest text-slate-300 bg-white/5 border border-white/10 px-3 py-1 rounded-full">
                         No App Needed
                     </span>
-                    <h4 className="text-sm font-black text-white mt-1.5">
+                    <h4 className="text-xl font-black text-white mt-3">
                         Scan to Print
                     </h4>
-                    <p className="text-[10px] font-bold text-slate-400 mt-2">
+                    <p className="text-xs font-bold text-slate-400 mt-3">
                         Website Link:
                     </p>
-                    <code className="text-xs font-black text-cyan-300 block mt-0.5 select-all">
+                    <code className="text-sm md:text-base font-black text-cyan-300 block mt-1 select-all">
                         www.saipraveen.site
                     </code>
                 </div>
