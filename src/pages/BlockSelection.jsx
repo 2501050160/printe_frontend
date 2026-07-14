@@ -28,6 +28,18 @@ function BlockSelection() {
     const [releasing, setReleasing] = useState(false);
     const [otpTimeLeft, setOtpTimeLeft] = useState(0);
 
+    const parseBackendDate = (dateVal) => {
+        if (!dateVal) return null;
+        if (Array.isArray(dateVal)) {
+            const [y, m, d, hr, min, sec] = dateVal;
+            return new Date(y, m - 1, d, hr || 0, min || 0, sec || 0);
+        }
+        if (typeof dateVal === "string") {
+            return new Date(dateVal.replace(" ", "T"));
+        }
+        return new Date(dateVal);
+    };
+
     const formatTime = (seconds) => {
         const mins = Math.floor(seconds / 60);
         const secs = seconds % 60;
@@ -45,7 +57,12 @@ function BlockSelection() {
                 setOtpTimeLeft(600);
                 return;
             }
-            const expireTime = new Date(selectedOrder.cancelWindowEndsAt).getTime() + 10 * 60 * 1000;
+            const dateObj = parseBackendDate(selectedOrder.cancelWindowEndsAt);
+            if (!dateObj || isNaN(dateObj.getTime())) {
+                setOtpTimeLeft(600);
+                return;
+            }
+            const expireTime = dateObj.getTime() + 10 * 60 * 1000;
             const left = Math.max(0, Math.floor((expireTime - Date.now()) / 1000));
             setOtpTimeLeft(left);
         };

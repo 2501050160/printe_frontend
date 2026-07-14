@@ -4,9 +4,23 @@ import { useState, useEffect } from "react";
 function QueueCard({ order, index = 0 }) {
     const isPendingScan = order.status === "PENDING_SCAN";
 
+    const parseBackendDate = (dateVal) => {
+        if (!dateVal) return null;
+        if (Array.isArray(dateVal)) {
+            const [y, m, d, hr, min, sec] = dateVal;
+            return new Date(y, m - 1, d, hr || 0, min || 0, sec || 0);
+        }
+        if (typeof dateVal === "string") {
+            return new Date(dateVal.replace(" ", "T"));
+        }
+        return new Date(dateVal);
+    };
+
     const calculateTimeLeft = () => {
         if (!order.cancelWindowEndsAt) return 600;
-        const expireTime = new Date(order.cancelWindowEndsAt).getTime() + 10 * 60 * 1000;
+        const dateObj = parseBackendDate(order.cancelWindowEndsAt);
+        if (!dateObj || isNaN(dateObj.getTime())) return 600;
+        const expireTime = dateObj.getTime() + 10 * 60 * 1000;
         return Math.max(0, Math.floor((expireTime - Date.now()) / 1000));
     };
 

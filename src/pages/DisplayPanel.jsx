@@ -81,7 +81,9 @@ function DisplayPanel() {
 
     const fetchOrders = async () => {
         try {
-            const response = await api.get("/pdf/orders");
+            const response = await api.get("/pdf/orders", {
+                params: { t: Date.now() }
+            });
             const incomingOrders = response.data || [];
 
             detectCompletedOrders(incomingOrders);
