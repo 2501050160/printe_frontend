@@ -219,7 +219,7 @@ function Landing() {
             </span>
           </div>
 
-          <div className="hidden lg:flex items-center gap-16 text-sm font-black text-slate-400">
+          <div className="hidden md:flex items-center gap-16 text-sm font-black text-slate-400">
             <a href="#features" className="hover:text-white transition-colors">Features</a>
             <a href="#locations" className="hover:text-white transition-colors">Campus Locations</a>
             <a href="#how-it-works" className="hover:text-white transition-colors">How it Works</a>
