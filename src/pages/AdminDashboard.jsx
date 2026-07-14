@@ -900,157 +900,144 @@ function AdminDashboard() {
         }
     };
 
-    return (
-        <main className="page-shell page-shell-decorated">
-            <div className="content-wrap">
-                <Navbar
-                    title="Admin Dashboard"
-                    subtitle="Operations Control Panel"
-                    badge="Stats refresh live every 3 seconds."
-                    actions={[
-                        { label: "📋 Queue Kanban", path: "/admin/queue", className: "btn secondary text-xs py-2 px-3 min-h-0 font-bold" },
-                        { label: "👥 Users", path: "/admin/users", className: "btn secondary text-xs py-2 px-3 min-h-0 font-bold" },
-                        { label: "📊 Analytics", path: "/admin/analytics", className: "btn secondary text-xs py-2 px-3 min-h-0 font-bold" },
-                        { label: "⚙️ Settings", path: "/admin/settings", className: "btn secondary text-xs py-2 px-3 min-h-0 font-bold" },
-                        { label: "Printer Settings", path: "/printer-settings", className: "btn text-xs py-2 px-3 min-h-0 font-bold" },
-                        { label: "Display Panel", path: "/display-panel", className: "btn secondary text-xs py-2 px-3 min-h-0 font-bold" }
-                    ]}
-                />
+    const handleLogout = () => {
+        localStorage.removeItem("adminId");
+        navigate("/admin-login");
+    };
 
-                {/* Tabs Navigation */}
-                <div className="flex flex-wrap gap-2 border-b border-slate-200/60 pb-3 mb-6 mt-6">
+    return (
+        <main className="min-h-screen bg-[#F8FAFC] flex text-[#1E293B] font-sans">
+            {/* Professional Left Sidebar */}
+            <aside className="w-[280px] bg-[#0F172A] text-slate-400 flex flex-col justify-between border-r border-slate-800 shrink-0 sticky top-0 h-screen z-40">
+                <div className="p-6">
+                    {/* Header/Logo */}
+                    <div className="flex items-center gap-3 mb-6">
+                        <div className="p-2 rounded-xl bg-blue-600 text-white shadow-md shadow-blue-500/20 shrink-0">
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                            </svg>
+                        </div>
+                        <div>
+                            <span className="text-base font-black text-white block leading-tight tracking-tight">CloudPrint</span>
+                            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">HQ Admin Portal</span>
+                        </div>
+                    </div>
+
+                    <div className="h-px bg-slate-800 mb-6" />
+
+                    {/* Navigation Items */}
+                    <nav className="space-y-1.5 max-h-[calc(100vh-240px)] overflow-y-auto pr-1">
+                        {[
+                            { id: "queue", label: "🏠 Dashboard" },
+                            { id: "order-queue", label: "📦 Live Queue" },
+                            { id: "settings", label: "💰 Pricing & Coupons", onClick: () => { fetchPrices(selectedPricingBlock); fetchCoupons(); fetchBlocks(); } },
+                            { id: "blocks", label: "🏛️ Manage Blocks", onClick: fetchBlocks },
+                            { id: "users", label: "👥 User Moderation", onClick: fetchUsers },
+                            { id: "support", label: "🎫 Support Tickets", onClick: fetchSupportTickets },
+                            { id: "frontend", label: "📢 Frontend Manager", onClick: () => { fetchSystemSettings(); fetchSections(); } },
+                            { id: "system", label: "🛠 System Configuration", onClick: () => { fetchSystemSettings(); fetchBlocks(); fetchPrinters(); } },
+                            { id: "rewards", label: "🎁 Rewards Panel", onClick: () => { fetchRewards(); fetchSystemSettings(); } },
+                            { id: "sql", label: "🗄 SQL Terminal", onClick: () => { setSqlResult(null); setSqlError(""); } }
+                        ].map((item) => (
+                            <button
+                                key={item.id}
+                                onClick={() => {
+                                    setActiveTab(item.id);
+                                    if (item.onClick) item.onClick();
+                                }}
+                                className={`w-full flex items-center px-4 py-2.5 rounded-xl text-xs font-black tracking-wider uppercase transition-all text-left ${
+                                    activeTab === item.id
+                                        ? "bg-blue-600 text-white shadow-md shadow-blue-500/20"
+                                        : "text-slate-400 hover:bg-slate-800 hover:text-white"
+                                }`}
+                            >
+                                {item.label}
+                            </button>
+                        ))}
+                    </nav>
+                </div>
+
+                {/* Sidebar Footer Admin Profile */}
+                <div className="p-4 bg-slate-950/40 border-t border-slate-800 flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-3">
+                        <div className="w-9 h-9 rounded-full bg-gradient-to-tr from-blue-600 to-indigo-600 text-white flex items-center justify-center font-black text-xs shadow-md">
+                            SP
+                        </div>
+                        <div className="leading-tight text-left">
+                            <p className="text-xs font-black text-white">Sai</p>
+                            <div className="flex items-center gap-1 mt-0.5">
+                                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                                <span className="text-[9px] text-slate-500 font-bold uppercase">Online</span>
+                            </div>
+                        </div>
+                    </div>
                     <button
-                        onClick={() => setActiveTab("queue")}
-                        className={`px-4 py-2 font-bold text-sm rounded-lg transition-all ${
-                            activeTab === "queue"
-                                ? "bg-slate-900 text-white shadow-md"
-                                : "text-slate-600 hover:bg-slate-100/60"
-                        }`}
+                        onClick={handleLogout}
+                        className="p-2 rounded-lg text-slate-500 hover:text-rose-400 hover:bg-rose-500/10 transition-all cursor-pointer"
+                        title="Logout"
                     >
-                        Queue & Analytics
-                    </button>
-                    <button
-                        onClick={() => setActiveTab("order-queue")}
-                        className={`px-4 py-2 font-bold text-sm rounded-lg transition-all ${
-                            activeTab === "order-queue"
-                                ? "bg-slate-900 text-white shadow-md"
-                                : "text-slate-600 hover:bg-slate-100/60"
-                        }`}
-                    >
-                        🖨️ Order Queue
-                    </button>
-                    <button
-                        onClick={() => {
-                            setActiveTab("settings");
-                            fetchPrices(selectedPricingBlock);
-                            fetchCoupons();
-                            fetchBlocks();
-                        }}
-                        className={`px-4 py-2 font-bold text-sm rounded-lg transition-all ${
-                            activeTab === "settings"
-                                ? "bg-slate-900 text-white shadow-md"
-                                : "text-slate-600 hover:bg-slate-100/60"
-                        }`}
-                    >
-                        Pricing & Coupons
-                    </button>
-                    <button
-                        onClick={() => {
-                            setActiveTab("blocks");
-                            fetchBlocks();
-                        }}
-                        className={`px-4 py-2 font-bold text-sm rounded-lg transition-all ${
-                            activeTab === "blocks"
-                                ? "bg-slate-900 text-white shadow-md"
-                                : "text-slate-600 hover:bg-slate-100/60"
-                        }`}
-                    >
-                        🏛️ Manage Blocks
-                    </button>
-                    <button
-                        onClick={() => {
-                            setActiveTab("users");
-                            fetchUsers();
-                        }}
-                        className={`px-4 py-2 font-bold text-sm rounded-lg transition-all ${
-                            activeTab === "users"
-                                ? "bg-slate-900 text-white shadow-md"
-                                : "text-slate-600 hover:bg-slate-100/60"
-                        }`}
-                    >
-                        User Moderation
-                    </button>
-                    <button
-                        onClick={() => {
-                            setActiveTab("support");
-                            fetchSupportTickets();
-                        }}
-                        className={`px-4 py-2 font-bold text-sm rounded-lg transition-all ${
-                            activeTab === "support"
-                                ? "bg-slate-900 text-white shadow-md"
-                                : "text-slate-600 hover:bg-slate-100/60"
-                        }`}
-                    >
-                        Support Tickets
-                    </button>
-                    <button
-                        onClick={() => {
-                            setActiveTab("frontend");
-                            fetchSystemSettings();
-                            fetchSections();
-                        }}
-                        className={`px-4 py-2 font-bold text-sm rounded-lg transition-all ${
-                            activeTab === "frontend"
-                                ? "bg-slate-900 text-white shadow-md"
-                                : "text-slate-600 hover:bg-slate-100/60"
-                        }`}
-                    >
-                        Frontend Manager
-                    </button>
-                    <button
-                        onClick={() => {
-                            setActiveTab("system");
-                            fetchSystemSettings();
-                            fetchBlocks();
-                            fetchPrinters();
-                        }}
-                        className={`px-4 py-2 font-bold text-sm rounded-lg transition-all ${
-                            activeTab === "system"
-                                ? "bg-slate-900 text-white shadow-md"
-                                : "text-slate-600 hover:bg-slate-100/60"
-                        }`}
-                    >
-                        System Config
-                    </button>
-                    <button
-                        onClick={() => {
-                            setActiveTab("rewards");
-                            fetchRewards();
-                            fetchSystemSettings();
-                        }}
-                        className={`px-4 py-2 font-bold text-sm rounded-lg transition-all ${
-                            activeTab === "rewards"
-                                ? "bg-slate-900 text-white shadow-md"
-                                : "text-slate-600 hover:bg-slate-100/60"
-                        }`}
-                    >
-                        Rewards Panel
-                    </button>
-                    <button
-                        onClick={() => {
-                            setActiveTab("sql");
-                            setSqlResult(null);
-                            setSqlError("");
-                        }}
-                        className={`px-4 py-2 font-bold text-sm rounded-lg transition-all ${
-                            activeTab === "sql"
-                                ? "bg-slate-900 text-white shadow-md"
-                                : "text-slate-600 hover:bg-slate-100/60"
-                        }`}
-                    >
-                        SQL Terminal
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                        </svg>
                     </button>
                 </div>
+            </aside>
+
+            {/* Main Content Area */}
+            <div className="flex-1 min-w-0 flex flex-col min-h-screen">
+                {/* Simplified Sticky Header */}
+                <header className="sticky top-0 z-30 bg-white/80 border-b border-slate-200/80 backdrop-blur-md px-8 py-4 flex items-center justify-between gap-4 shadow-sm">
+                    <div className="flex items-center gap-3">
+                        <h2 className="text-sm font-black uppercase tracking-widest text-slate-400">HQ operations</h2>
+                    </div>
+
+                    <div className="flex items-center gap-6">
+                        <div className="relative hidden md:block">
+                            <span className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <svg className="h-4 w-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                </svg>
+                            </span>
+                            <input 
+                                type="text" 
+                                placeholder="Search queries..." 
+                                className="pl-9 pr-4 py-1.5 w-60 rounded-xl bg-slate-100 border-none text-xs font-bold focus:bg-white focus:ring-2 focus:ring-blue-500/25 transition-all outline-none"
+                            />
+                        </div>
+
+                        <div className="flex items-center gap-4 text-slate-500">
+                            {/* Clock */}
+                            <span className="text-xs font-black text-slate-800 tracking-wider">
+                                {new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                            </span>
+                        </div>
+                    </div>
+                </header>
+
+                <div className="p-8 flex-1">
+                    {/* Welcome Banner */}
+                    <section className="p-6 rounded-2xl bg-white border border-slate-200/80 shadow-sm mb-8 flex flex-wrap justify-between items-center gap-6">
+                        <div>
+                            <h2 className="text-2xl font-black text-slate-900">👋 Welcome Back, Sai</h2>
+                            <p className="text-sm font-bold text-slate-400 mt-1">
+                                Monitor campus printers, users, revenue, and print jobs in real time.
+                            </p>
+                        </div>
+                        <div className="flex items-center gap-6">
+                            <div className="text-center">
+                                <span className="text-[10px] font-black uppercase text-slate-400 tracking-wider">System Clock</span>
+                                <p className="text-sm font-black text-slate-800 mt-0.5">{new Date().toLocaleDateString()}</p>
+                            </div>
+                            <div className="h-8 w-px bg-slate-200" />
+                            <div className="text-center">
+                                <span className="text-[10px] font-black uppercase text-slate-400 tracking-wider">Server Status</span>
+                                <div className="flex items-center gap-1.5 mt-0.5 justify-center">
+                                    <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping" />
+                                    <span className="text-xs font-black text-emerald-600">ONLINE</span>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
 
                 {/* Queue & Analytics Tab */}
                 {activeTab === "queue" && (
@@ -2848,6 +2835,7 @@ function AdminDashboard() {
                         )}
                     </motion.section>
                 )}
+            </div>
             </div>
 
             {/* Custom Premium Modal */}
