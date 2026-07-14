@@ -32,15 +32,13 @@ function BlockSelection() {
         if (!dateVal) return null;
         if (Array.isArray(dateVal)) {
             const [y, m, d, hr, min, sec] = dateVal;
-            return new Date(y, m - 1, d, hr || 0, min || 0, sec || 0);
+            return new Date(Date.UTC(y, m - 1, d, hr || 0, min || 0, sec || 0));
         }
         if (typeof dateVal === "string") {
-            const match = dateVal.match(/^(\d{4})-(\d{2})-(\d{2})[T ](\d{2}):(\d{2}):(\d{2})/);
-            if (match) {
-                const [_, y, m, d, hr, min, sec] = match;
-                return new Date(Number(y), Number(m) - 1, Number(d), Number(hr), Number(min), Number(sec));
-            }
-            return new Date(dateVal.replace(" ", "T"));
+            const cleanStr = dateVal.replace(" ", "T");
+            const hasOffset = /([+-]\d{2}:?\d{2}|Z)$/.test(cleanStr);
+            const isoStr = hasOffset ? cleanStr : cleanStr + "Z";
+            return new Date(isoStr);
         }
         return new Date(dateVal);
     };

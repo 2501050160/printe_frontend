@@ -68,9 +68,12 @@ function DisplayPanel() {
         }
 
         const [nextPickup, ...remaining] = pickupQueue;
-
         setActivePickup(nextPickup);
         setPickupQueue(remaining);
+    }, [pickupQueue, activePickup]);
+
+    useEffect(() => {
+        if (!activePickup) return;
 
         const timer = setTimeout(() => {
             setActivePickup(null);
@@ -78,7 +81,7 @@ function DisplayPanel() {
         }, 7000);
 
         return () => clearTimeout(timer);
-    }, [pickupQueue, activePickup]);
+    }, [activePickup]);
 
     const fetchOrders = async () => {
         try {
@@ -219,7 +222,7 @@ function DisplayPanel() {
                     </div>
                 </motion.header>
 
-                <div className="grid lg:grid-cols-[1.7fr_1fr] gap-8 flex-1 py-8 w-full">
+                <div className={`grid ${hasActiveOrPendingOrders ? "grid-cols-1" : "lg:grid-cols-[1.7fr_1fr]"} gap-8 flex-1 py-8 w-full`}>
                     {/* Left Column: Active order queue / Welcome message / Pickup alert */}
                     <div className="flex flex-col justify-center w-full">
                         <AnimatePresence mode="wait">
@@ -261,14 +264,14 @@ function DisplayPanel() {
                                 </motion.div>
                             ) : hasActiveOrPendingOrders ? (
                                 <motion.div
-                                    key={`queue-${displayBlock}-${queuePageIndex}`}
-                                    className="grid gap-6 w-full max-w-5xl mx-auto"
+                                    key={`queue-${displayBlock}`}
+                                    className="grid gap-6 w-full max-w-7xl mx-auto"
                                     initial={{ opacity: 0, y: 16 }}
                                     animate={{ opacity: 1, y: 0 }}
                                     exit={{ opacity: 0, y: -16 }}
                                     transition={{ duration: 0.4 }}
                                 >
-                                    {currentOrder ? (
+                                    {currentOrder && (
                                         <section className="display-glass p-8 relative overflow-hidden">
                                             <div className="absolute right-4 top-4 rounded-full bg-emerald-500/20 border border-emerald-400/30 px-3 py-1 text-xs font-black uppercase text-emerald-300 animate-pulse">
                                                 Active
@@ -331,16 +334,6 @@ function DisplayPanel() {
                                                 />
                                             </div>
                                         </section>
-                                    ) : (
-                                        <section className="display-glass p-8 flex flex-col justify-center items-center text-center">
-                                            <span className="text-6xl mb-4 animate-bounce" style={{ animationDuration: '3s' }}>🖨️</span>
-                                            <h2 className="text-3xl font-black">
-                                                Printer Ready
-                                            </h2>
-                                            <p className="mt-4 text-lg font-bold text-slate-300 max-w-md">
-                                                Locate your order ID on the list and enter its corresponding OTP code on your mobile device to release physical printing.
-                                            </p>
-                                        </section>
                                     )}
 
                                     <section className="display-glass p-8">
@@ -364,8 +357,8 @@ function DisplayPanel() {
                                             </span>
                                         </div>
 
-                                        <div className="mt-6 grid grid-cols-2 gap-4">
-                                            {waitingOrders.slice(queuePageIndex * 8, (queuePageIndex + 1) * 8).map((order, index) => (
+                                        <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                                            {waitingOrders.map((order, index) => (
                                                 <QueueCard
                                                     key={order.id}
                                                     order={order}
@@ -374,24 +367,11 @@ function DisplayPanel() {
                                             ))}
 
                                             {waitingOrders.length === 0 && (
-                                                <div className="col-span-2 rounded-xl bg-white/10 p-10 text-center text-2xl font-black text-slate-300">
+                                                <div className="col-span-full rounded-xl bg-white/10 p-10 text-center text-2xl font-black text-slate-300">
                                                     No waiting orders
                                                 </div>
                                             )}
                                         </div>
-
-                                        {waitingOrders.length > 8 && (
-                                            <div className="mt-4 flex justify-center gap-2">
-                                                {Array.from({ length: Math.ceil(waitingOrders.length / 8) }).map((_, i) => (
-                                                    <span
-                                                        key={i}
-                                                        className={`h-2.5 rounded-full transition-all duration-300 ${
-                                                            i === queuePageIndex ? "w-8 bg-sky-400" : "w-2.5 bg-white/20"
-                                                        }`}
-                                                    />
-                                                ))}
-                                            </div>
-                                        )}
                                     </section>
                                 </motion.div>
                             ) : (
@@ -457,24 +437,26 @@ function DisplayPanel() {
                     </div>
 
                     {/* Right Column: Premium ambient loop video presentation */}
-                    <div className="hidden lg:block relative overflow-hidden h-[calc(100vh-210px)] w-full rounded-3xl">
-                        <video
-                            autoPlay
-                            loop
-                            muted
-                            playsInline
-                            className="w-full h-full object-cover opacity-80"
-                        >
-                            <source src="/assets/printer_rollers.mp4" type="video/mp4" />
-                        </video>
-                        {/* Smooth horizontal gradient overlay that blends into the background on the left side */}
-                        <div 
-                            className="absolute inset-0"
-                            style={{
-                                background: `linear-gradient(to right, ${theme.background} 0%, ${theme.background}40 40%, transparent 100%)`
-                            }}
-                        />
-                    </div>
+                    {!hasActiveOrPendingOrders && (
+                        <div className="hidden lg:block relative overflow-hidden h-[calc(100vh-210px)] w-full rounded-3xl">
+                            <video
+                                autoPlay
+                                loop
+                                muted
+                                playsInline
+                                className="w-full h-full object-cover opacity-80"
+                            >
+                                <source src="/assets/printer_rollers.mp4" type="video/mp4" />
+                            </video>
+                            {/* Smooth horizontal gradient overlay that blends into the background on the left side */}
+                            <div 
+                                className="absolute inset-0"
+                                style={{
+                                    background: `linear-gradient(to right, ${theme.background} 0%, ${theme.background}40 40%, transparent 100%)`
+                                }}
+                            />
+                        </div>
+                    )}
                 </div>
 
                 <footer className="flex flex-wrap items-center justify-between gap-3 border-t border-white/10 pt-5 text-sm font-bold uppercase tracking-[0.18em] text-slate-300">
