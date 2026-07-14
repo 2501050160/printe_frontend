@@ -984,3 +984,85 @@ button:disabled {
   border-color: rgba(37, 99, 235, 0.2);
 }
 
+/* Premium Enterprise SaaS Dashboard Styles */
+.admin-dashboard-shell {
+  min-height: 100vh;
+  width: 100%;
+  max-width: 100%;
+  padding: 32px;
+  background: 
+    radial-gradient(circle at 90% 10%, rgba(37, 99, 235, 0.12), transparent 50rem),
+    radial-gradient(circle at 10% 90%, rgba(124, 58, 237, 0.12), transparent 50rem),
+    linear-gradient(135deg, #f8fafc 0%, #f1f5f9 45%, #eff6ff 100%);
+  position: relative;
+  overflow-x: hidden;
+}
+
+.admin-glass-card {
+  background: rgba(255, 255, 255, 0.72);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  border-radius: 24px;
+  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.04), 0 1px 1px 0 rgba(0, 0, 0, 0.02);
+  padding: 24px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.admin-glass-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.08), 0 1px 1px 0 rgba(0, 0, 0, 0.02);
+  border-color: rgba(255, 255, 255, 0.6);
+}
+
+.admin-kpi-card {
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-height: 140px;
+}
+
+.admin-grid-12 {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: 24px;
+}
+
+.admin-input {
+  background: rgba(255, 255, 255, 0.6);
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  border-radius: 12px;
+  padding: 10px 14px;
+  color: #1e293b;
+  font-weight: 500;
+  font-size: 14px;
+  transition: all 0.2s ease;
+  backdrop-filter: blur(8px);
+}
+
+.admin-input:focus {
+  background: #ffffff;
+  border-color: #2563eb;
+  box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1);
+  outline: none;
+}
+
+.admin-table-row {
+  border-radius: 12px;
+  transition: all 0.2s ease;
+}
+
+.admin-table-row:hover {
+  background: rgba(37, 99, 235, 0.03);
+}
+
+.admin-sticky-header {
+  position: sticky;
+  top: 0;
+  background: rgba(248, 250, 252, 0.95);
+  backdrop-filter: blur(8px);
+  z-index: 10;
+}
+
+
