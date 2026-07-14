@@ -396,34 +396,6 @@ function Checkout() {
                             ))}
                         </div>
 
-                        {/* N-up Layout Selection */}
-                        <div className="mt-6 border-t border-slate-100 pt-5">
-                            <p className="font-bold text-slate-500 mb-3 text-sm">N-up Layout (Page Collage)</p>
-                            <div className="grid grid-cols-3 gap-3">
-                                {[
-                                    { id: "1-up", label: "1-up (Normal)", desc: "1 page/side" },
-                                    { id: "2-up", label: "2-up (Saver)", desc: "2 pages/side" },
-                                    { id: "4-up", label: "4-up (Compact)", desc: "4 pages/side" }
-                                ].map((layout) => (
-                                    <button
-                                        key={layout.id}
-                                        onClick={() => {
-                                            setNupLayout(layout.id);
-                                            updatePrintSettings(layout.id);
-                                        }}
-                                        className={`flex flex-col items-center justify-center p-3 rounded-xl border text-center transition-all cursor-pointer ${
-                                            nupLayout === layout.id
-                                                ? "border-sky-500 bg-sky-50 text-sky-600 shadow-sm"
-                                                : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
-                                        }`}
-                                    >
-                                        <span className="text-xs font-black">{layout.label}</span>
-                                        <span className="text-[10px] text-slate-400 mt-1">{layout.desc}</span>
-                                    </button>
-                                ))}
-                            </div>
-                        </div>
-
                         {/* Payment Animation Loop */}
                         <div className="mt-6 flex justify-center">
                             <div className="w-full max-w-[240px] rounded-xl border border-slate-100 bg-slate-50 p-4 flex flex-col items-center">

@@ -34,6 +34,7 @@ function Dashboard() {
     const [pageOption, setPageOption] = useState("ALL");
     const [startPage, setStartPage] = useState("");
     const [endPage, setEndPage] = useState("");
+    const [nupLayout, setNupLayout] = useState("1-up");
 
     // Active Navigation Tab
     const [activeTab, setActiveTab] = useState("print");
@@ -339,14 +340,17 @@ function Dashboard() {
                         selectedPages:
                             pageOption === "ALL"
                                 ? "ALL"
-                                : `${startPage}-${endPage}`
+                                : `${startPage}-${endPage}`,
+                        nupLayout
                     }
                 }
             );
 
             let pagesToPrint = pageOption === "ALL" ? totalPages : (parseInt(endPage) - parseInt(startPage) + 1);
+            const divisor = nupLayout === "2-up" ? 2 : nupLayout === "4-up" ? 4 : 1;
+            const sheetsToPrint = Math.ceil(pagesToPrint / divisor);
             const rate = printType === "COLOR" ? Number(colorPrice) : Number(bwPrice);
-            const price = pagesToPrint * Number(copies) * rate;
+            const price = sheetsToPrint * Number(copies) * rate;
 
             localStorage.setItem(
                 "order",
@@ -357,6 +361,7 @@ function Dashboard() {
                     blockLocation,
                     totalPages,
                     price,
+                    nupLayout,
                     selectedPages:
                         pageOption === "ALL"
                             ? "ALL"
@@ -457,9 +462,11 @@ function Dashboard() {
 
     const rate = printType === "COLOR" ? Number(colorPrice) : Number(bwPrice);
     const selectedPageCount = pageOption === "ALL" ? totalPages : (startPage && endPage ? Math.max(0, Number(endPage) - Number(startPage) + 1) : 0);
-    const estimatedTotalPages = selectedPageCount * Number(copies || 1);
+    const divisor = nupLayout === "2-up" ? 2 : nupLayout === "4-up" ? 4 : 1;
+    const sheetsToPrint = Math.ceil(selectedPageCount / divisor);
+    const estimatedTotalPages = sheetsToPrint * Number(copies || 1);
     const isLowPaper = uploaded && estimatedTotalPages > paperCount;
-    const estimatedTotal = selectedPageCount * Number(copies || 1) * rate;
+    const estimatedTotal = sheetsToPrint * Number(copies || 1) * rate;
     const isPrintingDisabled = !systemStatus.databaseConnected || !systemStatus.agentOnline || !systemStatus.printerConfigured || isLowPaper || systemStatus.maintenance;
 
     const displayAdText = settings.adEnabled && settings.adText ? settings.adText.replace("{referralCode}", referralCode) : "";
@@ -864,16 +871,31 @@ function Dashboard() {
                                             </select>
                                         </label>
 
-                                        <div className="flex items-end">
-                                            <button
-                                                onClick={proceedToOrder}
-                                                className="btn success w-full"
-                                                disabled={isPrintingDisabled}
-                                                style={isPrintingDisabled ? { opacity: 0.5, cursor: "not-allowed", background: "#64748b" } : {}}
+                                        <label className="block">
+                                            <span className="mb-2 block text-sm font-black text-slate-700">
+                                                Pages Per Sheet
+                                            </span>
+                                            <select
+                                                value={nupLayout}
+                                                onChange={(e) => setNupLayout(e.target.value)}
+                                                className="field"
                                             >
-                                                Proceed To Order
-                                            </button>
-                                        </div>
+                                                <option value="1-up">1-up (Normal)</option>
+                                                <option value="2-up">2-up (Saver)</option>
+                                                <option value="4-up">4-up (Compact)</option>
+                                            </select>
+                                        </label>
+                                    </div>
+
+                                    <div className="mt-5 flex justify-end">
+                                        <button
+                                            onClick={proceedToOrder}
+                                            className="btn success px-8 py-3"
+                                            disabled={isPrintingDisabled}
+                                            style={isPrintingDisabled ? { opacity: 0.5, cursor: "not-allowed", background: "#64748b" } : {}}
+                                        >
+                                            Proceed To Order
+                                        </button>
                                     </div>
 
                                     <AnimatePresence>
