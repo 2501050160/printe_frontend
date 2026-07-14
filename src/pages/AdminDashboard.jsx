@@ -264,6 +264,8 @@ function AdminDashboard() {
             fetchPrices(selectedPricingBlock);
             fetchCoupons();
             fetchBlocks();
+        } else if (activeTab === "blocks") {
+            fetchBlocks();
         } else if (activeTab === "frontend") {
             fetchSystemSettings();
             fetchSections();
@@ -693,6 +695,35 @@ function AdminDashboard() {
         }
     };
 
+    // Rename a block
+    const renameBlock = async (id, currentName) => {
+        const newName = window.prompt("Enter new name for block:", currentName);
+        if (!newName) return;
+        try {
+            await api.put(`/blocks/rename/${id}`, null, { params: { newName: newName.trim() } });
+            showAlert("Success", `Block renamed to '${newName.trim()}'`, "success");
+            fetchBlocks();
+        } catch (error) {
+            console.error("Error renaming block:", error);
+            showAlert("Error", error.response?.data || "Failed to rename block", "error");
+        }
+    };
+
+    // Delete a block
+    const deleteBlock = async (id) => {
+        showConfirm("Confirm Delete", "Are you sure you want to delete this block?", async () => {
+            try {
+                await api.delete(`/blocks/delete/${id}`);
+                showAlert("Deleted", "Block deleted successfully", "success");
+                fetchBlocks();
+            } catch (error) {
+                console.error("Error deleting block:", error);
+                showAlert("Error", error.response?.data || "Failed to delete block", "error");
+            }
+        });
+    };
+
+
     const fetchSystemSettings = async () => {
         try {
             const response = await api.get("/admin/settings");
@@ -918,6 +949,19 @@ function AdminDashboard() {
                         }`}
                     >
                         Pricing & Coupons
+                    </button>
+                    <button
+                        onClick={() => {
+                            setActiveTab("blocks");
+                            fetchBlocks();
+                        }}
+                        className={`px-4 py-2 font-bold text-sm rounded-lg transition-all ${
+                            activeTab === "blocks"
+                                ? "bg-slate-900 text-white shadow-md"
+                                : "text-slate-600 hover:bg-slate-100/60"
+                        }`}
+                    >
+                        🏛️ Manage Blocks
                     </button>
                     <button
                         onClick={() => {
@@ -1491,6 +1535,29 @@ function AdminDashboard() {
                                 </button>
                             </motion.section>
 
+                            {/* Block Management Section */}
+                            <motion.section
+                                className="panel p-6"
+                                initial={{ opacity: 0, y: 18 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: 0.07 }}
+                            >
+                                <div className="section-header pb-4">
+                                    <h3 className="font-bold text-lg">Manage Blocks</h3>
+                                </div>
+                                <ul className="space-y-2">
+                                    {blocks.map(b => (
+                                        <li key={b.id} className="flex items-center justify-between p-2 border rounded">
+                                            <span>{b.name}</span>
+                                            <div className="flex gap-2">
+                                                <button onClick={() => renameBlock(b.id, b.name)} className="btn small">Rename</button>
+                                                <button onClick={() => deleteBlock(b.id)} className="btn danger small">Delete</button>
+                                            </div>
+                                        </li>
+                                    ))}
+                                </ul>
+                            </motion.section>
+
                             <motion.section
                                 className="panel p-6"
                                 initial={{ opacity: 0, y: 18 }}
@@ -1659,6 +1726,219 @@ function AdminDashboard() {
                             </table>
                         </motion.section>
                     </>
+                )}
+
+                {/* Blocks Management Tab */}
+                {activeTab === "blocks" && (
+                    <div className="mt-6 space-y-6">
+                        <div className="grid gap-6 lg:grid-cols-2">
+                            {/* Add Block Panel */}
+                            <motion.section
+                                className="panel p-6"
+                                initial={{ opacity: 0, y: 18 }}
+                                animate={{ opacity: 1, y: 0 }}
+                            >
+                                <div className="section-header mb-4">
+                                    <div>
+                                        <p className="eyebrow">Campus Locations</p>
+                                        <h2 className="text-2xl font-black text-slate-900">Add New Block</h2>
+                                        <p className="subtitle">Create a new campus printing block that users can select on their location screen.</p>
+                                    </div>
+                                </div>
+                                <form onSubmit={addBlock} className="space-y-4">
+                                    <label className="block">
+                                        <span className="block text-sm font-black text-slate-700 mb-2">Block Name</span>
+                                        <input
+                                            type="text"
+                                            placeholder="e.g. C Block, L Block, F Block"
+                                            className="field"
+                                            value={newBlockName}
+                                            onChange={(e) => setNewBlockName(e.target.value)}
+                                            required
+                                        />
+                                    </label>
+                                    <button type="submit" className="btn success w-full">
+                                        ➕ Add Block
+                                    </button>
+                                </form>
+
+                                <div className="mt-6 p-4 rounded-xl bg-sky-50 border border-sky-100">
+                                    <p className="text-xs font-black text-sky-700 uppercase tracking-wider mb-1">ℹ️ What happens when you add a block?</p>
+                                    <ul className="text-xs text-sky-600 font-semibold space-y-1 mt-2">
+                                        <li>• Block appears on the user location selection screen</li>
+                                        <li>• Default pricing (BW: Rs.2, Color: Rs.5) is auto-initialized</li>
+                                        <li>• You can configure prices in the Pricing & Coupons tab</li>
+                                    </ul>
+                                </div>
+                            </motion.section>
+
+                            {/* Blocks Stats */}
+                            <motion.section
+                                className="panel p-6"
+                                initial={{ opacity: 0, y: 18 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: 0.05 }}
+                            >
+                                <div className="section-header mb-4">
+                                    <div>
+                                        <p className="eyebrow">Summary</p>
+                                        <h2 className="text-2xl font-black text-slate-900">Block Overview</h2>
+                                    </div>
+                                </div>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div className="rounded-xl bg-gradient-to-br from-slate-900 to-slate-700 p-5 text-white">
+                                        <p className="text-xs font-bold text-slate-300">Total Blocks</p>
+                                        <p className="text-4xl font-black mt-2">{blocks.length}</p>
+                                    </div>
+                                    <div className="rounded-xl bg-gradient-to-br from-sky-600 to-sky-800 p-5 text-white">
+                                        <p className="text-xs font-bold text-sky-200">Active Printers</p>
+                                        <p className="text-4xl font-black mt-2">{printers.filter(p => p.online).length}</p>
+                                    </div>
+                                </div>
+                                <div className="mt-4 space-y-2">
+                                    {blocks.map((b, idx) => {
+                                        const defaultIcons = ["🏛️", "⚡", "📘", "🔬", "🎨", "🏗️"];
+                                        const icon = defaultIcons[idx % defaultIcons.length];
+                                        const printer = printers.find(p => p.blockLocation === b.name);
+                                        return (
+                                            <div key={b.id} className="flex items-center justify-between p-3 rounded-xl bg-slate-50 border border-slate-100">
+                                                <div className="flex items-center gap-3">
+                                                    <span className="text-xl">{icon}</span>
+                                                    <div>
+                                                        <p className="font-black text-slate-900 text-sm">{b.name}</p>
+                                                        <p className="text-xs text-slate-400 font-semibold">{printer ? printer.printerName || "Printer assigned" : "No printer assigned"}</p>
+                                                    </div>
+                                                </div>
+                                                <span className={`text-[10px] font-black uppercase px-2 py-1 rounded-full ${
+                                                    printer?.online ? "bg-emerald-100 text-emerald-700" : "bg-slate-100 text-slate-500"
+                                                }`}>
+                                                    {printer?.online ? "Online" : "Offline"}
+                                                </span>
+                                            </div>
+                                        );
+                                    })}
+                                    {blocks.length === 0 && (
+                                        <div className="text-center py-6 text-slate-400 font-bold text-sm">
+                                            No blocks configured yet. Add one above.
+                                        </div>
+                                    )}
+                                </div>
+                            </motion.section>
+                        </div>
+
+                        {/* Block Management Table */}
+                        <motion.section
+                            className="panel p-6 overflow-x-auto"
+                            initial={{ opacity: 0, y: 18 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.1 }}
+                        >
+                            <div className="section-header pb-4">
+                                <div>
+                                    <p className="eyebrow">Block Directory</p>
+                                    <h2 className="text-2xl font-black text-slate-900">All Campus Blocks</h2>
+                                    <p className="subtitle">Rename or remove campus print locations. Deleting a block will deactivate its linked printer.</p>
+                                </div>
+                                <button
+                                    onClick={fetchBlocks}
+                                    className="btn secondary min-h-0 px-4 py-2 text-sm font-bold"
+                                >
+                                    🔄 Refresh
+                                </button>
+                            </div>
+                            <table className="data-table w-full">
+                                <thead>
+                                    <tr>
+                                        <th>#</th>
+                                        <th>Block ID</th>
+                                        <th>Block Name</th>
+                                        <th>Printer Status</th>
+                                        <th>Paper Level</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {blocks.map((b, index) => {
+                                        const printer = printers.find(p => p.blockLocation === b.name);
+                                        const paperPct = Math.min(100, ((printer?.paperCount || 0) / 500) * 100);
+                                        const isLow = (printer?.paperCount || 0) < 50;
+                                        return (
+                                            <motion.tr
+                                                key={b.id}
+                                                initial={{ opacity: 0, y: 8 }}
+                                                animate={{ opacity: 1, y: 0 }}
+                                                transition={{ delay: index * 0.04 }}
+                                            >
+                                                <td className="font-bold text-slate-400">{index + 1}</td>
+                                                <td className="font-mono font-black text-slate-500">#{b.id}</td>
+                                                <td>
+                                                    <div className="flex items-center gap-2">
+                                                        <span className="text-xl">{["🏛️","⚡","📘","🔬","🎨","🏗️"][index % 6]}</span>
+                                                        <span className="font-black text-slate-900 text-base">{b.name}</span>
+                                                    </div>
+                                                </td>
+                                                <td>
+                                                    <span className={`status-pill ${
+                                                        printer?.online ? "status-paid" : "status-unpaid"
+                                                    }`}>
+                                                        {printer ? (printer.online ? "ONLINE" : "OFFLINE") : "NO PRINTER"}
+                                                    </span>
+                                                </td>
+                                                <td>
+                                                    {printer ? (
+                                                        <div className="flex items-center gap-2">
+                                                            <div className="h-2 w-20 bg-slate-100 rounded-full overflow-hidden">
+                                                                <div
+                                                                    className={`h-full rounded-full ${
+                                                                        isLow ? "bg-rose-500" : "bg-sky-500"
+                                                                    }`}
+                                                                    style={{ width: `${paperPct}%` }}
+                                                                />
+                                                            </div>
+                                                            <span className={`text-xs font-bold ${
+                                                                isLow ? "text-rose-500" : "text-slate-700"
+                                                            }`}>
+                                                                {printer.paperCount ?? 0}
+                                                            </span>
+                                                        </div>
+                                                    ) : (
+                                                        <span className="text-xs text-slate-400 font-bold">—</span>
+                                                    )}
+                                                </td>
+                                                <td>
+                                                    <div className="flex gap-2">
+                                                        <button
+                                                            onClick={() => renameBlock(b.id, b.name)}
+                                                            className="btn secondary min-h-0 px-3 py-1.5 text-xs font-bold"
+                                                        >
+                                                            ✏️ Rename
+                                                        </button>
+                                                        <button
+                                                            onClick={() => deleteBlock(b.id)}
+                                                            className="btn danger min-h-0 px-3 py-1.5 text-xs font-bold"
+                                                        >
+                                                            🗑️ Delete
+                                                        </button>
+                                                    </div>
+                                                </td>
+                                            </motion.tr>
+                                        );
+                                    })}
+                                    {blocks.length === 0 && (
+                                        <tr>
+                                            <td colSpan="6" className="text-center font-bold text-slate-400 py-10">
+                                                <div className="flex flex-col items-center gap-2">
+                                                    <span className="text-4xl">🏛️</span>
+                                                    <span>No campus blocks configured. Add your first block above.</span>
+                                                    <span className="text-xs text-slate-400">Tip: Start with "C Block", "L Block", "F Block"</span>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    )}
+                                </tbody>
+                            </table>
+                        </motion.section>
+                    </div>
                 )}
 
                 {/* User Moderation Tab */}
