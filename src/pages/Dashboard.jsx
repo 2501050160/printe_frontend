@@ -582,9 +582,6 @@ function Dashboard() {
                             <p className="text-xs font-black uppercase tracking-wider text-blue-100">Wallet Balance</p>
                             <h3 className="text-3xl font-black mt-1">₹{walletBalance}</h3>
                         </div>
-                        <button onClick={() => setShowWalletModal(true)} className="mt-4 text-xs font-black bg-white/20 hover:bg-white/30 px-3 py-1.5 rounded-lg border border-white/10 w-fit text-white transition-colors cursor-pointer">
-                          ⚡ Top-up Wallet
-                        </button>
                     </div>
 
                     <div className="p-6 rounded-3xl bg-white border border-slate-200/80 shadow-sm flex flex-col justify-between">

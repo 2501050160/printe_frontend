@@ -63,18 +63,47 @@ function Landing() {
       (entries) => {
         if (entries[0].isIntersecting && !statsStarted.current) {
           statsStarted.current = true;
-          const interval = setInterval(() => {
-            setStats((prev) => {
-              const nextPrinted = prev.printed < 15000 ? prev.printed + 300 : 15000;
-              const nextLocations = prev.locations < 8 ? prev.locations + 1 : 8;
-              const nextSuccess = prev.success < 99.9 ? parseFloat((prev.success + 2.0).toFixed(1)) : 99.9;
-              const nextStudents = prev.students < 12500 ? prev.students + 250 : 12500;
-              if (nextPrinted === 15000 && nextLocations === 8 && nextSuccess === 99.9 && nextStudents === 12500) {
-                clearInterval(interval);
-              }
-              return { printed: nextPrinted, locations: nextLocations, success: nextSuccess, students: nextStudents };
+          
+          fetch("https://www.saipraveen.site/api/system/public-stats")
+            .then(res => res.json())
+            .then(data => {
+              const targetPrinted = data.documentCount || 15000;
+              const targetLocations = data.campusLocations || 8;
+              const targetSuccess = data.successRate || 99.9;
+              const targetStudents = data.studentCount || 12500;
+              
+              const stepPrinted = Math.max(1, Math.floor(targetPrinted / 50));
+              const stepStudents = Math.max(1, Math.floor(targetStudents / 50));
+
+              const interval = setInterval(() => {
+                setStats((prev) => {
+                  const nextPrinted = prev.printed < targetPrinted ? Math.min(targetPrinted, prev.printed + stepPrinted) : targetPrinted;
+                  const nextLocations = prev.locations < targetLocations ? prev.locations + 1 : targetLocations;
+                  const nextSuccess = prev.success < targetSuccess ? parseFloat((prev.success + 2.0).toFixed(1)) : targetSuccess;
+                  const nextStudents = prev.students < targetStudents ? Math.min(targetStudents, prev.students + stepStudents) : targetStudents;
+                  
+                  if (nextPrinted === targetPrinted && nextLocations === targetLocations && nextSuccess === targetSuccess && nextStudents === targetStudents) {
+                    clearInterval(interval);
+                  }
+                  return { printed: nextPrinted, locations: nextLocations, success: nextSuccess, students: nextStudents };
+                });
+              }, 30);
+            })
+            .catch(() => {
+              // Fallback if backend is down
+              const interval = setInterval(() => {
+                setStats((prev) => {
+                  const nextPrinted = prev.printed < 15000 ? prev.printed + 300 : 15000;
+                  const nextLocations = prev.locations < 8 ? prev.locations + 1 : 8;
+                  const nextSuccess = prev.success < 99.9 ? parseFloat((prev.success + 2.0).toFixed(1)) : 99.9;
+                  const nextStudents = prev.students < 12500 ? prev.students + 250 : 12500;
+                  if (nextPrinted === 15000 && nextLocations === 8 && nextSuccess === 99.9 && nextStudents === 12500) {
+                    clearInterval(interval);
+                  }
+                  return { printed: nextPrinted, locations: nextLocations, success: nextSuccess, students: nextStudents };
+                });
+              }, 30);
             });
-          }, 30);
         }
       },
       { threshold: 0.3 }
