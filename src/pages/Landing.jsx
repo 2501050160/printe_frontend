@@ -219,8 +219,8 @@ function Landing() {
       <div className="absolute bottom-10 left-0 w-[40rem] h-[40rem] bg-gradient-to-tr from-emerald-500/10 to-blue-500/10 rounded-full blur-[120px] pointer-events-none" />
 
       {/* Floating Transparent Navbar */}
-      <header className="sticky top-0 z-50 px-6 py-4 transition-all">
-        <nav className="max-w-6xl mx-auto flex items-center justify-between p-4 bg-slate-950/40 backdrop-blur-md border border-white/10 rounded-2xl">
+      <header className="sticky top-0 z-50 w-full h-20 transition-all bg-slate-950/30 backdrop-blur-md border-b border-white/5 flex items-center">
+        <nav className="w-full h-full px-12 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <div className="p-2 rounded-xl bg-blue-600 text-white shadow-md shadow-blue-500/20">
               <Printer className="w-5 h-5" />
@@ -249,9 +249,9 @@ function Landing() {
       </header>
 
       {/* Hero Section */}
-      <section className="w-full max-w-none px-0 pt-0 pb-24 relative z-10">
+      <section className="w-full max-w-none px-0 pt-0 pb-24 relative z-10 -mt-20">
         <motion.div 
-          className="relative w-full rounded-none min-h-[90vh] bg-slate-950 border-y border-white/10 overflow-hidden flex items-center"
+          className="relative w-full rounded-none min-h-[95vh] pt-28 pb-16 md:pb-24 bg-slate-950 border-b border-white/10 overflow-hidden flex items-center"
           initial={{ y: 0 }}
           animate={{ 
             y: [0, -4, 0],
@@ -293,7 +293,7 @@ function Landing() {
           {/* Massive Curved Glowing Arc Divider Stroke Overlay (rendered directly on 100% width) */}
           <svg className="absolute inset-0 w-full h-full pointer-events-none z-20 overflow-visible" viewBox="0 0 100 100" preserveAspectRatio="none">
             {/* 2px glowing blue stroke */}
-            <path d="M 38,0 Q 33,50 38,100" fill="none" stroke="rgba(59, 130, 246, 0.95)" strokeWidth="0.4" className="filter drop-shadow-[0_0_8px_rgba(59,130,246,0.95)]" vectorEffect="non-scaling-stroke" />
+            <path d="M 38,0 Q 33,50 38,100" fill="none" stroke="#3B82F6" strokeWidth="2" className="filter drop-shadow-[0_0_20px_rgba(59,130,246,0.9)]" vectorEffect="non-scaling-stroke" />
           </svg>
 
           {/* Foreground Content Wrapper */}
