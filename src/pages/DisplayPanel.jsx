@@ -510,12 +510,12 @@ function DisplayPanel() {
                 </footer>
             </section>
 
-            <div className="fixed bottom-24 left-8 z-40 flex items-center gap-4 p-4 rounded-2xl bg-slate-950/90 backdrop-blur-md border border-white/10 shadow-2xl max-w-xs transition-all hover:scale-105">
-                <div className="p-1.5 bg-white rounded-xl shadow-md shrink-0">
+            <div className="fixed bottom-24 left-8 z-40 flex items-center gap-5 p-5 rounded-2xl bg-slate-950/90 backdrop-blur-md border border-white/10 shadow-2xl max-w-sm transition-all hover:scale-105">
+                <div className="p-2 bg-white rounded-xl shadow-md shrink-0">
                     <img 
-                        src="https://api.qrserver.com/v1/create-qr-code/?size=90x90&data=https://www.saipraveen.site&color=0f172a" 
+                        src="https://api.qrserver.com/v1/create-qr-code/?size=130x130&data=https://www.saipraveen.site&color=0f172a" 
                         alt="www.saipraveen.site QR Code"
-                        className="w-[90px] h-[90px] block"
+                        className="w-[130px] h-[130px] block"
                     />
                 </div>
                 <div className="text-left">
