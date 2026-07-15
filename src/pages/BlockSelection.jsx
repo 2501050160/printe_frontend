@@ -7,25 +7,35 @@ import { clearUserSession } from "../services/auth";
 import PopupManager from "../components/PopupManager";
 import mapPin from "../assets/map_pin.mp4";
 import CustomModal from "../components/CustomModal";
-import { User, LogOut, Sparkles } from "lucide-react";
+import { User, LogOut, Sparkles, MapPin } from "lucide-react";
 
 const defaultIcons = ["🏛️", "⚡", "📘", "🏛️", "⚡", "📘"];
 const defaultAccents = ["#0891b2", "#059669", "#7c3aed", "#e11d48", "#ea580c", "#db2777"];
 
-// Framer motion animation configs
-const containerVariants = {
+// Page-load animation variants
+const headerVariants = {
+  hidden: { opacity: 0, y: -20 },
+  show: { opacity: 1, y: 0, transition: { duration: 0.5, ease: "easeOut" } }
+};
+
+const mapVariants = {
+  hidden: { opacity: 0, scale: 0.98 },
+  show: { opacity: 1, scale: 1, transition: { duration: 0.6, ease: "easeOut", delay: 0.1 } }
+};
+
+const cardContainerVariants = {
   hidden: { opacity: 0 },
   show: {
     opacity: 1,
     transition: {
       staggerChildren: 0.1,
-      delayChildren: 0.05
+      delayChildren: 0.2
     }
   }
 };
 
-const itemVariants = {
-  hidden: { opacity: 0, y: 24 },
+const cardVariants = {
+  hidden: { opacity: 0, y: 30 },
   show: { 
     opacity: 1, 
     y: 0,
@@ -266,109 +276,112 @@ function BlockSelection() {
     };
 
     return (
-        <main className="min-h-screen bg-gradient-to-br from-slate-50 via-sky-50/30 to-slate-50 py-10 px-4 md:px-12 relative overflow-hidden font-sans">
-            {/* Elegant blurred ambient backgrounds */}
-            <div className="absolute top-0 right-0 w-[40rem] h-[40rem] bg-blue-300/10 rounded-full blur-[140px] pointer-events-none" />
-            <div className="absolute bottom-0 left-0 w-[35rem] h-[35rem] bg-sky-200/20 rounded-full blur-[120px] pointer-events-none" />
+        <main className="min-h-screen bg-slate-50 py-12 px-6 md:px-12 relative overflow-hidden font-sans">
+            {/* Elegant blurred ambient blue gradients in corners */}
+            <div className="absolute top-0 right-0 w-[45rem] h-[45rem] bg-blue-400/10 rounded-full blur-[140px] pointer-events-none" />
+            <div className="absolute bottom-0 left-0 w-[40rem] h-[40rem] bg-sky-300/10 rounded-full blur-[140px] pointer-events-none" />
             
-            {/* Dotted mesh grid decoration */}
-            <div className="absolute inset-0 bg-[radial-gradient(#e2e8f0_1.5px,transparent_1.5px)] [background-size:24px_24px] opacity-40 pointer-events-none" />
+            {/* Light dotted pattern background */}
+            <div className="absolute inset-0 bg-[radial-gradient(#cbd5e1_1px,transparent_1px)] [background-size:24px_24px] opacity-30 pointer-events-none" />
 
             <PopupManager page="LOCATION_SELECTION" />
             
-            <motion.div 
-                className="max-w-6xl mx-auto relative z-10 space-y-10"
-                variants={containerVariants}
-                initial="hidden"
-                animate="show"
-            >
-                {/* Full-width Premium Header Card */}
-                <motion.div 
-                    variants={itemVariants}
-                    className="p-6 md:p-8 bg-white/70 backdrop-blur-xl border border-blue-100/60 rounded-[24px] shadow-lg shadow-slate-100/80 flex flex-col md:flex-row justify-between items-start md:items-center gap-6"
+            <div className="max-w-6xl mx-auto relative z-10 space-y-10">
+                {/* HEADER: Premium card height & layout */}
+                <motion.header 
+                    variants={headerVariants}
+                    initial="hidden"
+                    animate="show"
+                    className="p-8 bg-white/70 backdrop-blur-xl border border-blue-100/50 rounded-[24px] shadow-lg shadow-slate-100/80 flex flex-col md:flex-row justify-between items-start md:items-center gap-6 min-h-[140px]"
                 >
-                    <div className="space-y-2">
-                        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-extrabold uppercase tracking-wider text-blue-600 bg-blue-50 border border-blue-200/50">
+                    <div className="space-y-2.5">
+                        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-extrabold uppercase tracking-wider text-blue-600 bg-blue-50 border border-blue-200/50">
                             <Sparkles className="w-3.5 h-3.5" /> STEP 1 • PICKUP POINT
                         </span>
                         <h1 className="text-3xl md:text-4xl font-black text-slate-900 tracking-tight">
                             Choose Print Location
                         </h1>
-                        <p className="text-sm font-semibold text-slate-500 max-w-xl">
+                        <p className="text-sm font-semibold text-slate-400/90 leading-relaxed">
                             Select the printer where you want to collect your documents. Orders are routed automatically.
                         </p>
                     </div>
 
-                    {/* User Profile Container */}
-                    <div className="flex items-center gap-3 bg-slate-50/80 border border-slate-200/60 p-2 pr-4 rounded-full">
-                        <div className="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center text-white shadow-md">
-                            <User className="w-5 h-5" />
+                    {/* Profile Section: Glass card with soft blue glow */}
+                    <div className="flex items-center gap-3.5 bg-white/50 backdrop-blur-md border border-blue-100/60 p-2.5 pr-5 rounded-2xl shadow-sm shadow-blue-500/5">
+                        <div className="w-11 h-11 rounded-xl bg-blue-600 flex items-center justify-center text-white shadow-md shadow-blue-500/15">
+                            <User className="w-5.5 h-5.5" />
                         </div>
                         <div className="text-left">
-                            <div className="text-xs font-bold text-slate-400 uppercase tracking-widest">Active Session</div>
+                            <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Active Session</div>
                             <button onClick={logout} className="text-xs font-extrabold text-rose-500 hover:text-rose-600 flex items-center gap-1 mt-0.5 transition-colors">
                                 <LogOut className="w-3.5 h-3.5" /> Sign Out
                             </button>
                         </div>
                     </div>
-                </motion.div>
+                </motion.header>
 
-                {/* Campus Map Visual Hero */}
+                {/* MAP SECTION: Visual Hero Element */}
                 <motion.div 
-                    variants={itemVariants}
-                    className="overflow-hidden rounded-[24px] border border-blue-100/50 bg-white/60 backdrop-blur-xl shadow-xl shadow-slate-100/60"
+                    variants={mapVariants}
+                    initial="hidden"
+                    animate="show"
+                    className="overflow-hidden rounded-[24px] border border-blue-100/50 bg-white/60 backdrop-blur-xl shadow-xl shadow-slate-100/60 relative group"
                 >
                     <video 
                         autoPlay 
                         loop 
                         muted 
                         playsInline
-                        className="w-full h-[300px] object-cover z-0"
+                        className="w-full h-[300px] object-cover z-0 transition-all duration-500 group-hover:scale-[1.015] group-hover:brightness-105"
                     >
                         <source src={mapPin} type="video/mp4" />
                     </video>
-                    <div className="p-5 bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 text-white flex items-center justify-between gap-4 border-t border-slate-800">
-                        <div>
-                            <h4 className="font-extrabold text-sm tracking-tight">Autonomous Print Counters</h4>
-                            <p className="text-xs text-slate-400 mt-0.5">Campus block smart printers updated in real-time.</p>
-                        </div>
-                        <span className="text-xs bg-sky-500/20 text-sky-300 border border-sky-500/30 px-3 py-1 rounded-full font-bold uppercase tracking-wider">
-                            Live map
-                        </span>
+                    
+                    {/* Floating live status badge bottom-right */}
+                    <div className="absolute bottom-5 right-5 z-20 bg-slate-950/85 backdrop-blur-md border border-slate-700/60 px-4 py-2 rounded-full shadow-lg">
+                      <div className="flex items-center gap-2">
+                        <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
+                        <span className="text-[10px] font-extrabold tracking-widest text-slate-200 uppercase">Live Map</span>
+                      </div>
                     </div>
                 </motion.div>
 
-                {/* Bottom Section Layout */}
+                {/* BOTTOM LAYOUT: Asymmetric Two-Column Grid */}
                 {loading ? (
-                    <div className="text-center text-slate-500 font-bold py-16 flex flex-col items-center justify-center gap-2">
+                    <div className="text-center text-slate-400 font-bold py-16 flex flex-col items-center justify-center gap-2">
                         <div className="w-8 h-8 rounded-full border-4 border-blue-500 border-t-transparent animate-spin" />
-                        Loading print counters...
+                        Loading locations...
                     </div>
                 ) : (
-                    <div className="grid grid-cols-1 lg:grid-cols-10 gap-8 items-stretch">
+                    <motion.div 
+                      variants={cardContainerVariants}
+                      initial="hidden"
+                      animate="show"
+                      className="grid grid-cols-1 lg:grid-cols-10 gap-8 items-stretch"
+                    >
                         
-                        {/* LEFT COLUMN: Large OTP Card (30% equivalent / 3 cols) */}
+                        {/* LEFT (30% width / 3 cols) - Large OTP Card */}
                         <motion.div 
-                            variants={itemVariants}
+                            variants={cardVariants}
                             className="lg:col-span-3 flex"
                         >
                             <motion.button
                                 type="button"
-                                className="w-full relative overflow-hidden text-left border border-amber-200/80 bg-gradient-to-b from-amber-500/10 via-amber-500/5 to-white p-8 rounded-[24px] shadow-lg shadow-amber-500/5 flex flex-col justify-between items-start min-h-[360px] lg:min-h-full transition-all"
+                                className="w-full relative overflow-hidden text-left border border-amber-200/80 bg-gradient-to-b from-amber-500/10 via-amber-500/5 to-white p-8 rounded-[24px] shadow-lg shadow-amber-500/5 flex flex-col justify-between items-start min-h-[380px] lg:min-h-full transition-all duration-300"
                                 onClick={handleOpenOtpModal}
                                 whileHover={{ 
                                   y: -8, 
                                   scale: 1.02, 
                                   borderColor: "#f59e0b",
-                                  boxShadow: "0 25px 40px -15px rgba(245, 158, 11, 0.15)"
+                                  boxShadow: "0 25px 45px -15px rgba(245, 158, 11, 0.18)"
                                 }}
                                 whileTap={{ scale: 0.98 }}
                             >
                                 <div>
-                                    <span className="inline-grid place-items-center w-14 h-14 rounded-full bg-amber-100 text-2xl shadow-inner">
+                                    <span className="inline-grid place-items-center w-16 h-16 rounded-full bg-amber-100 text-3xl shadow-inner">
                                         🔑
                                     </span>
-                                    <h3 className="text-xl font-extrabold text-slate-900 tracking-tight mt-6">
+                                    <h3 className="text-2xl font-extrabold text-slate-900 tracking-tight mt-6">
                                         Already Have an OTP?
                                     </h3>
                                     <p className="text-sm font-semibold text-slate-500 mt-2 leading-relaxed">
@@ -376,48 +389,48 @@ function BlockSelection() {
                                     </p>
                                 </div>
                                 
-                                <span className="w-full mt-8 py-3 px-5 rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-extrabold text-sm text-center transition-all flex items-center justify-center gap-1.5 shadow-md shadow-amber-500/10">
+                                <span className="w-full mt-8 py-3.5 px-6 rounded-2xl bg-amber-500 hover:bg-amber-600 text-white font-extrabold text-sm text-center transition-all flex items-center justify-center gap-1.5 shadow-md shadow-amber-500/20 hover:shadow-lg hover:shadow-amber-500/30">
                                     Enter OTP →
                                 </span>
                             </motion.button>
                         </motion.div>
 
-                        {/* RIGHT COLUMN: Printer locations 2x2 grid (70% equivalent / 7 cols) */}
+                        {/* RIGHT (70% width / 7 cols) - Dynamic Blocks 2x2 grid */}
                         <div className="lg:col-span-7 grid grid-cols-1 md:grid-cols-2 gap-8 items-stretch">
-                            {blocks.map((block, index) => (
+                            {blocks.map((block) => (
                                 <motion.div 
                                     key={block.name}
-                                    variants={itemVariants}
+                                    variants={cardVariants}
                                     className="flex"
                                 >
                                     <motion.button
                                         type="button"
-                                        className="w-full relative overflow-hidden text-left border border-blue-100/50 bg-white/70 backdrop-blur-xl p-8 rounded-[20px] shadow-lg shadow-slate-100/40 flex flex-col justify-between items-start min-h-[220px] transition-all"
+                                        className="w-full relative overflow-hidden text-left border border-blue-100/50 bg-white/70 backdrop-blur-xl p-8 rounded-[20px] shadow-lg shadow-slate-100/40 flex flex-col justify-between items-start min-h-[220px] transition-all duration-300"
                                         onClick={() => selectBlock(block.name)}
                                         whileHover={{ 
                                           y: -8, 
                                           scale: 1.02, 
                                           borderColor: block.accent,
-                                          boxShadow: `0 25px 40px -15px ${block.accent}20`
+                                          boxShadow: `0 25px 45px -15px ${block.accent}22`
                                         }}
                                         whileTap={{ scale: 0.98 }}
                                     >
                                         <div className="flex items-start gap-4">
                                             <span 
-                                                className="inline-grid place-items-center w-14 h-14 rounded-full text-2xl shrink-0 shadow-inner"
+                                                className="inline-grid place-items-center w-16 h-16 rounded-full text-3xl shrink-0 shadow-inner"
                                                 style={{ backgroundColor: `${block.accent}12` }}
                                             >
                                                 {block.icon}
                                             </span>
-                                            <div>
-                                                <h3 className="text-lg font-extrabold text-slate-900 tracking-tight">{block.name}</h3>
-                                                <p className="text-xs font-semibold text-slate-500 mt-1 leading-relaxed">{block.description}</p>
+                                            <div className="space-y-1">
+                                                <h3 className="text-xl font-extrabold text-slate-900 tracking-tight">{block.name}</h3>
+                                                <p className="text-xs font-semibold text-slate-500 leading-relaxed">{block.description}</p>
                                             </div>
                                         </div>
                                         
                                         <div className="w-full mt-6 flex justify-end">
                                             <span 
-                                                className="text-xs font-extrabold tracking-wider uppercase flex items-center gap-1 hover:underline"
+                                                className="py-2.5 px-4 rounded-full text-xs font-extrabold tracking-wider uppercase flex items-center gap-1 shadow-sm border border-slate-150/50 bg-slate-50 hover:bg-slate-100"
                                                 style={{ color: block.accent }}
                                             >
                                                 Select Location →
@@ -428,9 +441,9 @@ function BlockSelection() {
                             ))}
                         </div>
 
-                    </div>
+                    </motion.div>
                 )}
-            </motion.div>
+            </div>
 
             <CustomModal
                 isOpen={modalConfig.isOpen}
