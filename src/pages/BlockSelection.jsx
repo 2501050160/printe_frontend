@@ -7,43 +7,42 @@ import { clearUserSession } from "../services/auth";
 import PopupManager from "../components/PopupManager";
 import mapPin from "../assets/map_pin.mp4";
 import CustomModal from "../components/CustomModal";
-import { User, LogOut, Sparkles, MapPin } from "lucide-react";
+import { User, LogOut, Sparkles } from "lucide-react";
 
 const defaultIcons = ["🏛️", "⚡", "📘", "🏛️", "⚡", "📘"];
-const defaultAccents = ["#0891b2", "#059669", "#7c3aed", "#e11d48", "#ea580c", "#db2777"];
+const defaultAccents = ["#2563eb", "#10b981", "#7c3aed", "#e11d48", "#ea580c", "#db2777"];
 
-// Page-load animation variants
-const headerVariants = {
-  hidden: { opacity: 0, y: -20 },
-  show: { opacity: 1, y: 0, transition: { duration: 0.5, ease: "easeOut" } }
-};
-
-const mapVariants = {
-  hidden: { opacity: 0, scale: 0.98 },
-  show: { opacity: 1, scale: 1, transition: { duration: 0.6, ease: "easeOut", delay: 0.1 } }
-};
-
-const cardContainerVariants = {
-  hidden: { opacity: 0 },
+// Page entry transitions
+const pageVariants = {
+  hidden: { opacity: 0, y: 15 },
   show: {
     opacity: 1,
+    y: 0,
     transition: {
-      staggerChildren: 0.1,
-      delayChildren: 0.2
+      duration: 0.5,
+      ease: "easeOut",
+      staggerChildren: 0.08,
+      when: "beforeChildren"
     }
   }
 };
 
+const headerVariants = {
+  hidden: { opacity: 0, y: -15 },
+  show: { opacity: 1, y: 0, transition: { duration: 0.4, ease: "easeOut" } }
+};
+
+const mapVariants = {
+  hidden: { opacity: 0, scale: 0.99 },
+  show: { opacity: 1, scale: 1, transition: { duration: 0.5, ease: "easeOut" } }
+};
+
 const cardVariants = {
-  hidden: { opacity: 0, y: 30 },
+  hidden: { opacity: 0, y: 25 },
   show: { 
     opacity: 1, 
-    y: 0,
-    transition: {
-      type: "spring",
-      stiffness: 90,
-      damping: 14
-    }
+    y: 0, 
+    transition: { type: "spring", stiffness: 100, damping: 15 } 
   }
 };
 
@@ -276,126 +275,123 @@ function BlockSelection() {
     };
 
     return (
-        <main className="min-h-screen bg-slate-50 py-12 px-6 md:px-12 relative overflow-hidden font-sans">
-            {/* Elegant blurred ambient blue gradients in corners */}
-            <div className="absolute top-0 right-0 w-[45rem] h-[45rem] bg-blue-400/10 rounded-full blur-[140px] pointer-events-none" />
-            <div className="absolute bottom-0 left-0 w-[40rem] h-[40rem] bg-sky-300/10 rounded-full blur-[140px] pointer-events-none" />
+        <main className="min-h-screen bg-gradient-to-tr from-slate-50 via-blue-50/20 to-purple-50/20 py-8 px-4 md:px-12 relative overflow-hidden font-sans">
+            {/* Elegant blurred ambient blue/purple gradients in corners */}
+            <div className="absolute top-0 right-0 w-[40rem] h-[40rem] bg-blue-300/10 rounded-full blur-[140px] pointer-events-none" />
+            <div className="absolute bottom-0 left-0 w-[35rem] h-[35rem] bg-purple-300/5 rounded-full blur-[130px] pointer-events-none" />
             
-            {/* Light dotted pattern background */}
-            <div className="absolute inset-0 bg-[radial-gradient(#cbd5e1_1px,transparent_1px)] [background-size:24px_24px] opacity-30 pointer-events-none" />
+            {/* Very light dotted pattern background */}
+            <div className="absolute inset-0 bg-[radial-gradient(#cbd5e1_1px,transparent_1px)] [background-size:24px_24px] opacity-25 pointer-events-none" />
 
             <PopupManager page="LOCATION_SELECTION" />
             
-            <div className="w-full max-w-none relative z-10 space-y-10">
-                {/* HEADER: Premium card height & layout */}
+            <motion.div 
+                className="max-w-[1400px] mx-auto relative z-10 space-y-8"
+                variants={pageVariants}
+                initial="hidden"
+                animate="show"
+            >
+                {/* HEADER: Subtle transparent glass block with clean alignment */}
                 <motion.header 
                     variants={headerVariants}
-                    initial="hidden"
-                    animate="show"
-                    className="p-8 bg-white/70 backdrop-blur-xl border border-blue-100/50 rounded-[24px] shadow-lg shadow-slate-100/80 flex flex-col md:flex-row justify-between items-start md:items-center gap-6 min-h-[140px]"
+                    className="p-6 md:p-8 bg-white/60 backdrop-blur-xl border border-blue-50/40 rounded-[24px] shadow-sm shadow-slate-100/50 flex flex-col md:flex-row justify-between items-start md:items-center gap-6"
                 >
-                    <div className="space-y-2.5">
-                        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-extrabold uppercase tracking-wider text-blue-600 bg-blue-50 border border-blue-200/50">
-                            <Sparkles className="w-3.5 h-3.5" /> STEP 1 • PICKUP POINT
+                    <div className="space-y-2">
+                        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-widest text-blue-600 bg-blue-50/80 border border-blue-200/40">
+                            <Sparkles className="w-3 h-3 text-blue-500 animate-pulse" /> STEP 1 • PICKUP POINT
                         </span>
-                        <h1 className="text-3xl md:text-4xl font-black text-slate-900 tracking-tight">
+                        <h1 className="text-3xl md:text-[34px] font-extrabold text-slate-900 tracking-tight leading-none">
                             Choose Print Location
                         </h1>
-                        <p className="text-sm font-semibold text-slate-400/90 leading-relaxed">
+                        <p className="text-[14px] font-medium text-slate-400 leading-relaxed max-w-xl">
                             Select the printer where you want to collect your documents. Orders are routed automatically.
                         </p>
                     </div>
 
                     {/* Profile Section: Glass card with soft blue glow */}
-                    <div className="flex items-center gap-3.5 bg-white/50 backdrop-blur-md border border-blue-100/60 p-2.5 pr-5 rounded-2xl shadow-sm shadow-blue-500/5">
-                        <div className="w-11 h-11 rounded-xl bg-blue-600 flex items-center justify-center text-white shadow-md shadow-blue-500/15">
-                            <User className="w-5.5 h-5.5" />
+                    <div className="flex items-center gap-3 bg-white/80 border border-blue-50/80 p-2 pr-4 rounded-full shadow-sm hover:shadow-md transition-shadow duration-300">
+                        <div className="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center text-white shadow-md shadow-blue-500/10">
+                            <User className="w-5 h-5" />
                         </div>
                         <div className="text-left">
-                            <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Active Session</div>
-                            <button onClick={logout} className="text-xs font-extrabold text-rose-500 hover:text-rose-600 flex items-center gap-1 mt-0.5 transition-colors">
+                            <div className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Active Session</div>
+                            <button onClick={logout} className="text-xs font-bold text-rose-500 hover:text-rose-600 flex items-center gap-1 mt-0.5 transition-colors">
                                 <LogOut className="w-3.5 h-3.5" /> Sign Out
                             </button>
                         </div>
                     </div>
                 </motion.header>
 
-                {/* MAP SECTION: Visual Hero Element */}
+                {/* HERO MAP: Height ~240px, rounded corners 24px, hover scale animation */}
                 <motion.div 
                     variants={mapVariants}
-                    initial="hidden"
-                    animate="show"
-                    className="overflow-hidden rounded-[24px] border border-blue-100/50 bg-white/60 backdrop-blur-xl shadow-xl shadow-slate-100/60 relative group"
+                    className="overflow-hidden rounded-[24px] border border-blue-100/50 bg-white/60 backdrop-blur-xl shadow-md shadow-slate-100/60 relative group"
                 >
+                    <div className="absolute inset-0 bg-gradient-to-t from-slate-950/20 to-transparent pointer-events-none z-10" />
                     <video 
                         autoPlay 
                         loop 
                         muted 
                         playsInline
-                        className="w-full h-[300px] object-cover z-0 transition-all duration-500 group-hover:scale-[1.015] group-hover:brightness-105"
+                        className="w-full h-[240px] object-cover z-0 transition-transform duration-500 ease-out group-hover:scale-[1.015]"
                     >
                         <source src={mapPin} type="video/mp4" />
                     </video>
                     
-                    {/* Floating live status badge bottom-right */}
-                    <div className="absolute bottom-5 right-5 z-20 bg-slate-950/85 backdrop-blur-md border border-slate-700/60 px-4 py-2 rounded-full shadow-lg">
-                      <div className="flex items-center gap-2">
-                        <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
-                        <span className="text-[10px] font-extrabold tracking-widest text-slate-200 uppercase">Live Map</span>
+                    {/* Live map floating glass badge bottom-right */}
+                    <div className="absolute bottom-4 right-4 z-20 bg-white/80 backdrop-blur-md border border-blue-100/50 px-3.5 py-1.5 rounded-full shadow-md">
+                      <div className="flex items-center gap-1.5">
+                        <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping" />
+                        <span className="text-[10px] font-black tracking-widest text-slate-800 uppercase">Live Map</span>
                       </div>
                     </div>
                 </motion.div>
 
-                {/* BOTTOM LAYOUT: Asymmetric Two-Column Grid */}
+                {/* BOTTOM LAYOUT: Responsive Asymmetric Two-Column Grid */}
                 {loading ? (
                     <div className="text-center text-slate-400 font-bold py-16 flex flex-col items-center justify-center gap-2">
                         <div className="w-8 h-8 rounded-full border-4 border-blue-500 border-t-transparent animate-spin" />
-                        Loading locations...
+                        Loading print counters...
                     </div>
                 ) : (
-                    <motion.div 
-                      variants={cardContainerVariants}
-                      initial="hidden"
-                      animate="show"
-                      className="grid grid-cols-1 lg:grid-cols-10 gap-8 items-stretch"
-                    >
+                    <div className="grid grid-cols-1 lg:grid-cols-10 gap-8 items-stretch">
                         
-                        {/* LEFT (30% width / 3 cols) - Large OTP Card */}
+                        {/* LEFT COLUMN: OTP utilities panel (30% equivalent / 3 cols) */}
                         <motion.div 
                             variants={cardVariants}
                             className="lg:col-span-3 flex"
                         >
                             <motion.button
                                 type="button"
-                                className="w-full relative overflow-hidden text-left border border-amber-200/80 bg-gradient-to-b from-amber-500/10 via-amber-500/5 to-white p-8 rounded-[24px] shadow-lg shadow-amber-500/5 flex flex-col justify-between items-start min-h-[380px] lg:min-h-full transition-all duration-300"
+                                className="w-full relative overflow-hidden text-left border border-amber-200/80 bg-gradient-to-b from-amber-500/10 via-amber-500/5 to-white/90 backdrop-blur-xl p-8 rounded-[24px] shadow-sm shadow-amber-500/5 flex flex-col justify-between items-start min-h-[360px] lg:min-h-full transition-all duration-300"
                                 onClick={handleOpenOtpModal}
                                 whileHover={{ 
-                                  y: -8, 
+                                  y: -6, 
                                   scale: 1.02, 
                                   borderColor: "#f59e0b",
-                                  boxShadow: "0 25px 45px -15px rgba(245, 158, 11, 0.18)"
+                                  boxShadow: "0 20px 30px -10px rgba(245, 158, 11, 0.14)"
                                 }}
                                 whileTap={{ scale: 0.98 }}
                             >
                                 <div>
-                                    <span className="inline-grid place-items-center w-16 h-16 rounded-full bg-amber-100 text-3xl shadow-inner">
+                                    <span className="inline-grid place-items-center w-14 h-14 rounded-2xl bg-amber-100/60 text-2xl shadow-inner border border-amber-200/30">
                                         🔑
                                     </span>
-                                    <h3 className="text-2xl font-extrabold text-slate-900 tracking-tight mt-6">
+                                    <h3 className="text-xl font-extrabold text-slate-900 tracking-tight mt-6">
                                         Already Have an OTP?
                                     </h3>
-                                    <p className="text-sm font-semibold text-slate-500 mt-2 leading-relaxed">
+                                    <p className="text-[14px] font-semibold text-slate-500 mt-2 leading-relaxed">
                                         Release your existing print instantly.
                                     </p>
                                 </div>
                                 
-                                <span className="w-full mt-8 py-3.5 px-6 rounded-2xl bg-amber-500 hover:bg-amber-600 text-white font-extrabold text-sm text-center transition-all flex items-center justify-center gap-1.5 shadow-md shadow-amber-500/20 hover:shadow-lg hover:shadow-amber-500/30">
+                                <span className="w-full h-11 mt-8 py-2 px-5 rounded-full bg-amber-500 hover:bg-amber-600 text-white font-extrabold text-[15px] text-center transition-all flex items-center justify-center gap-1.5 shadow-md shadow-amber-500/10 hover:shadow-lg hover:shadow-amber-500/20 hover:-translate-y-0.5">
                                     Enter OTP →
                                 </span>
                             </motion.button>
                         </motion.div>
 
-                        {/* RIGHT (70% width / 7 cols) - Dynamic Blocks 2x2 grid */}
+                        {/* RIGHT COLUMN: Printer Block Cards (70% equivalent / 7 cols) */}
                         <div className="lg:col-span-7 grid grid-cols-1 md:grid-cols-2 gap-8 items-stretch">
                             {blocks.map((block) => (
                                 <motion.div 
@@ -405,32 +401,32 @@ function BlockSelection() {
                                 >
                                     <motion.button
                                         type="button"
-                                        className="w-full relative overflow-hidden text-left border border-blue-100/50 bg-white/70 backdrop-blur-xl p-8 rounded-[20px] shadow-lg shadow-slate-100/40 flex flex-col justify-between items-start min-h-[220px] transition-all duration-300"
+                                        className="w-full relative overflow-hidden text-left border border-blue-50/50 bg-white/70 backdrop-blur-xl p-8 rounded-[20px] shadow-sm shadow-slate-100/40 flex flex-col justify-between items-start min-h-[220px] transition-all duration-300"
                                         onClick={() => selectBlock(block.name)}
                                         whileHover={{ 
-                                          y: -8, 
+                                          y: -6, 
                                           scale: 1.02, 
                                           borderColor: block.accent,
-                                          boxShadow: `0 25px 45px -15px ${block.accent}22`
+                                          boxShadow: `0 20px 30px -10px ${block.accent}22`
                                         }}
                                         whileTap={{ scale: 0.98 }}
                                     >
                                         <div className="flex items-start gap-4">
                                             <span 
-                                                className="inline-grid place-items-center w-16 h-16 rounded-full text-3xl shrink-0 shadow-inner"
+                                                className="inline-grid place-items-center w-14 h-14 rounded-2xl text-2xl shrink-0 shadow-inner border border-blue-50/10"
                                                 style={{ backgroundColor: `${block.accent}12` }}
                                             >
                                                 {block.icon}
                                             </span>
                                             <div className="space-y-1">
-                                                <h3 className="text-xl font-extrabold text-slate-900 tracking-tight">{block.name}</h3>
-                                                <p className="text-xs font-semibold text-slate-500 leading-relaxed">{block.description}</p>
+                                                <h3 className="text-[18px] font-bold text-slate-900 tracking-tight">{block.name}</h3>
+                                                <p className="text-[14px] font-semibold text-slate-400 leading-relaxed">{block.description}</p>
                                             </div>
                                         </div>
                                         
                                         <div className="w-full mt-6 flex justify-end">
                                             <span 
-                                                className="py-2.5 px-4 rounded-full text-xs font-extrabold tracking-wider uppercase flex items-center gap-1 shadow-sm border border-slate-150/50 bg-slate-50 hover:bg-slate-100"
+                                                className="h-9 py-2 px-4 rounded-full text-xs font-extrabold tracking-wider uppercase flex items-center gap-1 shadow-sm border border-slate-150/40 bg-slate-50 hover:bg-slate-100 transition-all hover:-translate-y-0.5"
                                                 style={{ color: block.accent }}
                                             >
                                                 Select Location →
@@ -441,9 +437,9 @@ function BlockSelection() {
                             ))}
                         </div>
 
-                    </motion.div>
+                    </div>
                 )}
-            </div>
+            </motion.div>
 
             <CustomModal
                 isOpen={modalConfig.isOpen}
