@@ -12,7 +12,7 @@ import { User, LogOut, Sparkles, MapPin, Printer, ArrowRight } from "lucide-reac
 const defaultIcons = ["🏛️", "⚡", "📘", "🏛️", "⚡", "📘"];
 const defaultAccents = ["#2563eb", "#10b981", "#7c3aed", "#e11d48", "#ea580c", "#db2777"];
 
-// Page-load sequential entrance variants
+// Page-load animation variants
 const pageVariants = {
   hidden: { opacity: 0 },
   show: {
@@ -25,16 +25,17 @@ const pageVariants = {
 };
 
 const headerVariants = {
-  hidden: { opacity: 0, y: -20 },
-  show: { opacity: 1, y: 0, transition: { duration: 0.5, ease: "easeOut" } }
+  hidden: { opacity: 0, y: -25 },
+  show: { opacity: 1, y: 0, transition: { duration: 0.5, ease: [0.16, 1, 0.3, 1] } }
 };
 
 const mapVariants = {
-  hidden: { opacity: 0, scale: 0.97 },
+  hidden: { opacity: 0, scale: 0.98, y: 15 },
   show: { 
     opacity: 1, 
     scale: 1, 
-    transition: { duration: 0.6, ease: "easeOut" } 
+    y: 0,
+    transition: { duration: 0.6, ease: [0.16, 1, 0.3, 1] } 
   }
 };
 
@@ -276,76 +277,77 @@ function BlockSelection() {
     };
 
     return (
-        <main className="min-h-screen bg-gradient-to-tr from-blue-50/15 via-slate-50 to-purple-50/15 py-8 px-4 md:px-12 relative overflow-hidden font-sans flex flex-col justify-between">
-            {/* Ambient radial blur glows */}
-            <div className="absolute top-0 left-0 w-[50rem] h-[50rem] bg-blue-300/10 rounded-full blur-[140px] pointer-events-none" />
-            <div className="absolute bottom-0 right-0 w-[45rem] h-[45rem] bg-purple-300/10 rounded-full blur-[130px] pointer-events-none" />
+        <main className="min-h-screen bg-[#f8fafc] py-12 px-6 md:px-12 relative overflow-hidden font-sans flex flex-col justify-between">
+            {/* Layered radial gradient background glows (5-8% opacity) */}
+            <div className="absolute top-0 left-0 w-[55rem] h-[55rem] bg-blue-500/[0.06] rounded-full blur-[150px] pointer-events-none" />
+            <div className="absolute bottom-0 left-0 w-[45rem] h-[45rem] bg-purple-500/[0.05] rounded-full blur-[140px] pointer-events-none" />
+            <div className="absolute bottom-1/3 right-0 w-[50rem] h-[50rem] bg-cyan-400/[0.05] rounded-full blur-[150px] pointer-events-none" />
             
-            {/* Very light dotted grid */}
-            <div className="absolute inset-0 bg-[radial-gradient(#cbd5e1_1px,transparent_1px)] [background-size:24px_24px] opacity-25 pointer-events-none" />
+            {/* Very light dotted patterns */}
+            <div className="absolute inset-0 bg-[radial-gradient(#cbd5e1_1px,transparent_1px)] [background-size:24px_24px] opacity-20 pointer-events-none" />
 
             <PopupManager page="LOCATION_SELECTION" />
             
             <motion.div 
-                className="w-full max-w-[1400px] mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8 relative z-10"
+                className="w-full max-w-[1450px] mx-auto grid grid-cols-1 lg:grid-cols-12 gap-10 relative z-10"
                 variants={pageVariants}
                 initial="hidden"
                 animate="show"
             >
-                {/* LEFT CONSOLE - Sidebar details (40% width equivalent / 5 Columns) */}
-                <div className="lg:col-span-5 flex flex-col justify-between gap-8">
+                {/* LEFT CONSOLE - Desktop Columns 1–4 (35% equivalent layout) */}
+                <div className="lg:col-span-4 flex flex-col justify-between gap-10">
                     
-                    {/* Header with premium glass styling */}
+                    {/* Header glass card with premium glow & padding */}
                     <motion.div variants={headerVariants} className="space-y-6">
                         <div className="space-y-3">
-                            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-widest text-blue-600 bg-blue-50 border border-blue-200/40">
-                                <Sparkles className="w-3.5 h-3.5 text-blue-500" /> STEP 1 • PICKUP POINT
+                            <span className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full text-[10px] font-black uppercase tracking-widest text-blue-600 bg-blue-50 border border-blue-200/50 shadow-sm">
+                                <Sparkles className="w-3.5 h-3.5 text-blue-500 animate-pulse" /> STEP 1 • PICKUP POINT
                             </span>
-                            <h1 className="text-3xl md:text-[40px] font-extrabold text-slate-900 tracking-tight leading-tight">
+                            <h1 className="text-4xl md:text-[44px] font-black text-slate-900 tracking-tight leading-[1.05]">
                                 Choose Print Location
                             </h1>
-                            <p className="text-[16px] font-medium text-slate-500 leading-relaxed">
-                                Select the printer where you want to collect your documents. Orders are routed to that printer automatically.
+                            <p className="text-[16px] font-medium text-slate-400/90 leading-relaxed">
+                                Select the printer where you want to collect your documents. Orders route to that printer automatically.
                             </p>
                         </div>
 
-                        {/* User Profile Console Card */}
-                        <div className="p-4 bg-white/60 backdrop-blur-xl border border-blue-50/85 rounded-[20px] shadow-sm flex items-center justify-between gap-4">
+                        {/* Floating Active Account Widget */}
+                        <div className="p-5 bg-white/70 backdrop-blur-xl border border-white/60 rounded-[20px] shadow-[0_12px_40px_rgba(15,23,42,0.06)] flex items-center justify-between gap-4">
                             <div className="flex items-center gap-3">
-                                <div className="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center text-white shadow-md shadow-blue-500/10">
-                                    <User className="w-5 h-5" />
+                                <div className="w-11 h-11 rounded-xl bg-blue-600 flex items-center justify-center text-white shadow-md shadow-blue-500/10">
+                                    <User className="w-5.5 h-5.5" />
                                 </div>
                                 <div className="text-left">
-                                    <div className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Active Account</div>
-                                    <span className="text-xs font-bold text-slate-600">Secure Client Connected</span>
+                                    <div className="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none">Active Session</div>
+                                    <span className="text-sm font-semibold text-slate-600 mt-1 block">Secure Client Connected</span>
                                 </div>
                             </div>
-                            <button onClick={logout} className="h-[38px] px-4 rounded-full border border-rose-100 hover:border-rose-200 bg-rose-50 text-xs font-bold text-rose-500 hover:text-rose-600 flex items-center gap-1 transition-colors">
+                            <button onClick={logout} className="h-9 px-4 rounded-full border border-rose-100 hover:border-rose-200 bg-rose-50/50 hover:bg-rose-50 text-xs font-bold text-rose-500 hover:text-rose-600 flex items-center gap-1 transition-all hover:-translate-y-0.5">
                                 <LogOut className="w-3.5 h-3.5" /> Sign Out
                             </button>
                         </div>
                     </motion.div>
 
-                    {/* Redesigned OTP Card (Compact, soft warm gradient, rounded button) */}
+                    {/* Premium OTP Release Card - Warm Glass Gradient */}
                     <motion.div 
                         variants={cardVariants}
-                        className="p-8 bg-gradient-to-br from-amber-500/10 via-amber-500/5 to-white/95 backdrop-blur-xl border border-amber-200/60 rounded-[24px] shadow-lg shadow-amber-500/5 flex flex-col justify-between items-start min-h-[300px]"
+                        className="p-8 bg-gradient-to-br from-amber-500/10 via-amber-500/5 to-white border border-amber-200/50 rounded-[24px] shadow-[0_12px_40px_rgba(15,23,42,0.06)] flex flex-col justify-between items-start min-h-[320px] transition-all duration-300 hover:shadow-[0_20px_60px_rgba(15,23,42,0.12)] hover:-translate-y-1"
                     >
                         <div className="space-y-4">
                             <span className="inline-grid place-items-center w-14 h-14 rounded-2xl bg-amber-100/60 text-2xl shadow-inner border border-amber-200/30">
                                 🔑
                             </span>
-                            <h3 className="text-xl font-extrabold text-slate-900 tracking-tight">
+                            <h3 className="text-[20px] font-semibold text-slate-900 tracking-tight">
                                 Already Have an OTP?
                             </h3>
-                            <p className="text-[15px] font-semibold text-slate-500 leading-relaxed">
-                                Release your existing print instantly.
+                            <p className="text-[15px] font-medium text-slate-400/90 leading-relaxed">
+                                Enter your code to release your queued print job instantly at any counter.
                             </p>
                         </div>
                         
                         <button
                             onClick={handleOpenOtpModal}
-                            className="w-full h-[46px] rounded-full bg-amber-500 hover:bg-amber-600 text-white font-semibold text-[15px] transition-all flex items-center justify-center gap-1.5 shadow-md shadow-amber-500/10 hover:shadow-lg hover:shadow-amber-500/20 hover:-translate-y-0.5"
+                            className="w-full h-12 rounded-full bg-amber-500 hover:bg-amber-600 text-white font-semibold text-[15px] transition-all flex items-center justify-center gap-1.5 shadow-md shadow-amber-500/10 hover:shadow-lg hover:shadow-amber-500/20 hover:-translate-y-0.5"
                         >
                             Enter OTP →
                         </button>
@@ -353,25 +355,25 @@ function BlockSelection() {
 
                 </div>
 
-                {/* RIGHT CONSOLE - Widescreen map and dynamic locations (60% width equivalent / 7 Columns) */}
-                <div className="lg:col-span-7 flex flex-col gap-8">
+                {/* RIGHT CONSOLE - Desktop Columns 5–12 (65% equivalent layout) */}
+                <div className="lg:col-span-8 flex flex-col gap-10">
                     
-                    {/* Centerpiece Hero Map Section */}
+                    {/* Centered Campus Map Hero Panel */}
                     <motion.div 
                         variants={mapVariants}
-                        className="overflow-hidden rounded-[24px] border border-blue-100/50 bg-white/60 backdrop-blur-xl shadow-xl shadow-slate-100/60 relative group"
+                        className="overflow-hidden rounded-[24px] border border-white/60 bg-white/70 backdrop-blur-xl shadow-[0_12px_40px_rgba(15,23,42,0.08)] relative group transition-all duration-300"
                     >
                         <video 
                             autoPlay 
                             loop 
                             muted 
                             playsInline
-                            className="w-full h-[320px] object-cover z-0 transition-transform duration-500 ease-out group-hover:scale-[1.015]"
+                            className="w-full h-[330px] object-cover z-0 transition-transform duration-500 ease-out group-hover:scale-[1.015]"
                         >
                             <source src={mapPin} type="video/mp4" />
                         </video>
                         
-                        {/* LIVE MAP floating badge */}
+                        {/* Live Map status badge floating bottom-right */}
                         <div className="absolute bottom-4 right-4 z-20 bg-slate-950/80 backdrop-blur-md border border-slate-700/60 px-4 py-2 rounded-full shadow-lg">
                           <div className="flex items-center gap-1.5">
                             <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping" />
@@ -380,14 +382,14 @@ function BlockSelection() {
                         </div>
                     </motion.div>
 
-                    {/* Printer cards grid layout */}
+                    {/* Stacked wide grid layout for Dynamic Blocks */}
                     {loading ? (
                         <div className="text-center text-slate-400 font-bold py-12 flex flex-col items-center justify-center gap-2">
                             <div className="w-8 h-8 rounded-full border-4 border-blue-500 border-t-transparent animate-spin" />
                             Loading locations...
                         </div>
                     ) : (
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-stretch">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-stretch">
                             {blocks.map((block) => (
                                 <motion.div 
                                     key={block.name}
@@ -396,26 +398,26 @@ function BlockSelection() {
                                 >
                                     <motion.button
                                         type="button"
-                                        className="w-full relative overflow-hidden text-left border border-blue-50/50 bg-white/70 backdrop-blur-xl p-8 rounded-[20px] shadow-sm shadow-slate-100/40 flex flex-col justify-between items-start min-h-[220px] transition-all duration-300"
+                                        className="w-full relative overflow-hidden text-left border border-white/60 bg-white/70 backdrop-blur-xl p-8 rounded-[20px] shadow-[0_12px_40px_rgba(15,23,42,0.06)] flex flex-col justify-between items-start min-h-[220px] transition-all duration-300"
                                         onClick={() => selectBlock(block.name)}
                                         whileHover={{ 
-                                          y: -6, 
+                                          y: -8, 
                                           scale: 1.02, 
                                           borderColor: block.accent,
-                                          boxShadow: `0 20px 30px -10px ${block.accent}22`
+                                          boxShadow: `0 20px 60px -10px ${block.accent}25`
                                         }}
                                         whileTap={{ scale: 0.98 }}
                                     >
                                         <div className="w-full flex items-start gap-4">
                                             <span 
-                                                className="inline-grid place-items-center w-14 h-14 rounded-2xl text-2xl shrink-0 shadow-inner border border-blue-50/10"
+                                                className="inline-grid place-items-center w-14 h-14 rounded-2xl text-2xl shrink-0 shadow-inner border border-blue-50/15"
                                                 style={{ backgroundColor: `${block.accent}12` }}
                                             >
                                                 {block.icon}
                                             </span>
                                             <div className="space-y-1 flex-1">
                                                 <h3 className="text-[20px] font-semibold text-slate-900 tracking-tight leading-tight">{block.name}</h3>
-                                                <p className="text-[15px] font-medium text-slate-400 leading-relaxed mt-1">{block.description}</p>
+                                                <p className="text-[15px] font-medium text-slate-400 mt-1 leading-relaxed">{block.description}</p>
                                             </div>
                                         </div>
                                         
