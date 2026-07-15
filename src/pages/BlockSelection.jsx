@@ -33,6 +33,11 @@ const itemVariants = {
   }
 };
 
+const mapVariants = {
+  hidden: { opacity: 0, scale: 0.98 },
+  show: { opacity: 1, scale: 1, transition: { duration: 0.5, ease: "easeOut" } }
+};
+
 function BlockSelection() {
     const navigate = useNavigate();
     const [searchParams, setSearchParams] = useSearchParams();
