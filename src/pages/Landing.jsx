@@ -38,6 +38,15 @@ function Landing() {
   const statsStarted = useRef(false);
   const demoVideoRef = useRef(null);
 
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 1024);
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
+
   // Statistics counters
   const [stats, setStats] = useState({
     activePrinters: 27,
@@ -236,10 +245,10 @@ function Landing() {
           {/* Subtle Blue Ambient Glow Behind Arc */}
           <div className="absolute top-1/2 left-[40%] -translate-y-1/2 -translate-x-1/2 w-[400px] h-[400px] bg-blue-500/10 rounded-full blur-[120px] pointer-events-none z-0" />
 
-          {/* Background Video Showcase: occupies full hero area, clipped exactly to the curve */}
+          {/* Background Video Showcase: occupies full hero area, clipped exactly to the curve on desktop */}
           <div 
             className="absolute inset-0 z-0 bg-transparent"
-            style={{
+            style={isMobile ? {} : {
               clipPath: "url(#hero-clip)",
               WebkitClipPath: "url(#hero-clip)"
             }}
@@ -255,14 +264,14 @@ function Landing() {
               controlsList="nodownload nofullscreen"
               disablePictureInPicture
               draggable="false"
-              className="w-full h-full object-cover object-center pointer-events-none select-none opacity-100"
+              className={`w-full h-full object-cover object-center pointer-events-none select-none transition-all duration-300 ${isMobile ? 'blur-[4px] opacity-35' : 'opacity-100'}`}
             />
-            {/* Soft feather overlay gradient where the arc meets the video */}
-            <div className="absolute inset-y-0 left-0 w-32 bg-gradient-to-r from-slate-950 to-transparent z-10 pointer-events-none" />
+            {/* Soft feather overlay gradient where the arc meets the video (only on desktop) */}
+            <div className="absolute inset-y-0 left-0 w-32 bg-gradient-to-r from-slate-950 to-transparent z-10 pointer-events-none hidden lg:block" />
           </div>
 
-          {/* Massive Curved Glowing Arc Divider Stroke Overlay (rendered directly on 100% width) */}
-          <svg className="absolute inset-0 w-full h-full pointer-events-none z-20 overflow-visible" viewBox="0 0 100 100" preserveAspectRatio="none">
+          {/* Massive Curved Glowing Arc Divider Stroke Overlay (rendered directly on 100% width, hidden on mobile) */}
+          <svg className="absolute inset-0 w-full h-full pointer-events-none z-20 overflow-visible hidden lg:block" viewBox="0 0 100 100" preserveAspectRatio="none">
             {/* 2px glowing blue stroke */}
             <path d="M 38,0 Q 33,50 38,100" fill="none" stroke="#3B82F6" strokeWidth="2" className="filter drop-shadow-[0_0_20px_rgba(59,130,246,0.9)]" vectorEffect="non-scaling-stroke" />
           </svg>
