@@ -381,6 +381,8 @@ function Landing() {
             <video
               ref={demoVideoRef}
               src={demoVideo}
+              autoPlay
+              muted
               controls
               playsInline
               loop
