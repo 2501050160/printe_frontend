@@ -7,12 +7,12 @@ import { clearUserSession } from "../services/auth";
 import PopupManager from "../components/PopupManager";
 import mapPin from "../assets/map_pin.mp4";
 import CustomModal from "../components/CustomModal";
-import { User, LogOut, Sparkles, MapPin, Printer, ArrowRight } from "lucide-react";
+import { User, LogOut, Sparkles, MapPin, Printer, ArrowRight, ShieldCheck, Cpu, Wifi } from "lucide-react";
 
 const defaultIcons = ["🏛️", "⚡", "📘", "🏛️", "⚡", "📘"];
-const defaultAccents = ["#3b82f6", "#10b981", "#8b5cf6", "#f43f5e", "#f59e0b", "#ec4899"];
+const defaultAccents = ["#2563eb", "#22d3ee", "#8b5cf6", "#f43f5e", "#f59e0b", "#ec4899"];
 
-// Page-load animation variants
+// Page entry stagger transitions
 const pageVariants = {
   hidden: { opacity: 0 },
   show: {
@@ -277,31 +277,31 @@ function BlockSelection() {
     };
 
     return (
-        <main className="min-h-screen bg-[#07080d] py-12 px-6 md:px-12 relative overflow-hidden font-sans flex flex-col justify-between text-white">
-            {/* Highly attractive neon ambient glows */}
-            <div className="absolute top-0 left-0 w-[55rem] h-[55rem] bg-blue-500/[0.12] rounded-full blur-[160px] pointer-events-none" />
-            <div className="absolute bottom-0 left-0 w-[45rem] h-[45rem] bg-purple-500/[0.1] rounded-full blur-[150px] pointer-events-none" />
-            <div className="absolute bottom-1/3 right-0 w-[50rem] h-[50rem] bg-cyan-400/[0.08] rounded-full blur-[160px] pointer-events-none" />
+        <main className="min-h-screen bg-[#070b14] py-12 px-6 md:px-12 relative overflow-hidden font-sans flex flex-col justify-between text-white">
+            {/* Cinematic layered neon gradients matching specified palette */}
+            <div className="absolute top-0 left-0 w-[55rem] h-[55rem] bg-[#2563eb]/[0.1] rounded-full blur-[160px] pointer-events-none" />
+            <div className="absolute bottom-0 left-0 w-[45rem] h-[45rem] bg-[#8b5cf6]/[0.08] rounded-full blur-[150px] pointer-events-none" />
+            <div className="absolute bottom-1/3 right-0 w-[50rem] h-[50rem] bg-[#22d3ee]/[0.08] rounded-full blur-[160px] pointer-events-none" />
             
-            {/* Elegant dark grid decoration */}
-            <div className="absolute inset-0 bg-[radial-gradient(#1e293b_1px,transparent_1px)] [background-size:24px_24px] opacity-40 pointer-events-none" />
+            {/* Faint futuristic grid pattern */}
+            <div className="absolute inset-0 bg-[linear-gradient(to_right,#111827_1px,transparent_1px),linear-gradient(to_bottom,#111827_1px,transparent_1px)] bg-[size:4rem_4rem] opacity-35 pointer-events-none" />
 
             <PopupManager page="LOCATION_SELECTION" />
             
             <motion.div 
-                className="w-full max-w-none mx-auto grid grid-cols-1 lg:grid-cols-12 gap-10 relative z-10"
+                className="w-full max-w-[1500px] mx-auto grid grid-cols-1 lg:grid-cols-12 gap-10 relative z-10"
                 variants={pageVariants}
                 initial="hidden"
                 animate="show"
             >
-                {/* LEFT COLUMN - Dashboard Details Console (Columns 1-4) */}
-                <div className="lg:col-span-4 flex flex-col justify-between gap-10">
+                {/* LEFT CONSOLE - Columns 1-4 (35% equivalent layout) */}
+                <div className="lg:col-span-5 flex flex-col justify-between gap-10">
                     
-                    {/* Header Glass details */}
+                    {/* Brand header console details */}
                     <motion.div variants={headerVariants} className="space-y-6">
                         <div className="space-y-3">
-                            <span className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full text-[10px] font-black uppercase tracking-widest text-sky-400 bg-sky-500/10 border border-sky-500/20 shadow-[0_0_15px_rgba(56,189,248,0.1)]">
-                                <Sparkles className="w-3.5 h-3.5 text-sky-400 animate-pulse" /> STEP 1 • PICKUP POINT
+                            <span className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full text-[10px] font-black uppercase tracking-widest text-[#22d3ee] bg-[#22d3ee]/10 border border-[#22d3ee]/20 shadow-[0_0_15px_rgba(34,211,238,0.1)]">
+                                <Sparkles className="w-3.5 h-3.5 text-[#22d3ee] animate-pulse" /> STEP 1 • PICKUP POINT
                             </span>
                             <h1 className="text-4xl md:text-[44px] font-black text-white tracking-tight leading-[1.05] drop-shadow-sm">
                                 Choose Print Location
@@ -311,15 +311,18 @@ function BlockSelection() {
                             </p>
                         </div>
 
-                        {/* Floating Dark Active Session Widget */}
-                        <div className="p-5 bg-slate-950/60 backdrop-blur-2xl border border-slate-800/80 rounded-[20px] shadow-[0_12px_40px_rgba(0,0,0,0.4)] flex items-center justify-between gap-4">
+                        {/* Connected Status Widget Card */}
+                        <div className="p-5 bg-[#0d1322]/80 backdrop-blur-2xl border border-slate-800 rounded-[20px] shadow-[0_12px_40px_rgba(0,0,0,0.4)] flex items-center justify-between gap-4">
                             <div className="flex items-center gap-3">
-                                <div className="w-11 h-11 rounded-xl bg-blue-600 flex items-center justify-center text-white shadow-md shadow-blue-500/20">
-                                    <User className="w-5.5 h-5.5" />
+                                <div className="w-11 h-11 rounded-xl bg-gradient-to-tr from-[#2563eb] to-[#22d3ee] flex items-center justify-center text-white shadow-lg shadow-blue-500/20">
+                                    <Cpu className="w-5.5 h-5.5 text-white" />
                                 </div>
                                 <div className="text-left">
-                                    <div className="text-[9px] font-black text-slate-500 uppercase tracking-widest leading-none">Active Session</div>
-                                    <span className="text-sm font-semibold text-slate-300 mt-1 block">Secure Client Connected</span>
+                                    <div className="flex items-center gap-1.5">
+                                        <span className="w-2.5 h-2.5 rounded-full bg-[#10b981] animate-pulse" />
+                                        <span className="text-[9px] font-black text-[#10b981] uppercase tracking-widest leading-none">Live Client</span>
+                                    </div>
+                                    <span className="text-sm font-semibold text-slate-300 mt-1.5 block">Sync latency: <span className="font-mono text-[#22d3ee]">12ms</span></span>
                                 </div>
                             </div>
                             <button onClick={logout} className="h-9 px-4 rounded-full border border-rose-500/20 hover:border-rose-500/40 bg-rose-500/10 hover:bg-rose-500/20 text-xs font-bold text-rose-400 flex items-center gap-1 transition-all hover:-translate-y-0.5">
@@ -328,10 +331,10 @@ function BlockSelection() {
                         </div>
                     </motion.div>
 
-                    {/* Dark Glassmorphic OTP Release card */}
+                    {/* Premium Security Panel / OTP Card (with gold accent accentuating importance) */}
                     <motion.div 
                         variants={cardVariants}
-                        className="p-8 bg-gradient-to-br from-amber-500/10 via-amber-500/5 to-slate-950/80 backdrop-blur-2xl border border-amber-500/20 rounded-[24px] shadow-[0_12px_40px_rgba(0,0,0,0.3)] flex flex-col justify-between items-start min-h-[320px] transition-all duration-300 hover:shadow-[0_20px_50px_rgba(245,158,11,0.15)] hover:border-amber-500/40 hover:-translate-y-1"
+                        className="p-8 bg-gradient-to-br from-amber-500/15 via-amber-500/5 to-[#0d1322]/90 backdrop-blur-2xl border border-amber-500/20 rounded-[24px] shadow-[0_12px_40px_rgba(0,0,0,0.3)] flex flex-col justify-between items-start min-h-[320px] transition-all duration-300 hover:shadow-[0_20px_50px_rgba(245,158,11,0.15)] hover:border-amber-500/40 hover:-translate-y-1"
                     >
                         <div className="space-y-4">
                             <span className="inline-grid place-items-center w-14 h-14 rounded-2xl bg-amber-500/10 text-2xl shadow-inner border border-amber-500/20">
@@ -355,15 +358,15 @@ function BlockSelection() {
 
                 </div>
 
-                {/* RIGHT COLUMN - Video Map and Printers Grid (Columns 5-12) */}
-                <div className="lg:col-span-8 flex flex-col gap-10">
+                {/* RIGHT CONSOLE - Holographic map view & printers grid (Columns 5-12) */}
+                <div className="lg:col-span-7 flex flex-col gap-10">
                     
-                    {/* Visual Focus Hero map panel */}
+                    {/* Immersive Widescreen Holographic campus map visualization */}
                     <motion.div 
                         variants={mapVariants}
-                        className="overflow-hidden rounded-[24px] border border-slate-800 bg-slate-950/50 shadow-[0_12px_40px_rgba(0,0,0,0.5)] relative group"
+                        className="overflow-hidden rounded-[24px] border border-slate-800 bg-[#0d1322]/50 shadow-[0_12px_40px_rgba(0,0,0,0.5)] relative group"
                     >
-                        <div className="absolute inset-0 bg-gradient-to-t from-slate-950/40 to-transparent pointer-events-none z-10" />
+                        <div className="absolute inset-0 bg-gradient-to-t from-[#070b14]/50 to-transparent pointer-events-none z-10" />
                         <video 
                             autoPlay 
                             loop 
@@ -374,7 +377,7 @@ function BlockSelection() {
                             <source src={mapPin} type="video/mp4" />
                         </video>
                         
-                        {/* Floating status indicator */}
+                        {/* Interactive scanning live status pill */}
                         <div className="absolute bottom-4 right-4 z-20 bg-slate-900/90 backdrop-blur-md border border-slate-700/60 px-4 py-2 rounded-full shadow-lg">
                           <div className="flex items-center gap-1.5">
                             <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping" />
@@ -383,11 +386,11 @@ function BlockSelection() {
                         </div>
                     </motion.div>
 
-                    {/* Printers Selection Grid */}
+                    {/* Printer location cards stacked in clean grid layout */}
                     {loading ? (
                         <div className="text-center text-slate-400 font-bold py-12 flex flex-col items-center justify-center gap-2">
                             <div className="w-8 h-8 rounded-full border-4 border-sky-500 border-t-transparent animate-spin" />
-                            Loading counters...
+                            Loading locations...
                         </div>
                     ) : (
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-stretch">
@@ -399,7 +402,7 @@ function BlockSelection() {
                                 >
                                     <motion.button
                                         type="button"
-                                        className="w-full relative overflow-hidden text-left border border-slate-800 bg-slate-950/70 backdrop-blur-2xl p-8 rounded-[20px] shadow-[0_12px_40px_rgba(0,0,0,0.4)] flex flex-col justify-between items-start min-h-[220px] transition-all duration-300"
+                                        className="w-full relative overflow-hidden text-left border border-slate-800 bg-[#0d1322]/80 backdrop-blur-2xl p-8 rounded-[20px] shadow-[0_12px_40px_rgba(0,0,0,0.4)] flex flex-col justify-between items-start min-h-[220px] transition-all duration-300"
                                         onClick={() => selectBlock(block.name)}
                                         whileHover={{ 
                                           y: -8, 
@@ -412,7 +415,7 @@ function BlockSelection() {
                                         <div className="w-full flex items-start gap-4">
                                             <span 
                                                 className="inline-grid place-items-center w-14 h-14 rounded-2xl text-2xl shrink-0 shadow-inner border border-slate-800"
-                                                style={{ backgroundColor: `${block.accent}20` }}
+                                                style={{ backgroundColor: `${block.accent}12` }}
                                             >
                                                 {block.icon}
                                             </span>
