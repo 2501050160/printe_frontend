@@ -168,8 +168,23 @@ function BlockSelection() {
                 setLoading(false);
             }
         };
+
+        const fetchPendingOrders = async () => {
+            if (!userId) return;
+            try {
+                const res = await api.get("/pdf/userOrders", { params: { userId } });
+                const pending = (res.data || []).filter(
+                    o => o.status === "PENDING_SCAN" || o.status === "CANCEL_WINDOW"
+                );
+                setPendingOrders(pending);
+            } catch (err) {
+                console.error("Failed to fetch pending orders on mount:", err);
+            }
+        };
+
         fetchBlocks();
-    }, []);
+        fetchPendingOrders();
+    }, [userId]);
 
     // Auto-open OTP modal when redirected from checkout with orderId
     useEffect(() => {
@@ -445,9 +460,9 @@ function BlockSelection() {
                         className="grid grid-cols-2 md:grid-cols-4 gap-4 p-5 bg-[#0b1020]/75 backdrop-blur-xl border border-slate-800/80 rounded-[20px] shadow-inner"
                     >
                         {[
-                            { label: "Active Printers", value: "4 Nodes", icon: <Printer className="w-4 h-4 text-blue-400" /> },
-                            { label: "Jobs in Queue", value: "2 Pending", icon: <Activity className="w-4 h-4 text-cyan-400" /> },
-                            { label: "Avg Wait Time", value: "1.2 Mins", icon: <Clock className="w-4 h-4 text-purple-400" /> },
+                            { label: "Active Printers", value: `${blocks.filter(b => b.name !== "A Block").length} Node(s)`, icon: <Printer className="w-4 h-4 text-blue-400" /> },
+                            { label: "Jobs in Queue", value: `${pendingOrders.length} Pending`, icon: <Activity className="w-4 h-4 text-cyan-400" /> },
+                            { label: "Avg Wait Time", value: `${(pendingOrders.length * 1.5 || 1.2).toFixed(1)} Mins`, icon: <Clock className="w-4 h-4 text-purple-400" /> },
                             { label: "System Uptime", value: "99.98%", icon: <Layers className="w-4 h-4 text-emerald-400" /> }
                         ].map((stat, idx) => (
                             <div key={idx} className="space-y-1 border-r border-slate-800/50 last:border-0 pr-4 last:pr-0">
