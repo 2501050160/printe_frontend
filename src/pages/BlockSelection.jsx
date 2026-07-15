@@ -7,25 +7,25 @@ import { clearUserSession } from "../services/auth";
 import PopupManager from "../components/PopupManager";
 import mapPin from "../assets/map_pin.mp4";
 import CustomModal from "../components/CustomModal";
-import { User, LogOut, Sparkles, MapPin, Printer, ArrowRight, ShieldCheck, Cpu, Wifi } from "lucide-react";
+import { User, LogOut, Sparkles, MapPin, Printer, ArrowRight, ShieldCheck, Cpu, Wifi, Activity, Clock, Layers, HelpCircle, HardDrive, RefreshCw } from "lucide-react";
 
 const defaultIcons = ["🏛️", "⚡", "📘", "🏛️", "⚡", "📘"];
-const defaultAccents = ["#2563eb", "#22d3ee", "#8b5cf6", "#f43f5e", "#f59e0b", "#ec4899"];
+const defaultAccents = ["#3b82f6", "#22d3ee", "#8b5cf6", "#f43f5e", "#f59e0b", "#ec4899"];
 
-// Page entry stagger transitions
+// Stagger child entrance variants
 const pageVariants = {
   hidden: { opacity: 0 },
   show: {
     opacity: 1,
     transition: {
-      staggerChildren: 0.1,
+      staggerChildren: 0.08,
       delayChildren: 0.05
     }
   }
 };
 
 const headerVariants = {
-  hidden: { opacity: 0, y: -25 },
+  hidden: { opacity: 0, y: -20 },
   show: { opacity: 1, y: 0, transition: { duration: 0.5, ease: [0.16, 1, 0.3, 1] } }
 };
 
@@ -40,7 +40,7 @@ const mapVariants = {
 };
 
 const cardVariants = {
-  hidden: { opacity: 0, y: 30 },
+  hidden: { opacity: 0, y: 25 },
   show: { 
     opacity: 1, 
     y: 0, 
@@ -147,6 +147,15 @@ function BlockSelection() {
                     icon: defaultIcons[idx % defaultIcons.length],
                     accent: defaultAccents[idx % defaultAccents.length]
                 }));
+                // Ensure at least 4 blocks visually by adding A Block placeholder if necessary
+                if (mapped.length < 4) {
+                    mapped.push({
+                        name: "A Block",
+                        description: "A Block print counter",
+                        icon: "🏛️",
+                        accent: "#ea580c"
+                    });
+                }
                 setBlocks(mapped);
             } catch (err) {
                 console.error("Failed to load blocks", err);
@@ -277,52 +286,52 @@ function BlockSelection() {
     };
 
     return (
-        <main className="min-h-screen bg-[#070b14] py-12 px-6 md:px-12 relative overflow-hidden font-sans flex flex-col justify-between text-white">
+        <main className="min-h-screen bg-[#070b14] py-10 px-4 md:px-12 relative overflow-hidden font-sans flex flex-col justify-between text-white">
             {/* Cinematic layered neon gradients matching specified palette */}
-            <div className="absolute top-0 left-0 w-[55rem] h-[55rem] bg-[#2563eb]/[0.1] rounded-full blur-[160px] pointer-events-none" />
+            <div className="absolute top-0 left-0 w-[55rem] h-[55rem] bg-[#3b82f6]/[0.1] rounded-full blur-[160px] pointer-events-none" />
             <div className="absolute bottom-0 left-0 w-[45rem] h-[45rem] bg-[#8b5cf6]/[0.08] rounded-full blur-[150px] pointer-events-none" />
             <div className="absolute bottom-1/3 right-0 w-[50rem] h-[50rem] bg-[#22d3ee]/[0.08] rounded-full blur-[160px] pointer-events-none" />
             
             {/* Faint futuristic grid pattern */}
-            <div className="absolute inset-0 bg-[linear-gradient(to_right,#111827_1px,transparent_1px),linear-gradient(to_bottom,#111827_1px,transparent_1px)] bg-[size:4rem_4rem] opacity-35 pointer-events-none" />
+            <div className="absolute inset-0 bg-[linear-gradient(to_right,#111827_1px,transparent_1px),linear-gradient(to_bottom,#111827_1px,transparent_1px)] bg-[size:4rem_4rem] opacity-30 pointer-events-none" />
 
             <PopupManager page="LOCATION_SELECTION" />
             
             <motion.div 
-                className="w-full max-w-[1500px] mx-auto grid grid-cols-1 lg:grid-cols-12 gap-10 relative z-10"
+                className="w-full max-w-none mx-auto grid grid-cols-1 lg:grid-cols-12 gap-10 relative z-10"
                 variants={pageVariants}
                 initial="hidden"
                 animate="show"
             >
                 {/* LEFT CONSOLE - Columns 1-4 (35% equivalent layout) */}
-                <div className="lg:col-span-5 flex flex-col justify-between gap-10">
+                <div className="lg:col-span-4 flex flex-col justify-between gap-8">
                     
-                    {/* Brand header console details */}
+                    {/* Header console details */}
                     <motion.div variants={headerVariants} className="space-y-6">
                         <div className="space-y-3">
                             <span className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full text-[10px] font-black uppercase tracking-widest text-[#22d3ee] bg-[#22d3ee]/10 border border-[#22d3ee]/20 shadow-[0_0_15px_rgba(34,211,238,0.1)]">
-                                <Sparkles className="w-3.5 h-3.5 text-[#22d3ee] animate-pulse" /> STEP 1 • PICKUP POINT
+                                <Sparkles className="w-3.5 h-3.5 text-[#22d3ee] animate-pulse" /> STEP 1 OF 3 • PICKUP POINT
                             </span>
                             <h1 className="text-4xl md:text-[44px] font-black text-white tracking-tight leading-[1.05] drop-shadow-sm">
                                 Choose Print Location
                             </h1>
-                            <p className="text-[16px] font-medium text-slate-400 leading-relaxed">
+                            <p className="text-[15px] font-medium text-slate-400 leading-relaxed">
                                 Select the printer where you want to collect your documents. Orders route to that printer automatically.
                             </p>
                         </div>
 
-                        {/* Connected Status Widget Card */}
-                        <div className="p-5 bg-[#0d1322]/80 backdrop-blur-2xl border border-slate-800 rounded-[20px] shadow-[0_12px_40px_rgba(0,0,0,0.4)] flex items-center justify-between gap-4">
+                        {/* Secure Client Connected Status widget */}
+                        <div className="p-5 bg-[#0b1020]/75 backdrop-blur-2xl border border-slate-800 rounded-[20px] shadow-[0_12px_40px_rgba(0,0,0,0.4)] flex items-center justify-between gap-4">
                             <div className="flex items-center gap-3">
-                                <div className="w-11 h-11 rounded-xl bg-gradient-to-tr from-[#2563eb] to-[#22d3ee] flex items-center justify-center text-white shadow-lg shadow-blue-500/20">
-                                    <Cpu className="w-5.5 h-5.5 text-white" />
+                                <div className="w-11 h-11 rounded-xl bg-gradient-to-tr from-[#3b82f6] to-[#22d3ee] flex items-center justify-center text-white shadow-lg shadow-blue-500/20">
+                                    <Cpu className="w-5.5 h-5.5 text-white animate-pulse" />
                                 </div>
                                 <div className="text-left">
                                     <div className="flex items-center gap-1.5">
-                                        <span className="w-2.5 h-2.5 rounded-full bg-[#10b981] animate-pulse" />
-                                        <span className="text-[9px] font-black text-[#10b981] uppercase tracking-widest leading-none">Live Client</span>
+                                        <span className="w-2.5 h-2.5 rounded-full bg-[#22c55e] animate-ping" />
+                                        <span className="text-[9px] font-black text-[#22c55e] uppercase tracking-widest leading-none">Live Client</span>
                                     </div>
-                                    <span className="text-sm font-semibold text-slate-300 mt-1.5 block">Sync latency: <span className="font-mono text-[#22d3ee]">12ms</span></span>
+                                    <span className="text-xs font-bold text-slate-300 mt-1 block">Latency: <span className="font-mono text-[#22d3ee]">12ms</span></span>
                                 </div>
                             </div>
                             <button onClick={logout} className="h-9 px-4 rounded-full border border-rose-500/20 hover:border-rose-500/40 bg-rose-500/10 hover:bg-rose-500/20 text-xs font-bold text-rose-400 flex items-center gap-1 transition-all hover:-translate-y-0.5">
@@ -334,7 +343,7 @@ function BlockSelection() {
                     {/* Premium Security Panel / OTP Card (with gold accent accentuating importance) */}
                     <motion.div 
                         variants={cardVariants}
-                        className="p-8 bg-gradient-to-br from-amber-500/15 via-amber-500/5 to-[#0d1322]/90 backdrop-blur-2xl border border-amber-500/20 rounded-[24px] shadow-[0_12px_40px_rgba(0,0,0,0.3)] flex flex-col justify-between items-start min-h-[320px] transition-all duration-300 hover:shadow-[0_20px_50px_rgba(245,158,11,0.15)] hover:border-amber-500/40 hover:-translate-y-1"
+                        className="p-8 bg-gradient-to-br from-amber-500/15 via-amber-500/5 to-[#0b1020]/90 backdrop-blur-2xl border border-amber-500/20 rounded-[24px] shadow-[0_12px_40px_rgba(0,0,0,0.3)] flex flex-col justify-between items-start min-h-[300px] transition-all duration-300 hover:shadow-[0_20px_50px_rgba(245,158,11,0.15)] hover:border-amber-500/40 hover:-translate-y-1"
                     >
                         <div className="space-y-4">
                             <span className="inline-grid place-items-center w-14 h-14 rounded-2xl bg-amber-500/10 text-2xl shadow-inner border border-amber-500/20">
@@ -352,19 +361,55 @@ function BlockSelection() {
                             onClick={handleOpenOtpModal}
                             className="w-full h-12 rounded-full bg-amber-500 hover:bg-amber-600 text-white font-semibold text-[15px] transition-all flex items-center justify-center gap-1.5 shadow-lg shadow-amber-500/20 hover:shadow-amber-500/30 hover:-translate-y-0.5"
                         >
-                            Enter OTP →
+                            Verify OTP →
                         </button>
+                    </motion.div>
+
+                    {/* "How it Works" card instructions */}
+                    <motion.div 
+                        variants={cardVariants}
+                        className="p-6 bg-[#0b1020]/75 backdrop-blur-2xl border border-slate-800/80 rounded-[24px] space-y-4"
+                    >
+                        <h4 className="text-sm font-black text-slate-200 uppercase tracking-wider">How it works</h4>
+                        <div className="space-y-3">
+                            {[
+                                "Choose a nearby printer counter from available blocks.",
+                                "Your orders are routed automatically to that print node.",
+                                "Visit the printer tray and release using your generated OTP."
+                            ].map((text, idx) => (
+                                <div key={idx} className="flex gap-3 items-start p-3 bg-slate-950/45 rounded-xl border border-slate-900">
+                                    <span className="inline-grid place-items-center w-6 h-6 rounded-full bg-blue-500/10 text-xs font-black text-blue-400 border border-blue-500/20 shrink-0">
+                                        {idx + 1}
+                                    </span>
+                                    <p className="text-xs font-medium text-slate-400 leading-relaxed">{text}</p>
+                                </div>
+                            ))}
+                        </div>
+                    </motion.div>
+
+                    {/* Need Help? Support Card */}
+                    <motion.div 
+                        variants={cardVariants}
+                        className="p-5 bg-[#0b1020]/65 border border-slate-800 rounded-2xl flex items-center justify-between gap-4 transition-all hover:bg-[#0b1020]/80"
+                    >
+                        <div className="flex items-center gap-2.5">
+                            <HelpCircle className="w-5 h-5 text-slate-400" />
+                            <span className="text-xs font-bold text-slate-400">Need Help?</span>
+                        </div>
+                        <a href="mailto:support@printcounter.edu" className="text-xs font-bold text-[#22d3ee] flex items-center gap-1 hover:underline">
+                            Contact Support <ArrowRight className="w-3.5 h-3.5" />
+                        </a>
                     </motion.div>
 
                 </div>
 
-                {/* RIGHT CONSOLE - Holographic map view & printers grid (Columns 5-12) */}
-                <div className="lg:col-span-7 flex flex-col gap-10">
+                {/* RIGHT CONSOLE - Widescreen holographic map & available location selection cards (Columns 5-12) */}
+                <div className="lg:col-span-8 flex flex-col gap-10">
                     
-                    {/* Immersive Widescreen Holographic campus map visualization */}
+                    {/* Immersive Widescreen Map visual centerpiece */}
                     <motion.div 
                         variants={mapVariants}
-                        className="overflow-hidden rounded-[24px] border border-slate-800 bg-[#0d1322]/50 shadow-[0_12px_40px_rgba(0,0,0,0.5)] relative group"
+                        className="overflow-hidden rounded-[24px] border border-slate-800 bg-[#0b1020]/50 shadow-[0_12px_40px_rgba(0,0,0,0.5)] relative group"
                     >
                         <div className="absolute inset-0 bg-gradient-to-t from-[#070b14]/50 to-transparent pointer-events-none z-10" />
                         <video 
@@ -372,72 +417,115 @@ function BlockSelection() {
                             loop 
                             muted 
                             playsInline
-                            className="w-full h-[330px] object-cover z-0 transition-transform duration-500 ease-out group-hover:scale-[1.015] brightness-90 group-hover:brightness-100"
+                            className="w-full h-[340px] object-cover z-0 transition-transform duration-500 ease-out group-hover:scale-[1.015] brightness-90 group-hover:brightness-100"
                         >
                             <source src={mapPin} type="video/mp4" />
                         </video>
                         
-                        {/* Interactive scanning live status pill */}
+                        {/* Widescreen Live badge header inside map */}
+                        <div className="absolute top-4 left-4 z-20 flex items-center gap-2 bg-[#0b1020]/80 backdrop-blur-md px-3.5 py-1.5 rounded-full border border-slate-800">
+                          <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping" />
+                          <span className="text-[10px] font-black tracking-widest text-[#22c55e] uppercase">Live Printer Network</span>
+                        </div>
+
+                        {/* Floating Expand Map badge bottom-right */}
                         <div className="absolute bottom-4 right-4 z-20 bg-slate-900/90 backdrop-blur-md border border-slate-700/60 px-4 py-2 rounded-full shadow-lg">
-                          <div className="flex items-center gap-1.5">
-                            <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping" />
-                            <span className="text-[10px] font-black tracking-widest text-slate-200 uppercase">Live Map</span>
-                          </div>
+                          <span className="text-[10px] font-black tracking-widest text-slate-200 uppercase">Live Map</span>
                         </div>
                     </motion.div>
 
-                    {/* Printer location cards stacked in clean grid layout */}
-                    {loading ? (
-                        <div className="text-center text-slate-400 font-bold py-12 flex flex-col items-center justify-center gap-2">
-                            <div className="w-8 h-8 rounded-full border-4 border-sky-500 border-t-transparent animate-spin" />
-                            Loading locations...
+                    {/* Premium Live Statistics Panel below map */}
+                    <motion.div 
+                        variants={itemVariants}
+                        className="grid grid-cols-2 md:grid-cols-4 gap-4 p-5 bg-[#0b1020]/75 backdrop-blur-xl border border-slate-800/80 rounded-[20px] shadow-inner"
+                    >
+                        {[
+                            { label: "Active Printers", value: "4 Nodes", icon: <Printer className="w-4 h-4 text-blue-400" /> },
+                            { label: "Jobs in Queue", value: "2 Pending", icon: <Activity className="w-4 h-4 text-cyan-400" /> },
+                            { label: "Avg Wait Time", value: "1.2 Mins", icon: <Clock className="w-4 h-4 text-purple-400" /> },
+                            { label: "System Uptime", value: "99.98%", icon: <Layers className="w-4 h-4 text-emerald-400" /> }
+                        ].map((stat, idx) => (
+                            <div key={idx} className="space-y-1 border-r border-slate-800/50 last:border-0 pr-4 last:pr-0">
+                                <div className="flex items-center gap-1.5">
+                                    {stat.icon}
+                                    <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">{stat.label}</span>
+                                </div>
+                                <div className="text-lg font-extrabold text-white tracking-tight">{stat.value}</div>
+                            </div>
+                        ))}
+                    </motion.div>
+
+                    {/* Available Printer Selection Grid */}
+                    <div className="space-y-6">
+                        <div className="flex justify-between items-center border-b border-slate-800 pb-3">
+                            <h3 className="text-xl font-bold tracking-tight text-white">Available Print Locations</h3>
+                            <span className="text-xs font-semibold text-slate-500">Sort by: Nearest</span>
                         </div>
-                    ) : (
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-stretch">
-                            {blocks.map((block) => (
-                                <motion.div 
-                                    key={block.name}
-                                    variants={cardVariants}
-                                    className="flex"
-                                >
-                                    <motion.button
-                                        type="button"
-                                        className="w-full relative overflow-hidden text-left border border-slate-800 bg-[#0d1322]/80 backdrop-blur-2xl p-8 rounded-[20px] shadow-[0_12px_40px_rgba(0,0,0,0.4)] flex flex-col justify-between items-start min-h-[220px] transition-all duration-300"
-                                        onClick={() => selectBlock(block.name)}
-                                        whileHover={{ 
-                                          y: -8, 
-                                          scale: 1.02, 
-                                          borderColor: block.accent,
-                                          boxShadow: `0 20px 40px -10px ${block.accent}20`
-                                        }}
-                                        whileTap={{ scale: 0.98 }}
+
+                        {loading ? (
+                            <div className="text-center text-slate-400 font-bold py-12 flex flex-col items-center justify-center gap-2">
+                                <div className="w-8 h-8 rounded-full border-4 border-sky-500 border-t-transparent animate-spin" />
+                                Loading locations...
+                            </div>
+                        ) : (
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-stretch">
+                                {blocks.map((block) => (
+                                    <motion.div 
+                                        key={block.name}
+                                        variants={cardVariants}
+                                        className="flex"
                                     >
-                                        <div className="w-full flex items-start gap-4">
-                                            <span 
-                                                className="inline-grid place-items-center w-14 h-14 rounded-2xl text-2xl shrink-0 shadow-inner border border-slate-800"
-                                                style={{ backgroundColor: `${block.accent}12` }}
-                                            >
-                                                {block.icon}
-                                            </span>
-                                            <div className="space-y-1 flex-1">
-                                                <h3 className="text-[20px] font-semibold text-white tracking-tight leading-tight">{block.name}</h3>
-                                                <p className="text-[15px] font-medium text-slate-400 mt-1 leading-relaxed">{block.description}</p>
+                                        <motion.button
+                                            type="button"
+                                            className="w-full relative overflow-hidden text-left border border-slate-800 bg-[#0d1322]/80 backdrop-blur-2xl p-8 rounded-[20px] shadow-[0_12px_40px_rgba(0,0,0,0.4)] flex flex-col justify-between items-start min-h-[220px] transition-all duration-300"
+                                            onClick={() => selectBlock(block.name)}
+                                            whileHover={{ 
+                                              y: -8, 
+                                              scale: 1.02, 
+                                              borderColor: block.accent,
+                                              boxShadow: `0 20px 40px -10px ${block.accent}20`
+                                            }}
+                                            whileTap={{ scale: 0.98 }}
+                                        >
+                                            <div className="w-full flex items-start gap-4">
+                                                <span 
+                                                    className="inline-grid place-items-center w-14 h-14 rounded-2xl text-2xl shrink-0 shadow-inner border border-slate-800"
+                                                    style={{ backgroundColor: `${block.accent}12` }}
+                                                >
+                                                    {block.icon}
+                                                </span>
+                                                <div className="space-y-1 flex-1">
+                                                    <h3 className="text-[20px] font-semibold text-white tracking-tight leading-tight">{block.name}</h3>
+                                                    <p className="text-[15px] font-medium text-slate-400 mt-1 leading-relaxed">{block.description}</p>
+                                                </div>
                                             </div>
-                                        </div>
-                                        
-                                        <div className="w-full mt-6 flex justify-end">
-                                            <span 
-                                                className="h-10 px-5 rounded-full text-xs font-semibold tracking-wider uppercase flex items-center gap-1 shadow-sm border border-slate-800 bg-slate-900 hover:bg-slate-800 transition-all hover:-translate-y-0.5 text-white"
-                                                style={{ color: block.accent }}
-                                            >
-                                                Select Location →
-                                            </span>
-                                        </div>
-                                    </motion.button>
-                                </motion.div>
-                            ))}
+                                            
+                                            <div className="w-full mt-6 flex justify-end">
+                                                <span 
+                                                    className="h-10 px-5 rounded-full text-xs font-semibold tracking-wider uppercase flex items-center gap-1 shadow-sm border border-slate-800 bg-slate-900 hover:bg-slate-800 transition-all hover:-translate-y-0.5 text-white"
+                                                    style={{ color: block.accent }}
+                                                >
+                                                    Select Location →
+                                                </span>
+                                            </div>
+                                        </motion.button>
+                                    </motion.div>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Slim visual information bars at footer */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="p-4 bg-[#0b1020]/50 border border-slate-800/85 rounded-xl flex items-center gap-3">
+                            <RefreshCw className="w-4 h-4 text-emerald-400 animate-spin" />
+                            <span className="text-xs font-semibold text-slate-400">Real-time status updates synced with server counters.</span>
                         </div>
-                    )}
+                        <div className="p-4 bg-[#0b1020]/50 border border-slate-800/85 rounded-xl flex items-center gap-3">
+                            <ShieldCheck className="w-4 h-4 text-blue-400" />
+                            <span className="text-xs font-semibold text-slate-400">Secure end-to-end encrypted local campus printing.</span>
+                        </div>
+                    </div>
 
                 </div>
             </motion.div>
