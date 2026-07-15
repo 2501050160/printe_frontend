@@ -278,8 +278,8 @@ function Landing() {
 
           {/* Foreground Content Wrapper */}
           <div className="relative z-10 w-full px-8 md:px-12 lg:px-16 flex flex-col lg:flex-row justify-between items-center min-h-[90vh]">
-            {/* Left Column: 40% width overlay with max-width 560px, vertically centered inside glass card */}
-            <div className="w-full lg:w-[40%] max-w-[560px] text-white text-left z-20 my-auto bg-slate-950/70 lg:bg-slate-950/45 backdrop-blur-md lg:backdrop-blur-sm p-8 md:p-10 rounded-[32px] border border-white/5 shadow-[0_20px_50px_rgba(0,0,0,0.4)]">
+            {/* Left Column: 40% width overlay with max-width 560px, vertically centered */}
+            <div className="w-full lg:w-[40%] max-w-[560px] text-white text-left z-20 my-auto">
               <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider text-blue-400 bg-blue-950/80 border border-blue-800/60">
                 <Sparkles className="w-3.5 h-3.5" /> Next-Gen Kiosk Printing
               </span>
