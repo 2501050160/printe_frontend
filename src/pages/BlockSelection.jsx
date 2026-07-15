@@ -10,7 +10,7 @@ import CustomModal from "../components/CustomModal";
 import { User, LogOut, Sparkles, MapPin, Printer, ArrowRight } from "lucide-react";
 
 const defaultIcons = ["🏛️", "⚡", "📘", "🏛️", "⚡", "📘"];
-const defaultAccents = ["#2563eb", "#10b981", "#7c3aed", "#e11d48", "#ea580c", "#db2777"];
+const defaultAccents = ["#3b82f6", "#10b981", "#8b5cf6", "#f43f5e", "#f59e0b", "#ec4899"];
 
 // Page-load animation variants
 const pageVariants = {
@@ -277,77 +277,77 @@ function BlockSelection() {
     };
 
     return (
-        <main className="min-h-screen bg-[#f8fafc] py-12 px-6 md:px-12 relative overflow-hidden font-sans flex flex-col justify-between">
-            {/* Layered radial gradient background glows (5-8% opacity) */}
-            <div className="absolute top-0 left-0 w-[55rem] h-[55rem] bg-blue-500/[0.06] rounded-full blur-[150px] pointer-events-none" />
-            <div className="absolute bottom-0 left-0 w-[45rem] h-[45rem] bg-purple-500/[0.05] rounded-full blur-[140px] pointer-events-none" />
-            <div className="absolute bottom-1/3 right-0 w-[50rem] h-[50rem] bg-cyan-400/[0.05] rounded-full blur-[150px] pointer-events-none" />
+        <main className="min-h-screen bg-[#07080d] py-12 px-6 md:px-12 relative overflow-hidden font-sans flex flex-col justify-between text-white">
+            {/* Highly attractive neon ambient glows */}
+            <div className="absolute top-0 left-0 w-[55rem] h-[55rem] bg-blue-500/[0.12] rounded-full blur-[160px] pointer-events-none" />
+            <div className="absolute bottom-0 left-0 w-[45rem] h-[45rem] bg-purple-500/[0.1] rounded-full blur-[150px] pointer-events-none" />
+            <div className="absolute bottom-1/3 right-0 w-[50rem] h-[50rem] bg-cyan-400/[0.08] rounded-full blur-[160px] pointer-events-none" />
             
-            {/* Very light dotted patterns */}
-            <div className="absolute inset-0 bg-[radial-gradient(#cbd5e1_1px,transparent_1px)] [background-size:24px_24px] opacity-20 pointer-events-none" />
+            {/* Elegant dark grid decoration */}
+            <div className="absolute inset-0 bg-[radial-gradient(#1e293b_1px,transparent_1px)] [background-size:24px_24px] opacity-40 pointer-events-none" />
 
             <PopupManager page="LOCATION_SELECTION" />
             
             <motion.div 
-                className="w-full max-w-[1450px] mx-auto grid grid-cols-1 lg:grid-cols-12 gap-10 relative z-10"
+                className="w-full max-w-none mx-auto grid grid-cols-1 lg:grid-cols-12 gap-10 relative z-10"
                 variants={pageVariants}
                 initial="hidden"
                 animate="show"
             >
-                {/* LEFT CONSOLE - Desktop Columns 1–4 (35% equivalent layout) */}
+                {/* LEFT COLUMN - Dashboard Details Console (Columns 1-4) */}
                 <div className="lg:col-span-4 flex flex-col justify-between gap-10">
                     
-                    {/* Header glass card with premium glow & padding */}
+                    {/* Header Glass details */}
                     <motion.div variants={headerVariants} className="space-y-6">
                         <div className="space-y-3">
-                            <span className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full text-[10px] font-black uppercase tracking-widest text-blue-600 bg-blue-50 border border-blue-200/50 shadow-sm">
-                                <Sparkles className="w-3.5 h-3.5 text-blue-500 animate-pulse" /> STEP 1 • PICKUP POINT
+                            <span className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full text-[10px] font-black uppercase tracking-widest text-sky-400 bg-sky-500/10 border border-sky-500/20 shadow-[0_0_15px_rgba(56,189,248,0.1)]">
+                                <Sparkles className="w-3.5 h-3.5 text-sky-400 animate-pulse" /> STEP 1 • PICKUP POINT
                             </span>
-                            <h1 className="text-4xl md:text-[44px] font-black text-slate-900 tracking-tight leading-[1.05]">
+                            <h1 className="text-4xl md:text-[44px] font-black text-white tracking-tight leading-[1.05] drop-shadow-sm">
                                 Choose Print Location
                             </h1>
-                            <p className="text-[16px] font-medium text-slate-400/90 leading-relaxed">
+                            <p className="text-[16px] font-medium text-slate-400 leading-relaxed">
                                 Select the printer where you want to collect your documents. Orders route to that printer automatically.
                             </p>
                         </div>
 
-                        {/* Floating Active Account Widget */}
-                        <div className="p-5 bg-white/70 backdrop-blur-xl border border-white/60 rounded-[20px] shadow-[0_12px_40px_rgba(15,23,42,0.06)] flex items-center justify-between gap-4">
+                        {/* Floating Dark Active Session Widget */}
+                        <div className="p-5 bg-slate-950/60 backdrop-blur-2xl border border-slate-800/80 rounded-[20px] shadow-[0_12px_40px_rgba(0,0,0,0.4)] flex items-center justify-between gap-4">
                             <div className="flex items-center gap-3">
-                                <div className="w-11 h-11 rounded-xl bg-blue-600 flex items-center justify-center text-white shadow-md shadow-blue-500/10">
+                                <div className="w-11 h-11 rounded-xl bg-blue-600 flex items-center justify-center text-white shadow-md shadow-blue-500/20">
                                     <User className="w-5.5 h-5.5" />
                                 </div>
                                 <div className="text-left">
-                                    <div className="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none">Active Session</div>
-                                    <span className="text-sm font-semibold text-slate-600 mt-1 block">Secure Client Connected</span>
+                                    <div className="text-[9px] font-black text-slate-500 uppercase tracking-widest leading-none">Active Session</div>
+                                    <span className="text-sm font-semibold text-slate-300 mt-1 block">Secure Client Connected</span>
                                 </div>
                             </div>
-                            <button onClick={logout} className="h-9 px-4 rounded-full border border-rose-100 hover:border-rose-200 bg-rose-50/50 hover:bg-rose-50 text-xs font-bold text-rose-500 hover:text-rose-600 flex items-center gap-1 transition-all hover:-translate-y-0.5">
+                            <button onClick={logout} className="h-9 px-4 rounded-full border border-rose-500/20 hover:border-rose-500/40 bg-rose-500/10 hover:bg-rose-500/20 text-xs font-bold text-rose-400 flex items-center gap-1 transition-all hover:-translate-y-0.5">
                                 <LogOut className="w-3.5 h-3.5" /> Sign Out
                             </button>
                         </div>
                     </motion.div>
 
-                    {/* Premium OTP Release Card - Warm Glass Gradient */}
+                    {/* Dark Glassmorphic OTP Release card */}
                     <motion.div 
                         variants={cardVariants}
-                        className="p-8 bg-gradient-to-br from-amber-500/10 via-amber-500/5 to-white border border-amber-200/50 rounded-[24px] shadow-[0_12px_40px_rgba(15,23,42,0.06)] flex flex-col justify-between items-start min-h-[320px] transition-all duration-300 hover:shadow-[0_20px_60px_rgba(15,23,42,0.12)] hover:-translate-y-1"
+                        className="p-8 bg-gradient-to-br from-amber-500/10 via-amber-500/5 to-slate-950/80 backdrop-blur-2xl border border-amber-500/20 rounded-[24px] shadow-[0_12px_40px_rgba(0,0,0,0.3)] flex flex-col justify-between items-start min-h-[320px] transition-all duration-300 hover:shadow-[0_20px_50px_rgba(245,158,11,0.15)] hover:border-amber-500/40 hover:-translate-y-1"
                     >
                         <div className="space-y-4">
-                            <span className="inline-grid place-items-center w-14 h-14 rounded-2xl bg-amber-100/60 text-2xl shadow-inner border border-amber-200/30">
+                            <span className="inline-grid place-items-center w-14 h-14 rounded-2xl bg-amber-500/10 text-2xl shadow-inner border border-amber-500/20">
                                 🔑
                             </span>
-                            <h3 className="text-[20px] font-semibold text-slate-900 tracking-tight">
+                            <h3 className="text-[20px] font-semibold text-white tracking-tight">
                                 Already Have an OTP?
                             </h3>
-                            <p className="text-[15px] font-medium text-slate-400/90 leading-relaxed">
+                            <p className="text-[15px] font-medium text-slate-400 leading-relaxed">
                                 Enter your code to release your queued print job instantly at any counter.
                             </p>
                         </div>
                         
                         <button
                             onClick={handleOpenOtpModal}
-                            className="w-full h-12 rounded-full bg-amber-500 hover:bg-amber-600 text-white font-semibold text-[15px] transition-all flex items-center justify-center gap-1.5 shadow-md shadow-amber-500/10 hover:shadow-lg hover:shadow-amber-500/20 hover:-translate-y-0.5"
+                            className="w-full h-12 rounded-full bg-amber-500 hover:bg-amber-600 text-white font-semibold text-[15px] transition-all flex items-center justify-center gap-1.5 shadow-lg shadow-amber-500/20 hover:shadow-amber-500/30 hover:-translate-y-0.5"
                         >
                             Enter OTP →
                         </button>
@@ -355,38 +355,39 @@ function BlockSelection() {
 
                 </div>
 
-                {/* RIGHT CONSOLE - Desktop Columns 5–12 (65% equivalent layout) */}
+                {/* RIGHT COLUMN - Video Map and Printers Grid (Columns 5-12) */}
                 <div className="lg:col-span-8 flex flex-col gap-10">
                     
-                    {/* Centered Campus Map Hero Panel */}
+                    {/* Visual Focus Hero map panel */}
                     <motion.div 
                         variants={mapVariants}
-                        className="overflow-hidden rounded-[24px] border border-white/60 bg-white/70 backdrop-blur-xl shadow-[0_12px_40px_rgba(15,23,42,0.08)] relative group transition-all duration-300"
+                        className="overflow-hidden rounded-[24px] border border-slate-800 bg-slate-950/50 shadow-[0_12px_40px_rgba(0,0,0,0.5)] relative group"
                     >
+                        <div className="absolute inset-0 bg-gradient-to-t from-slate-950/40 to-transparent pointer-events-none z-10" />
                         <video 
                             autoPlay 
                             loop 
                             muted 
                             playsInline
-                            className="w-full h-[330px] object-cover z-0 transition-transform duration-500 ease-out group-hover:scale-[1.015]"
+                            className="w-full h-[330px] object-cover z-0 transition-transform duration-500 ease-out group-hover:scale-[1.015] brightness-90 group-hover:brightness-100"
                         >
                             <source src={mapPin} type="video/mp4" />
                         </video>
                         
-                        {/* Live Map status badge floating bottom-right */}
-                        <div className="absolute bottom-4 right-4 z-20 bg-slate-950/80 backdrop-blur-md border border-slate-700/60 px-4 py-2 rounded-full shadow-lg">
+                        {/* Floating status indicator */}
+                        <div className="absolute bottom-4 right-4 z-20 bg-slate-900/90 backdrop-blur-md border border-slate-700/60 px-4 py-2 rounded-full shadow-lg">
                           <div className="flex items-center gap-1.5">
-                            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping" />
+                            <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping" />
                             <span className="text-[10px] font-black tracking-widest text-slate-200 uppercase">Live Map</span>
                           </div>
                         </div>
                     </motion.div>
 
-                    {/* Stacked wide grid layout for Dynamic Blocks */}
+                    {/* Printers Selection Grid */}
                     {loading ? (
                         <div className="text-center text-slate-400 font-bold py-12 flex flex-col items-center justify-center gap-2">
-                            <div className="w-8 h-8 rounded-full border-4 border-blue-500 border-t-transparent animate-spin" />
-                            Loading locations...
+                            <div className="w-8 h-8 rounded-full border-4 border-sky-500 border-t-transparent animate-spin" />
+                            Loading counters...
                         </div>
                     ) : (
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-stretch">
@@ -398,32 +399,32 @@ function BlockSelection() {
                                 >
                                     <motion.button
                                         type="button"
-                                        className="w-full relative overflow-hidden text-left border border-white/60 bg-white/70 backdrop-blur-xl p-8 rounded-[20px] shadow-[0_12px_40px_rgba(15,23,42,0.06)] flex flex-col justify-between items-start min-h-[220px] transition-all duration-300"
+                                        className="w-full relative overflow-hidden text-left border border-slate-800 bg-slate-950/70 backdrop-blur-2xl p-8 rounded-[20px] shadow-[0_12px_40px_rgba(0,0,0,0.4)] flex flex-col justify-between items-start min-h-[220px] transition-all duration-300"
                                         onClick={() => selectBlock(block.name)}
                                         whileHover={{ 
                                           y: -8, 
                                           scale: 1.02, 
                                           borderColor: block.accent,
-                                          boxShadow: `0 20px 60px -10px ${block.accent}25`
+                                          boxShadow: `0 20px 40px -10px ${block.accent}20`
                                         }}
                                         whileTap={{ scale: 0.98 }}
                                     >
                                         <div className="w-full flex items-start gap-4">
                                             <span 
-                                                className="inline-grid place-items-center w-14 h-14 rounded-2xl text-2xl shrink-0 shadow-inner border border-blue-50/15"
-                                                style={{ backgroundColor: `${block.accent}12` }}
+                                                className="inline-grid place-items-center w-14 h-14 rounded-2xl text-2xl shrink-0 shadow-inner border border-slate-800"
+                                                style={{ backgroundColor: `${block.accent}20` }}
                                             >
                                                 {block.icon}
                                             </span>
                                             <div className="space-y-1 flex-1">
-                                                <h3 className="text-[20px] font-semibold text-slate-900 tracking-tight leading-tight">{block.name}</h3>
+                                                <h3 className="text-[20px] font-semibold text-white tracking-tight leading-tight">{block.name}</h3>
                                                 <p className="text-[15px] font-medium text-slate-400 mt-1 leading-relaxed">{block.description}</p>
                                             </div>
                                         </div>
                                         
                                         <div className="w-full mt-6 flex justify-end">
                                             <span 
-                                                className="h-10 px-5 rounded-full text-xs font-semibold tracking-wider uppercase flex items-center gap-1 shadow-sm border border-slate-150/40 bg-slate-50 hover:bg-slate-100 transition-all hover:-translate-y-0.5"
+                                                className="h-10 px-5 rounded-full text-xs font-semibold tracking-wider uppercase flex items-center gap-1 shadow-sm border border-slate-800 bg-slate-900 hover:bg-slate-800 transition-all hover:-translate-y-0.5 text-white"
                                                 style={{ color: block.accent }}
                                             >
                                                 Select Location →
@@ -450,13 +451,13 @@ function BlockSelection() {
             <AnimatePresence>
                 {showOtpModal && (
                     <motion.div 
-                        className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-sm p-4"
+                        className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-md p-4"
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
                     >
                         <motion.div 
-                            className="w-full max-w-sm rounded-2xl border border-slate-700 bg-slate-900 p-6 text-center shadow-2xl"
+                            className="w-full max-w-sm rounded-2xl border border-slate-800 bg-slate-950 p-6 text-center shadow-2xl"
                             initial={{ scale: 0.95, y: 15 }}
                             animate={{ scale: 1, y: 0 }}
                             exit={{ scale: 0.95, y: 15 }}
@@ -482,7 +483,7 @@ function BlockSelection() {
                                             setOtpError("");
                                             setSelectedOrderId(e.target.value);
                                         }}
-                                        className="w-full h-12 rounded-xl bg-slate-800 border border-slate-700 text-center text-sm font-bold text-white focus:border-sky-500 focus:outline-none appearance-none px-4"
+                                        className="w-full h-12 rounded-xl bg-slate-900 border border-slate-800 text-center text-sm font-bold text-white focus:border-sky-500 focus:outline-none appearance-none px-4"
                                     >
                                         {pendingOrders.map(order => (
                                             <option key={order.orderId} value={order.orderId}>
@@ -507,7 +508,7 @@ function BlockSelection() {
                                         setOtpError("");
                                         setInputOtp(e.target.value);
                                     }}
-                                    className="w-full h-12 rounded-xl bg-slate-800 border border-slate-700 text-center text-lg font-bold text-white placeholder-slate-500 tracking-[0.5em] focus:border-sky-500 focus:outline-none"
+                                    className="w-full h-12 rounded-xl bg-slate-900 border border-slate-800 text-center text-lg font-bold text-white placeholder-slate-500 tracking-[0.5em] focus:border-sky-500 focus:outline-none"
                                 />
                             </div>
 
@@ -524,7 +525,7 @@ function BlockSelection() {
                                         setOtpError("");
                                         setInputOtp("");
                                     }}
-                                    className="h-11 rounded-xl border border-slate-700 bg-slate-800 hover:bg-slate-700 text-xs font-bold text-white transition-colors"
+                                    className="h-11 rounded-xl border border-slate-800 bg-slate-900 hover:bg-slate-800 text-xs font-bold text-white transition-colors"
                                 >
                                     Cancel
                                 </button>
