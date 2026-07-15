@@ -286,7 +286,7 @@ function BlockSelection() {
 
             <PopupManager page="LOCATION_SELECTION" />
             
-            <div className="max-w-6xl mx-auto relative z-10 space-y-10">
+            <div className="w-full max-w-none relative z-10 space-y-10">
                 {/* HEADER: Premium card height & layout */}
                 <motion.header 
                     variants={headerVariants}
