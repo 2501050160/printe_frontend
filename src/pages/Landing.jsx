@@ -211,10 +211,7 @@ function Landing() {
             <a href="#faq" className="hover:text-white transition-colors">FAQ</a>
           </div>
 
-          <div className="flex items-center gap-6">
-            <Link to="/login" className="text-sm font-black text-slate-300 hover:text-white transition-colors">
-              Login
-            </Link>
+          <div className="flex items-center">
             <Link to="/login" className="btn success min-h-0 py-2.5 px-5 rounded-xl font-black text-sm shadow-md shadow-blue-500/10">
               ⚡ Upload Document
             </Link>
