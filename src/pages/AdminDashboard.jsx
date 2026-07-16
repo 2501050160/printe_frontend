@@ -891,6 +891,7 @@ function AdminDashboard() {
         let grossRevenue = 0;
         let totalDiscounts = 0;
         let netRevenue = 0;
+        let razorpayCharges = 0;
 
         revenuePeriodOrders.forEach(o => {
             if (o.paymentStatus === "PAID" && o.status !== "CANCELLED") {
@@ -900,6 +901,9 @@ function AdminDashboard() {
                 netRevenue += o.price || 0;
             }
         });
+
+        // Razorpay: 2% transaction fee + 18% GST on that 2% = 2% * 1.18 = 2.36%
+        razorpayCharges = netRevenue * 0.0236;
 
         const todayOrders = getPeriodFilteredOrders(collegeFilteredOrders, "today");
         let todayRevenue = 0;
@@ -924,6 +928,7 @@ function AdminDashboard() {
             grossRevenue,
             totalDiscounts,
             netRevenue,
+            razorpayCharges,
             todayRevenue,
             completedOrders,
             printingOrders,
@@ -938,7 +943,8 @@ function AdminDashboard() {
     const revenueCards = [
         ["Gross Revenue", localStats.grossRevenue || 0, "linear-gradient(135deg, #2563eb, #1d4ed8)"],
         ["Coupon Discounts", localStats.totalDiscounts || 0, "linear-gradient(135deg, #b45309, #c2410c)"],
-        ["Net Revenue", localStats.netRevenue || 0, "linear-gradient(135deg, #16865b, #0f766e)"]
+        ["Razorpay Charges", localStats.razorpayCharges || 0, "linear-gradient(135deg, #7c3aed, #4c1d95)", "2% + 18% GST"],
+        ["Net Revenue", localStats.netRevenue - (localStats.razorpayCharges || 0), "linear-gradient(135deg, #16865b, #0f766e)"]
     ];
 
     const statCards = [
@@ -1514,7 +1520,7 @@ function AdminDashboard() {
                                         Gross vs Net After Coupons
                                     </h2>
                                     <p className="subtitle">
-                                        Net revenue = gross revenue − coupon discounts
+                                        Net revenue = gross revenue − coupon discounts − Razorpay charges (2% + 18% GST)
                                     </p>
                                 </div>
 
@@ -1567,8 +1573,8 @@ function AdminDashboard() {
                                 </div>
                             </div>
 
-                            <div className="grid gap-4 md:grid-cols-3">
-                                {revenueCards.map(([label, value, background], index) => (
+                            <div className="grid gap-4 md:grid-cols-4">
+                                {revenueCards.map(([label, value, background, subtitle], index) => (
                                     <motion.div
                                         key={label}
                                         className="revenue-card"
@@ -1583,6 +1589,11 @@ function AdminDashboard() {
                                         <p className="relative z-10 mt-3 text-4xl font-black">
                                             Rs. {Number(value).toFixed(2)}
                                         </p>
+                                        {subtitle && (
+                                            <p className="relative z-10 mt-2 text-[10px] font-black uppercase tracking-widest bg-white/20 rounded-md px-2 py-0.5 inline-block">
+                                                {subtitle}
+                                            </p>
+                                        )}
                                     </motion.div>
                                 ))}
                             </div>
