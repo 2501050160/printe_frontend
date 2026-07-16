@@ -892,6 +892,8 @@ function AdminDashboard() {
         let totalDiscounts = 0;
         let netRevenue = 0;
         let razorpayCharges = 0;
+        let walletRevenue = 0;
+        let upiRevenue = 0;
 
         revenuePeriodOrders.forEach(o => {
             if (o.paymentStatus === "PAID" && o.status !== "CANCELLED") {
@@ -899,6 +901,11 @@ function AdminDashboard() {
                 grossRevenue += original || 0;
                 totalDiscounts += o.discountAmount || 0;
                 netRevenue += o.price || 0;
+                if (o.razorpayPaymentId === "WALLET") {
+                    walletRevenue += o.price || 0;
+                } else {
+                    upiRevenue += o.price || 0;
+                }
             }
         });
 
@@ -929,6 +936,8 @@ function AdminDashboard() {
             totalDiscounts,
             netRevenue,
             razorpayCharges,
+            walletRevenue,
+            upiRevenue,
             todayRevenue,
             completedOrders,
             printingOrders,
@@ -944,7 +953,8 @@ function AdminDashboard() {
         ["Gross Revenue", localStats.grossRevenue || 0, "linear-gradient(135deg, #2563eb, #1d4ed8)"],
         ["Coupon Discounts", localStats.totalDiscounts || 0, "linear-gradient(135deg, #b45309, #c2410c)"],
         ["Razorpay Charges", localStats.razorpayCharges || 0, "linear-gradient(135deg, #7c3aed, #4c1d95)", "2% + 18% GST"],
-        ["Net Revenue", localStats.netRevenue - (localStats.razorpayCharges || 0), "linear-gradient(135deg, #16865b, #0f766e)"]
+        ["Wallet Cash", localStats.walletRevenue || 0, "linear-gradient(135deg, #0f766e, #065f46)"],
+        ["UPI Cash", localStats.upiRevenue || 0, "linear-gradient(135deg, #7c3aed, #6d28d9)"]
     ];
 
     const statCards = [
