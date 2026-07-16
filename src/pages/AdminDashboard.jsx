@@ -917,9 +917,9 @@ function AdminDashboard() {
         const printingOrders = collegeFilteredOrders.filter(o => o.status === "PRINTING").length;
         const totalOrders = collegeFilteredOrders.length;
         
-        let totalPages = 0;
+        let totalCopies = 0;
         collegeFilteredOrders.forEach(o => {
-            totalPages += o.totalPages || 0;
+            totalCopies += (o.totalPages || 0) * (o.copies || 1);
         });
 
         const pendingOrders = collegeFilteredOrders.filter(o => o.status === "ORDER_CREATED" || o.status === "PENDING_SCAN").length;
@@ -933,7 +933,7 @@ function AdminDashboard() {
             completedOrders,
             printingOrders,
             totalOrders,
-            totalPages,
+            totalCopies,
             pendingOrders
         };
     };
@@ -950,7 +950,7 @@ function AdminDashboard() {
     const statCards = [
         ["Today's Revenue", `Rs. ${localStats.todayRevenue || 0}`, "linear-gradient(135deg, #0f766e, #16865b)"],
         ["Total Orders", localStats.totalOrders || 0, "linear-gradient(135deg, #1677b7, #334155)"],
-        ["Total Pages", localStats.totalPages || 0, "linear-gradient(135deg, #5b6f95, #111827)"],
+        ["Total Copies", localStats.totalCopies || 0, "linear-gradient(135deg, #5b6f95, #111827)"],
         ["Pending", localStats.pendingOrders || 0, "linear-gradient(135deg, #b7791f, #805ad5)"],
         ["Printing", localStats.printingOrders || 0, "linear-gradient(135deg, #ca8a04, #c2413d)"],
         ["Completed", localStats.completedOrders || 0, "linear-gradient(135deg, #2563eb, #16865b)"]
