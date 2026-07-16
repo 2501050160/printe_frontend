@@ -83,10 +83,29 @@ function UserManagement() {
     }
   };
 
+  const loggedInAdminUser = localStorage.getItem("adminUser") || "admin";
+  const loggedInAdminRole = localStorage.getItem("adminRole") || "SUB_ADMIN";
+  const loggedInAdminCollege = localStorage.getItem("adminCollege") || "KLU";
+
   const filteredUsers = users.filter(
-    (u) =>
-      u.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (u.username && u.username.toLowerCase().includes(searchTerm.toLowerCase()))
+    (u) => {
+      // First apply sub-admin filter
+      if (loggedInAdminRole === "SUB_ADMIN" && loggedInAdminUser !== "admin") {
+        const userCollege = u.college || "KLU";
+        if (userCollege.toUpperCase() !== loggedInAdminCollege.toUpperCase()) {
+          return false;
+        }
+      }
+      // Then apply search term filter
+      if (searchTerm.trim() !== "") {
+        const matchesSearch = 
+          u.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          (u.name && u.name.toLowerCase().includes(searchTerm.toLowerCase())) ||
+          (u.username && u.username.toLowerCase().includes(searchTerm.toLowerCase()));
+        if (!matchesSearch) return false;
+      }
+      return true;
+    }
   );
 
   return (

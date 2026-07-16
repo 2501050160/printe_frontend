@@ -65,6 +65,7 @@ function AdminDashboard() {
 
     const [userCollegeFilter, setUserCollegeFilter] = useState("ALL");
     const [userSearchQuery, setUserSearchQuery] = useState("");
+    const [blockCollegeFilter, setBlockCollegeFilter] = useState("ALL");
 
     // Rewards & Voucher creator states
     const [rewards, setRewards] = useState([]);
@@ -778,10 +779,13 @@ function AdminDashboard() {
     const loggedInAdminCollege = localStorage.getItem("adminCollege") || "KLU";
 
     const getRoleFilteredBlocks = () => {
+        let filteredBlocks = allBlocks;
         if (loggedInAdminRole === "SUB_ADMIN" && loggedInAdminUser !== "admin") {
-            return allBlocks.filter(b => b.college && b.college.toUpperCase() === loggedInAdminCollege.toUpperCase());
+            filteredBlocks = filteredBlocks.filter(b => b.college && b.college.toUpperCase() === loggedInAdminCollege.toUpperCase());
+        } else if (blockCollegeFilter !== "ALL") {
+            filteredBlocks = filteredBlocks.filter(b => b.college && b.college.toUpperCase() === blockCollegeFilter.toUpperCase());
         }
-        return allBlocks;
+        return filteredBlocks;
     };
 
     const getRoleFilteredPrinters = () => {
@@ -1932,8 +1936,23 @@ function AdminDashboard() {
                                 animate={{ opacity: 1, y: 0 }}
                                 transition={{ delay: 0.07 }}
                             >
-                                <div className="section-header pb-4">
+                                <div className="section-header pb-4 flex flex-wrap justify-between items-center gap-4">
                                     <h3 className="font-bold text-lg">Manage Blocks</h3>
+                                    {(loggedInAdminRole !== "SUB_ADMIN" || loggedInAdminUser === "admin") && (
+                                        <div className="flex items-center gap-2">
+                                            <span className="text-xs font-bold text-slate-500">Filter College:</span>
+                                            <select
+                                                value={blockCollegeFilter}
+                                                onChange={(e) => setBlockCollegeFilter(e.target.value)}
+                                                className="field !w-auto text-xs py-1 px-3 font-black bg-slate-100 border border-slate-200 rounded-lg text-slate-800 focus:outline-none cursor-pointer"
+                                            >
+                                                <option value="ALL">All Colleges</option>
+                                                {Array.from(new Set(allBlocks.map(b => b.college).filter(Boolean))).map(col => (
+                                                    <option key={col} value={col}>{col} College</option>
+                                                ))}
+                                            </select>
+                                        </div>
+                                    )}
                                 </div>
                                 <ul className="space-y-2">
                                     {blocks.map(b => (
