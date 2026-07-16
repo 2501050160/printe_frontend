@@ -160,109 +160,110 @@ function PaymentSuccess() {
             : 0;
 
     return (
-        <main className="page-shell page-shell-decorated">
-            <div className="content-wrap">
+        <main className="min-h-screen w-full flex flex-col bg-slate-50 m-0 p-0 overflow-hidden">
+            {/* Navbar Area */}
+            <div className="w-full px-4 py-4 z-50 absolute top-0 left-0 right-0">
                 <Navbar
                     title="Payment Success"
                     subtitle="Order Confirmation"
                 />
-                <motion.div
-                    className="panel success-panel mx-auto max-w-5xl p-8 mt-6"
-                    initial={{ opacity: 0, y: 24, scale: 0.98 }}
-                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                    transition={{ duration: 0.5 }}
-                >
-                    <div className="grid md:grid-cols-2 gap-10 items-center">
-                        
-                        {/* Video Side */}
-                        <div className="rounded-3xl overflow-hidden shadow-2xl border border-slate-200 w-full bg-slate-50 flex items-center justify-center">
-                            <video 
-                                src={documentCloudVideo} 
-                                autoPlay 
-                                playsInline 
-                                controls
-                                className="w-full h-auto object-cover"
-                            />
-                        </div>
+            </div>
+            
+            <div className="flex-1 w-full flex flex-col md:flex-row h-screen pt-24 md:pt-0">
+                {/* Video Side (Full Width/Height of its container) */}
+                <div className="w-full md:w-1/2 h-[40vh] md:h-full bg-black">
+                    <video 
+                        src={documentCloudVideo} 
+                        autoPlay 
+                        playsInline 
+                        controls
+                        className="w-full h-full object-cover"
+                    />
+                </div>
 
-                        {/* Details & Actions Side */}
-                        <div className="flex flex-col items-center text-center">
-                            <motion.div
-                                className="success-check-wrapper flex justify-center mb-6"
-                                initial={{ scale: 0 }}
-                                animate={{ scale: 1 }}
-                                transition={{ type: "spring", stiffness: 220, delay: 0.1 }}
+                {/* Details & Actions Side */}
+                <div className="w-full md:w-1/2 h-full flex flex-col items-center justify-center p-8 bg-white shadow-[-10px_0_30px_rgba(0,0,0,0.05)] z-10 relative overflow-y-auto pb-24 md:pb-8">
+                    <motion.div
+                        className="w-full max-w-sm flex flex-col items-center text-center mt-4 md:mt-16"
+                        initial={{ opacity: 0, y: 24 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.5 }}
+                    >
+                        <motion.div
+                            className="success-check-wrapper flex justify-center mb-6"
+                            initial={{ scale: 0 }}
+                            animate={{ scale: 1 }}
+                            transition={{ type: "spring", stiffness: 220, delay: 0.1 }}
+                        >
+                            <div className="w-20 h-20 mx-auto relative flex items-center justify-center bg-emerald-50 text-emerald-500 rounded-full border border-emerald-100/50 shadow-[0_8px_24px_rgba(16,185,129,0.2)] animate-bounce" style={{ animationDuration: '2s' }}>
+                                <svg className="w-10 h-10" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                            </div>
+                        </motion.div>
+
+                        <p className="eyebrow">Payment Successful</p>
+                        <h1 className="title text-3xl">Order Confirmed</h1>
+                        <p className="subtitle mx-auto max-w-sm text-sm mt-2">
+                            Order <strong>{orderId}</strong> is paid. You can cancel
+                            within the countdown and the amount will be credited to your
+                            wallet.
+                        </p>
+
+                        <div className="mx-auto mt-6 flex flex-col items-center">
+                            <div
+                                className="countdown-ring scale-90"
+                                style={{
+                                    background: `conic-gradient(#16865b ${progress}%, #e2e8f0 0)`
+                                }}
                             >
-                                <div className="w-20 h-20 mx-auto relative flex items-center justify-center bg-emerald-50 text-emerald-500 rounded-full border border-emerald-100/50 shadow-[0_8px_24px_rgba(16,185,129,0.2)] animate-bounce" style={{ animationDuration: '2s' }}>
-                                    <svg className="w-10 h-10" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                                        <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                    </svg>
+                                <div className="countdown-ring-inner">
+                                    <motion.span
+                                        key={secondsLeft}
+                                        className="countdown-number"
+                                        initial={{ scale: 0.88, opacity: 0.5 }}
+                                        animate={{ scale: 1, opacity: 1 }}
+                                    >
+                                        {secondsLeft}
+                                    </motion.span>
+                                    <span className="countdown-label">seconds left</span>
                                 </div>
-                            </motion.div>
-
-                            <p className="eyebrow">Payment Successful</p>
-                            <h1 className="title text-3xl">Order Confirmed</h1>
-                            <p className="subtitle mx-auto max-w-sm text-sm mt-2">
-                                Order <strong>{orderId}</strong> is paid. You can cancel
-                                within the countdown and the amount will be credited to your
-                                wallet.
+                            </div>
+                            <p className="mt-2 text-xs font-bold text-slate-500">
+                                Status: {status}
                             </p>
-
-                            <div className="mx-auto mt-6 flex flex-col items-center">
-                                <div
-                                    className="countdown-ring scale-90"
-                                    style={{
-                                        background: `conic-gradient(#16865b ${progress}%, #e2e8f0 0)`
-                                    }}
-                                >
-                                    <div className="countdown-ring-inner">
-                                        <motion.span
-                                            key={secondsLeft}
-                                            className="countdown-number"
-                                            initial={{ scale: 0.88, opacity: 0.5 }}
-                                            animate={{ scale: 1, opacity: 1 }}
-                                        >
-                                            {secondsLeft}
-                                        </motion.span>
-                                        <span className="countdown-label">seconds left</span>
-                                    </div>
-                                </div>
-                                <p className="mt-2 text-xs font-bold text-slate-500">
-                                    Status: {status}
-                                </p>
-                            </div>
-
-                            <div className="mt-6 grid gap-3 grid-cols-2 w-full max-w-sm">
-                                <button
-                                    onClick={cancelOrder}
-                                    disabled={cancelling || proceeding}
-                                    className="btn danger py-2 text-sm"
-                                >
-                                    {cancelling ? "Cancelling..." : "Cancel"}
-                                </button>
-                                <button
-                                    onClick={proceedOrder}
-                                    disabled={proceeding || cancelling}
-                                    className="btn success py-2 text-sm"
-                                >
-                                    {proceeding ? "Proceeding..." : "Proceed"}
-                                </button>
-                            </div>
-
-                            {orderDetails && (
-                                <button
-                                    onClick={() => window.print()}
-                                    className="btn secondary mt-4 w-full max-w-sm flex items-center justify-center gap-2 py-2 text-sm"
-                                >
-                                    <svg className="w-4 h-4 text-slate-700" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
-                                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                                    </svg>
-                                    Download Invoice
-                                </button>
-                            )}
                         </div>
-                    </div>
-                </motion.div>
+
+                        <div className="mt-6 grid gap-3 grid-cols-2 w-full max-w-sm">
+                            <button
+                                onClick={cancelOrder}
+                                disabled={cancelling || proceeding}
+                                className="btn danger py-3 text-sm"
+                            >
+                                {cancelling ? "Cancelling..." : "Cancel"}
+                            </button>
+                            <button
+                                onClick={proceedOrder}
+                                disabled={proceeding || cancelling}
+                                className="btn success py-3 text-sm"
+                            >
+                                {proceeding ? "Proceeding..." : "Proceed"}
+                            </button>
+                        </div>
+
+                        {orderDetails && (
+                            <button
+                                onClick={() => window.print()}
+                                className="btn secondary mt-4 w-full max-w-sm flex items-center justify-center gap-2 py-3 text-sm"
+                            >
+                                <svg className="w-4 h-4 text-slate-700" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                </svg>
+                                Download Invoice
+                            </button>
+                        )}
+                    </motion.div>
+                </div>
             </div>
 
             {orderDetails && (
