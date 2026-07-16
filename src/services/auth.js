@@ -19,6 +19,7 @@ export function persistUser(user) {
     localStorage.setItem("userId", user.id);
     localStorage.setItem("userName", user.name);
     localStorage.setItem("userEmail", user.email);
+    localStorage.setItem("userCollege", user.college || "KLU");
     localStorage.setItem("lastActivity", String(Date.now()));
     if (user.referralCode) {
         localStorage.setItem("referralCode", user.referralCode);
@@ -36,6 +37,7 @@ export function clearUserSession() {
     localStorage.removeItem("userId");
     localStorage.removeItem("userName");
     localStorage.removeItem("userEmail");
+    localStorage.removeItem("userCollege");
     localStorage.removeItem("referralCode");
     localStorage.removeItem("walletBalance");
     localStorage.removeItem("selectedBlock");

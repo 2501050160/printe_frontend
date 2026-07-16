@@ -65,7 +65,9 @@ function BlockSelection() {
     // Dropdowns and menus
     const [showProfileDropdown, setShowProfileDropdown] = useState(false);
     const [searchQuery, setSearchQuery] = useState("");
-    const [selectedCollege, setSelectedCollege] = useState(""); // Empty initially so user must select a college first
+    const userCollege = localStorage.getItem("userCollege") || "";
+    const isAdminUser = userEmail.toLowerCase().includes("admin");
+    const [selectedCollege, setSelectedCollege] = useState(!isAdminUser && userCollege ? userCollege : "");
 
     // Direct OTP Release State
     const [showOtpModal, setShowOtpModal] = useState(false);
@@ -650,12 +652,14 @@ function BlockSelection() {
                             >
                                 <div className="flex items-center justify-between border-b border-white/5 pb-4">
                                     <div>
-                                        <button 
-                                            onClick={() => setSelectedCollege("")}
-                                            className="text-xs font-bold text-[#4F9DFF] hover:underline flex items-center gap-1.5 mb-2 bg-slate-900/60 px-3 py-1.5 rounded-lg border border-white/5"
-                                        >
-                                            <ArrowLeft className="w-3.5 h-3.5" /> Back to Campus Directory
-                                        </button>
+                                        {(isAdminUser || !userCollege) && (
+                                            <button 
+                                                onClick={() => setSelectedCollege("")}
+                                                className="text-xs font-bold text-[#4F9DFF] hover:underline flex items-center gap-1.5 mb-2 bg-slate-900/60 px-3 py-1.5 rounded-lg border border-white/5"
+                                            >
+                                                <ArrowLeft className="w-3.5 h-3.5" /> Back to Campus Directory
+                                            </button>
+                                        )}
                                         <h2 className="text-2xl font-extrabold tracking-tight text-white">Available Print Locations</h2>
                                         <p className="text-xs text-slate-400 mt-1 font-semibold">Select a building block within {selectedCollege} College</p>
                                     </div>
@@ -685,12 +689,12 @@ function BlockSelection() {
                                                     <div className="flex items-center gap-3">
                                                         <span className="text-3xl p-2.5 rounded-xl bg-slate-900/80 border border-white/5">{block.icon}</span>
                                                         <div>
-                                                            <h4 className="text-lg font-bold text-white tracking-tight">{block.name}</h4>
-                                                            <p className="text-xs text-slate-400 font-semibold">{block.description}</p>
+                                                            <h4 className="text-xl font-bold text-white tracking-tight">{block.name}</h4>
+                                                            <p className="text-sm text-slate-400 font-semibold">{block.description}</p>
                                                         </div>
                                                     </div>
 
-                                                    <span className={`px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider ${
+                                                    <span className={`px-2.5 py-1 rounded-full text-xs font-black uppercase tracking-wider ${
                                                         block.maintenance 
                                                             ? "bg-[#FF5C7A]/10 text-[#FF5C7A] border border-[#FF5C7A]/20"
                                                             : block.isOnline 
@@ -702,25 +706,25 @@ function BlockSelection() {
                                                 </div>
 
                                                 {/* Details Grid (Without Distance field) */}
-                                                <div className="grid grid-cols-2 gap-3 pt-3 border-t border-white/5 text-[12px] text-slate-400">
+                                                <div className="grid grid-cols-2 gap-3 pt-3 border-t border-white/5 text-[13px] text-slate-400">
                                                     <div>
-                                                        <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Prints in Queue</p>
+                                                        <p className="text-[11px] font-bold text-slate-500 uppercase tracking-widest">Prints in Queue</p>
                                                         <p className="font-extrabold text-slate-200 mt-0.5">⏳ {block.queueCount} prints waiting</p>
                                                     </div>
                                                     <div>
-                                                        <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Support Mode</p>
+                                                        <p className="text-[11px] font-bold text-slate-500 uppercase tracking-widest">Support Mode</p>
                                                         <p className="font-extrabold text-slate-200 mt-0.5">
                                                             {block.colorSupported ? "Color & BW Available" : "Only BW Available"}
                                                         </p>
                                                     </div>
                                                     <div>
-                                                        <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Paper Count</p>
+                                                        <p className="text-[11px] font-bold text-slate-500 uppercase tracking-widest">Paper Count</p>
                                                         <p className="font-extrabold text-[#37E67D] mt-0.5">
                                                             📄 {block.paperCount != null ? block.paperCount : 0} Sheets
                                                         </p>
                                                     </div>
                                                     <div>
-                                                        <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Printer Status</p>
+                                                        <p className="text-[11px] font-bold text-slate-500 uppercase tracking-widest">Printer Status</p>
                                                         <p className="font-extrabold text-slate-200 mt-0.5">
                                                             {block.isOnline ? "Ready to spool" : "Spooler offline"}
                                                         </p>
@@ -730,7 +734,7 @@ function BlockSelection() {
                                                 {/* Select button */}
                                                 <button
                                                     onClick={() => selectBlock(block.name)}
-                                                    className="w-full h-11 rounded-xl bg-slate-900/80 hover:bg-gradient-to-r hover:from-[#6C63FF] hover:to-[#8B5CFF] text-white font-bold text-xs uppercase tracking-wider transition-all duration-300 border border-white/5 hover:border-transparent hover:shadow-lg hover:shadow-indigo-500/10 mt-4 flex items-center justify-center gap-2"
+                                                    className="w-full h-11 rounded-xl bg-slate-900/80 hover:bg-gradient-to-r hover:from-[#6C63FF] hover:to-[#8B5CFF] text-white font-bold text-sm uppercase tracking-wider transition-all duration-300 border border-white/5 hover:border-transparent hover:shadow-lg hover:shadow-indigo-500/10 mt-4 flex items-center justify-center gap-2"
                                                     disabled={block.maintenance}
                                                     style={block.maintenance ? { opacity: 0.5, cursor: "not-allowed" } : {}}
                                                 >

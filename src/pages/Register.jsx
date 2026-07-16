@@ -9,6 +9,7 @@ function Register() {
   const [name, setName] = useState("");
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [college, setCollege] = useState("KLU");
   const [oauthRedirecting, setOauthRedirecting] = useState(null);
   const navigate = useNavigate();
 
@@ -19,7 +20,8 @@ function Register() {
       const response = await registerUser({
         name,
         email: username,
-        password
+        password,
+        college
       });
 
       persistUser(response);
@@ -159,6 +161,18 @@ function Register() {
                     setPassword(e.target.value)
                   }
                 />
+
+                <select
+                  value={college}
+                  onChange={(e) => setCollege(e.target.value)}
+                  className="field"
+                  required
+                >
+                  <option value="KLU">KLU College</option>
+                  <option value="UoH">UoH College</option>
+                  <option value="VIT">VIT College</option>
+                  <option value="SRM">SRM College</option>
+                </select>
 
                 <button
                   type="submit"

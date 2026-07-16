@@ -12,6 +12,7 @@ function AdminDashboard() {
     const [orders, setOrders] = useState([]);
     const [stats, setStats] = useState({});
     const [revenuePeriod, setRevenuePeriod] = useState("all");
+    const [selectedCollegeFilter, setSelectedCollegeFilter] = useState("ALL");
 
     const [bwPrice, setBwPrice] = useState(0);
     const [colorPrice, setColorPrice] = useState(0);
@@ -626,19 +627,95 @@ function AdminDashboard() {
         ["month", "This Month"]
     ];
 
+    const getFilteredStats = () => {
+        const collegeFilteredOrders = orders.filter(o => {
+            if (selectedCollegeFilter === "ALL") return true;
+            const b = blocks.find(x => x.name === o.blockLocation);
+            const col = b ? b.college : "KLU";
+            return col.toUpperCase() === selectedCollegeFilter.toUpperCase();
+        });
+
+        const getPeriodFilteredOrders = (list, period) => {
+            if (period === "all") return list;
+            const startOfPeriod = new Date();
+            if (period === "today") {
+                startOfPeriod.setHours(0,0,0,0);
+            } else if (period === "week") {
+                const day = startOfPeriod.getDay();
+                startOfPeriod.setDate(startOfPeriod.getDate() - day);
+                startOfPeriod.setHours(0,0,0,0);
+            } else if (period === "month") {
+                startOfPeriod.setDate(1);
+                startOfPeriod.setHours(0,0,0,0);
+            }
+            return list.filter(o => {
+                const uploadDate = new Date(o.uploadTime || o.createdAt);
+                return uploadDate >= startOfPeriod;
+            });
+        };
+
+        const revenuePeriodOrders = getPeriodFilteredOrders(collegeFilteredOrders, revenuePeriod);
+
+        let grossRevenue = 0;
+        let totalDiscounts = 0;
+        let netRevenue = 0;
+
+        revenuePeriodOrders.forEach(o => {
+            if (o.paymentStatus === "PAID" && o.status !== "CANCELLED") {
+                const original = o.originalPrice != null ? o.originalPrice : o.price;
+                grossRevenue += original || 0;
+                totalDiscounts += o.discountAmount || 0;
+                netRevenue += o.price || 0;
+            }
+        });
+
+        const todayOrders = getPeriodFilteredOrders(collegeFilteredOrders, "today");
+        let todayRevenue = 0;
+        todayOrders.forEach(o => {
+            if (o.paymentStatus === "PAID" && o.status !== "CANCELLED") {
+                todayRevenue += o.price || 0;
+            }
+        });
+
+        const completedOrders = collegeFilteredOrders.filter(o => o.status === "COMPLETED").length;
+        const printingOrders = collegeFilteredOrders.filter(o => o.status === "PRINTING").length;
+        const totalOrders = collegeFilteredOrders.length;
+        
+        let totalPages = 0;
+        collegeFilteredOrders.forEach(o => {
+            totalPages += o.totalPages || 0;
+        });
+
+        const pendingOrders = collegeFilteredOrders.filter(o => o.status === "ORDER_CREATED" || o.status === "PENDING_SCAN").length;
+
+        return {
+            grossRevenue,
+            totalDiscounts,
+            netRevenue,
+            todayRevenue,
+            completedOrders,
+            printingOrders,
+            totalOrders,
+            totalPages,
+            pendingOrders
+        };
+    };
+
+    const localStats = getFilteredStats();
+
     const revenueCards = [
-        ["Gross Revenue", stats.grossRevenue || 0, "linear-gradient(135deg, #2563eb, #1d4ed8)"],
-        ["Coupon Discounts", stats.totalDiscounts || 0, "linear-gradient(135deg, #b45309, #c2410c)"],
-        ["Net Revenue", stats.netRevenue || 0, "linear-gradient(135deg, #16865b, #0f766e)"]
+        ["Gross Revenue", localStats.grossRevenue || 0, "linear-gradient(135deg, #2563eb, #1d4ed8)"],
+        ["Coupon Discounts", localStats.totalDiscounts || 0, "linear-gradient(135deg, #b45309, #c2410c)"],
+        ["Net Revenue", localStats.netRevenue || 0, "linear-gradient(135deg, #16865b, #0f766e)"]
     ];
 
     const statCards = [
-        ["Today's Revenue", `Rs. ${stats.todayRevenue || 0}`, "linear-gradient(135deg, #0f766e, #16865b)"],
-        ["Total Orders", stats.totalOrders || 0, "linear-gradient(135deg, #1677b7, #334155)"],
-        ["Total Pages", stats.totalPages || 0, "linear-gradient(135deg, #5b6f95, #111827)"],
-        ["Pending", stats.pendingOrders || 0, "linear-gradient(135deg, #b7791f, #805ad5)"],
-        ["Printing", stats.printingOrders || 0, "linear-gradient(135deg, #ca8a04, #c2413d)"],
-        ["Completed", stats.completedOrders || 0, "linear-gradient(135deg, #2563eb, #16865b)"]
+        ["Today's Revenue", `Rs. ${localStats.todayRevenue || 0}`, "linear-gradient(135deg, #0f766e, #16865b)"],
+        ["Total Orders", localStats.totalOrders || 0, "linear-gradient(135deg, #1677b7, #334155)"],
+        ["Total Pages", localStats.totalPages || 0, "linear-gradient(135deg, #5b6f95, #111827)"],
+        ["Pending", localStats.pendingOrders || 0, "linear-gradient(135deg, #b7791f, #805ad5)"],
+        ["Printing", localStats.printingOrders || 0, "linear-gradient(135deg, #ca8a04, #c2413d)"],
+        ["Completed", localStats.completedOrders || 0, "linear-gradient(135deg, #2563eb, #16865b)"]
     ];
 
     // Dynamic blocks & refills helper methods
@@ -1124,6 +1201,21 @@ function AdminDashboard() {
                                 </div>
 
                                 <div className="flex flex-wrap items-center gap-3">
+                                    {/* College Filter Selection Dropdown */}
+                                    <div className="flex items-center gap-2">
+                                        <span className="text-xs font-bold text-slate-500">Filter College:</span>
+                                        <select
+                                            value={selectedCollegeFilter}
+                                            onChange={(e) => setSelectedCollegeFilter(e.target.value)}
+                                            className="field !w-auto text-xs py-1 px-3 font-black bg-slate-100 border border-slate-200 rounded-lg text-slate-800 focus:outline-none cursor-pointer"
+                                        >
+                                            <option value="ALL">All Colleges</option>
+                                            {Array.from(new Set(blocks.map(b => b.college).filter(Boolean))).map(col => (
+                                                <option key={col} value={col}>{col} College</option>
+                                            ))}
+                                        </select>
+                                    </div>
+
                                     <div className="revenue-filter">
                                         {revenueFilters.map(([value, label]) => (
                                             <button
