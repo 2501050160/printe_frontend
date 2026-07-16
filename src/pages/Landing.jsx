@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import introVideo from "../assets/intro.mp4";
 import demoVideo from "../assets/demo.mp4";
 import inVideo from "../assets/in.mp4";
+import api from "../services/api";
 import { 
   Printer, 
   UploadCloud, 
@@ -141,7 +142,7 @@ function Landing() {
     }
   ];
 
-  const buildingData = {
+  const [buildingData, setBuildingData] = useState({
     "C Block": {
       status: "Online",
       statusColor: "text-emerald-500 bg-emerald-50 border-emerald-100",
@@ -149,32 +150,78 @@ function Landing() {
       wait: "2 mins",
       queue: 4,
       model: "Brother HL-L2320D"
-    },
-    "Library": {
-      status: "Busy",
-      statusColor: "text-amber-500 bg-amber-50 border-amber-100",
-      paper: "95%",
-      wait: "8 mins",
-      queue: 12,
-      model: "HP LaserJet Pro"
-    },
-    "L Block": {
-      status: "Online",
-      statusColor: "text-emerald-500 bg-emerald-50 border-emerald-100",
-      paper: "40% (Low Paper)",
-      wait: "1 min",
-      queue: 1,
-      model: "Epson EcoTank"
-    },
-    "Admin Block": {
-      status: "Offline",
-      statusColor: "text-rose-500 bg-rose-50 border-rose-100",
-      paper: "0%",
-      wait: "—",
-      queue: 0,
-      model: "Canon ImageClass"
     }
-  };
+  });
+
+  // Fetch real campus data
+  useEffect(() => {
+    let isMounted = true;
+    const fetchBuildingData = async () => {
+      try {
+        const [blocksRes, printersRes] = await Promise.all([
+          api.get("/blocks/all").catch(() => ({ data: [] })),
+          api.get("/printer/all").catch(() => ({ data: [] }))
+        ]);
+        
+        const blocks = blocksRes.data || [];
+        const printers = printersRes.data || [];
+        
+        if (blocks.length === 0) return; // Keep fallback if backend fails
+        
+        const newBuildingData = {};
+        
+        await Promise.all(blocks.map(async (b) => {
+          const printer = printers.find(p => p.blockLocation === b.name);
+          let queueCount = 0;
+          try {
+             const queueRes = await api.get("/queue/pending", { params: { blockLocation: b.name } });
+             queueCount = (queueRes.data || []).length;
+          } catch (e) {
+             // suppress error
+          }
+          
+          let status = "Offline";
+          let statusColor = "text-rose-500 bg-rose-50 border-rose-100";
+          if (printer) {
+             if (printer.active) {
+                status = printer.maintenance ? "Busy" : "Online";
+                statusColor = printer.maintenance 
+                  ? "text-amber-500 bg-amber-50 border-amber-100" 
+                  : "text-emerald-500 bg-emerald-50 border-emerald-100";
+             }
+          }
+          
+          let paperPercent = printer && printer.paperCount !== undefined ? Math.min(100, Math.round((printer.paperCount / 500) * 100)) : 0;
+          
+          newBuildingData[b.name] = {
+            status,
+            statusColor,
+            paper: `${paperPercent}%${paperPercent < 20 ? " (Low Paper)" : ""}`,
+            wait: queueCount > 0 ? `${queueCount * 2} mins` : "0 mins",
+            queue: queueCount,
+            model: printer && printer.printerName ? printer.printerName : "Standard Printer"
+          };
+        }));
+        
+        if (isMounted && Object.keys(newBuildingData).length > 0) {
+          setBuildingData(newBuildingData);
+          setActiveBuilding(current => {
+             if (!newBuildingData[current]) return Object.keys(newBuildingData)[0];
+             return current;
+          });
+        }
+      } catch (err) {
+        console.error("Error fetching building data:", err);
+      }
+    };
+    
+    fetchBuildingData();
+    const interval = setInterval(fetchBuildingData, 10000);
+    return () => {
+      isMounted = false;
+      clearInterval(interval);
+    };
+  }, []);
 
   const flowSteps = [
     { name: "Student Laptop", color: "from-blue-500 to-indigo-500" },
