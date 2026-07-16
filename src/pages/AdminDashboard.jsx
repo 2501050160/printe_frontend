@@ -953,6 +953,7 @@ function AdminDashboard() {
         ["Gross Revenue", localStats.grossRevenue || 0, "linear-gradient(135deg, #2563eb, #1d4ed8)"],
         ["Coupon Discounts", localStats.totalDiscounts || 0, "linear-gradient(135deg, #b45309, #c2410c)"],
         ["Razorpay Charges", localStats.razorpayCharges || 0, "linear-gradient(135deg, #7c3aed, #4c1d95)", "2% + 18% GST"],
+        ["Net Revenue", localStats.netRevenue - (localStats.razorpayCharges || 0), "linear-gradient(135deg, #16865b, #0f766e)"],
         ["Wallet Cash", localStats.walletRevenue || 0, "linear-gradient(135deg, #0f766e, #065f46)"],
         ["UPI Cash", localStats.upiRevenue || 0, "linear-gradient(135deg, #7c3aed, #6d28d9)"]
     ];
