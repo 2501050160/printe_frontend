@@ -395,42 +395,42 @@ function Landing() {
       {/* Trust Feature Cards */}
       <section className="max-w-6xl mx-auto px-6 py-24" id="features">
         <div className="text-center max-w-2xl mx-auto mb-16">
-          <span className="text-xs font-black uppercase tracking-widest text-blue-600 bg-blue-50 border border-blue-100 px-3 py-1 rounded-full">
+          <span className="text-xs font-black uppercase tracking-widest px-3 py-1 rounded-full shadow-sm bg-[rgba(59,130,246,0.12)] border border-[rgba(96,165,250,0.35)] text-[#60A5FA]">
             Security & Trust
           </span>
-          <h2 className="mt-4 text-3xl md:text-4xl font-black text-slate-900">
+          <h2 className="mt-4 text-3xl md:text-4xl text-white font-[800] tracking-[-0.03em] [text-shadow:0_0_24px_rgba(59,130,246,0.18)]">
             Trusted Across Campus
           </h2>
         </div>
 
         <div className="grid md:grid-cols-3 gap-8">
-          <div className="p-6 rounded-3xl bg-slate-50 border border-slate-100 flex items-start gap-4">
-            <div className="p-3 bg-white rounded-2xl shadow-sm border border-slate-100 shrink-0">
-              <Lock className="w-5 h-5 text-blue-600" />
+          <div className="p-6 bg-[#FFFFFF] border border-[rgba(226,232,240,0.8)] rounded-[22px] shadow-[0_10px_40px_rgba(15,23,42,0.08)] transition-all duration-300 hover:-translate-y-[6px] hover:shadow-[0_18px_50px_rgba(37,99,235,0.15)] flex items-start gap-4">
+            <div className="p-3 bg-[#ECFDF5] rounded-2xl shadow-sm shadow-[#22C55E]/10 shrink-0">
+              <Lock className="w-5 h-5 text-[#22C55E]" />
             </div>
             <div>
-              <h3 className="text-base font-black text-slate-950">Secure OTP Printing</h3>
-              <p className="text-xs font-bold text-slate-500 mt-1.5 leading-relaxed">No unauthorized prints. Documents release only when you type in your OTP.</p>
+              <h3 className="font-[700] text-[20px] text-[#111827]">Secure OTP Printing</h3>
+              <p className="text-xs text-[#64748B] mt-1.5 leading-[1.7]">No unauthorized prints. Documents release only when you type in your OTP.</p>
             </div>
           </div>
 
-          <div className="p-6 rounded-3xl bg-slate-50 border border-slate-100 flex items-start gap-4">
-            <div className="p-3 bg-white rounded-2xl shadow-sm border border-slate-100 shrink-0">
-              <QrCode className="w-5 h-5 text-emerald-500" />
+          <div className="p-6 bg-[#FFFFFF] border border-[rgba(226,232,240,0.8)] rounded-[22px] shadow-[0_10px_40px_rgba(15,23,42,0.08)] transition-all duration-300 hover:-translate-y-[6px] hover:shadow-[0_18px_50px_rgba(37,99,235,0.15)] flex items-start gap-4">
+            <div className="p-3 bg-[#EFF6FF] rounded-2xl shadow-sm shadow-[#2563EB]/10 shrink-0">
+              <QrCode className="w-5 h-5 text-[#2563EB]" />
             </div>
             <div>
-              <h3 className="text-base font-black text-slate-950">QR Code Release</h3>
-              <p className="text-xs font-bold text-slate-500 mt-1.5 leading-relaxed">Simply scan the QR sticker on the kiosk tray to immediately output pages.</p>
+              <h3 className="font-[700] text-[20px] text-[#111827]">QR Code Release</h3>
+              <p className="text-xs text-[#64748B] mt-1.5 leading-[1.7]">Simply scan the QR sticker on the kiosk tray to immediately output pages.</p>
             </div>
           </div>
 
-          <div className="p-6 rounded-3xl bg-slate-50 border border-slate-100 flex items-start gap-4">
-            <div className="p-3 bg-white rounded-2xl shadow-sm border border-slate-100 shrink-0">
-              <CreditCard className="w-5 h-5 text-purple-500" />
+          <div className="p-6 bg-[#FFFFFF] border border-[rgba(226,232,240,0.8)] rounded-[22px] shadow-[0_10px_40px_rgba(15,23,42,0.08)] transition-all duration-300 hover:-translate-y-[6px] hover:shadow-[0_18px_50px_rgba(37,99,235,0.15)] flex items-start gap-4">
+            <div className="p-3 bg-[#F5F3FF] rounded-2xl shadow-sm shadow-[#8B5CF6]/10 shrink-0">
+              <CreditCard className="w-5 h-5 text-[#8B5CF6]" />
             </div>
             <div>
-              <h3 className="text-base font-black text-slate-950">Razorpay Payments</h3>
-              <p className="text-xs font-bold text-slate-500 mt-1.5 leading-relaxed">Fast checkouts using UPI, Credit Cards, or Net banking gateways.</p>
+              <h3 className="font-[700] text-[20px] text-[#111827]">Razorpay Payments</h3>
+              <p className="text-xs text-[#64748B] mt-1.5 leading-[1.7]">Fast checkouts using UPI, Credit Cards, or Net banking gateways.</p>
             </div>
           </div>
         </div>
@@ -440,13 +440,13 @@ function Landing() {
       <section className="bg-slate-50 border-y border-slate-200/60 py-24" id="locations">
         <div className="max-w-6xl mx-auto px-6 grid lg:grid-cols-2 gap-12 items-center">
           <div>
-            <span className="text-xs font-black uppercase tracking-widest text-purple-600 bg-purple-50 border border-purple-100 px-3 py-1 rounded-full">
+            <span className="text-xs font-[800] uppercase tracking-widest text-[#9333EA] bg-[#F3E8FF] border border-[#D8B4FE] px-3 py-1 rounded-full">
               Interactive Campus Map
             </span>
-            <h2 className="mt-4 text-3xl md:text-4xl font-black text-slate-900">
+            <h2 className="mt-4 text-[48px] font-[800] text-[#111827] leading-tight">
               Find Active Campus Printers
             </h2>
-            <p className="mt-4 text-sm font-bold text-slate-500">
+            <p className="mt-4 text-[#475569] leading-[1.8]">
               Click on a building in the selector grid to check real-time queue states, hardware status, and paper load levels.
             </p>
 
@@ -456,20 +456,20 @@ function Landing() {
                 <button
                   key={name}
                   onClick={() => setActiveBuilding(name)}
-                  className={`p-4 rounded-2xl border text-left transition-all ${
+                  className={`p-4 rounded-2xl border text-left transition-[0.3s] ${
                     activeBuilding === name
-                      ? "bg-white border-blue-500 shadow-md scale-[1.02] font-black"
-                      : "bg-white/50 border-slate-200 hover:bg-white font-bold"
+                      ? "bg-[#EFF6FF] border-[#2563EB] border-[2px] text-[#1D4ED8] shadow-[0_0_30px_rgba(37,99,235,0.18)] scale-[1.02] font-[800]"
+                      : "bg-[#FFFFFF] border-[#E2E8F0] text-[#334155] hover:border-[#2563EB] hover:shadow-[0_12px_30px_rgba(37,99,235,0.12)] font-[700]"
                   }`}
                 >
                   <div className="flex items-center justify-between">
                     <span className="text-sm">{name}</span>
                     <span className={`w-2 h-2 rounded-full ${
                       buildingData[name].status === "Online"
-                        ? "bg-emerald-500 animate-pulse"
+                        ? "bg-[#22C55E] animate-pulse"
                         : buildingData[name].status === "Busy"
-                        ? "bg-amber-500"
-                        : "bg-rose-500"
+                        ? "bg-[#F59E0B]"
+                        : "bg-[#EF4444]"
                     }`} />
                   </div>
                 </button>
@@ -478,37 +478,51 @@ function Landing() {
           </div>
 
           {/* Building Live Status Panel */}
-          <div className="p-8 rounded-3xl bg-white border border-slate-200 shadow-xl flex flex-col gap-6 relative overflow-hidden">
+          <div className="p-8 rounded-[24px] bg-white shadow-[0_20px_60px_rgba(15,23,42,0.08)] flex flex-col gap-6 relative overflow-hidden transition-[0.3s]">
             <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/5 rounded-full blur-2xl" />
             
             <div className="flex justify-between items-start">
               <div>
-                <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Selected Hub</span>
-                <h3 className="text-2xl font-black text-slate-950 mt-1">{activeBuilding}</h3>
+                <span className="text-[10px] font-black uppercase tracking-widest text-[#64748B]">Selected Hub</span>
+                <h3 className="text-2xl font-[800] text-[#111827] mt-1">{activeBuilding}</h3>
               </div>
-              <span className={`px-3 py-1 rounded-full text-xs font-black uppercase border ${buildingData[activeBuilding].statusColor}`}>
-                {buildingData[activeBuilding].status}
-              </span>
+              {buildingData[activeBuilding].status === "Online" ? (
+                <span className="px-3 py-1 rounded-full text-xs font-[800] uppercase bg-[#DCFCE7] text-[#16A34A] animate-[float_3s_ease-in-out_infinite]">
+                  {buildingData[activeBuilding].status}
+                </span>
+              ) : (
+                <span className={`px-3 py-1 rounded-full text-xs font-[800] uppercase border ${buildingData[activeBuilding].statusColor}`}>
+                  {buildingData[activeBuilding].status}
+                </span>
+              )}
             </div>
 
             <div className="grid grid-cols-2 gap-4 mt-2">
-              <div className="p-4 rounded-2xl bg-slate-50 border border-slate-100">
-                <p className="text-xs font-bold text-slate-400">Paper Level</p>
-                <p className="text-lg font-black text-slate-800 mt-1">{buildingData[activeBuilding].paper}</p>
+              <div className="p-4 rounded-2xl bg-[#F8FAFC] border border-[#E2E8F0]">
+                <div className="flex justify-between items-center mb-1">
+                  <p className="text-xs font-bold text-[#64748B]">Paper Level</p>
+                  <p className="text-lg font-[700] text-[#111827]">{buildingData[activeBuilding].paper}</p>
+                </div>
+                <div className="w-full h-1.5 bg-slate-200 rounded-full overflow-hidden mt-2">
+                  <div 
+                    className="h-full bg-gradient-to-r from-[#22C55E] to-[#16A34A] transition-all duration-1000 ease-out"
+                    style={{ width: buildingData[activeBuilding].paper }}
+                  />
+                </div>
               </div>
 
-              <div className="p-4 rounded-2xl bg-slate-50 border border-slate-100">
-                <p className="text-xs font-bold text-slate-400">Estimated Wait</p>
-                <p className="text-lg font-black text-slate-800 mt-1">{buildingData[activeBuilding].wait}</p>
+              <div className="p-4 rounded-2xl bg-[#F8FAFC] border border-[#E2E8F0]">
+                <p className="text-xs font-bold text-[#64748B]">Estimated Wait</p>
+                <p className="text-lg font-[700] text-[#2563EB] mt-1">{buildingData[activeBuilding].wait}</p>
               </div>
             </div>
 
-            <div className="p-4 rounded-2xl bg-slate-50 border border-slate-100 flex justify-between items-center">
+            <div className="p-4 rounded-2xl bg-[#F8FAFC] border border-[#E2E8F0] flex justify-between items-center">
               <div>
-                <p className="text-xs font-bold text-slate-400">Active Queue</p>
-                <p className="text-lg font-black text-slate-800 mt-1">{buildingData[activeBuilding].queue} orders pending</p>
+                <p className="text-xs font-bold text-[#64748B]">Active Queue</p>
+                <p className="text-lg font-[700] text-[#111827] mt-1">{buildingData[activeBuilding].queue} orders pending</p>
               </div>
-              <span className="text-xs font-bold text-slate-500">Model: {buildingData[activeBuilding].model}</span>
+              <span className="text-xs font-bold text-[#64748B]">Model: {buildingData[activeBuilding].model}</span>
             </div>
           </div>
         </div>
@@ -662,19 +676,21 @@ function Landing() {
           <div className="absolute -bottom-20 -right-20 w-80 h-80 bg-white/5 rounded-full blur-3xl pointer-events-none" />
 
           <div className="max-w-2xl mx-auto relative z-10">
-            <h2 className="text-3xl md:text-5xl font-black tracking-tight leading-tight">
+            <h2 className="text-[54px] text-white font-[800] tracking-tight leading-tight">
               Ready to Experience Smart Campus Printing?
             </h2>
-            <p className="mt-6 text-base md:text-lg font-bold text-blue-100 leading-relaxed">
+            <p className="mt-6 text-[20px] text-[#E2E8F0] leading-relaxed">
               Upload your documents, skip the queues, and experience printing made smart. Sign up for a free student wallet and print today.
             </p>
 
             <div className="mt-10 flex flex-wrap justify-center gap-4">
-              <Link to="/login" className="btn success px-8 py-4 rounded-xl font-black text-base shadow-lg shadow-emerald-500/20">
-                Sign In & Upload ⚡
+              <Link to="/login" className="px-8 py-4 rounded-xl font-[800] text-white bg-gradient-to-r from-[#2563EB] to-[#3B82F6] hover:-translate-y-[3px] hover:shadow-[0_20px_40px_rgba(37,99,235,0.3)] hover:scale-[1.03] transition-all duration-300 relative">
+                <span className="relative z-10">Sign In & Upload ⚡</span>
+                <div className="absolute inset-0 bg-white/20 blur-md rounded-xl opacity-0 hover:opacity-100 transition-opacity" />
               </Link>
-              <Link to="/login" className="px-8 py-4 rounded-xl font-black text-base border border-white/20 bg-white/10 hover:bg-white/20 transition-all">
-                Sign In with Google
+              <Link to="/login" className="px-8 py-4 rounded-xl font-[800] bg-white text-[#111827] border border-[#E2E8F0] hover:bg-[#F8FAFC] hover:scale-[1.03] transition-all duration-300 shadow-sm relative">
+                <span className="relative z-10">Sign In with Google</span>
+                <div className="absolute inset-0 bg-white/30 blur-md rounded-xl opacity-0 hover:opacity-100 transition-opacity" />
               </Link>
             </div>
           </div>
@@ -682,46 +698,46 @@ function Landing() {
       </section>
 
       {/* Premium Footer */}
-      <footer className="border-t border-slate-200 bg-white py-16 text-slate-500 text-sm font-bold">
+      <footer className="border-t border-[#E2E8F0] bg-[#F8FAFC] py-16 text-sm">
         <div className="max-w-6xl mx-auto px-6 grid md:grid-cols-4 gap-10">
           
           <div className="flex flex-col gap-4">
             <div className="flex items-center gap-2">
-              <div className="p-1.5 rounded-lg bg-blue-600 text-white shadow-sm">
+              <div className="p-1.5 rounded-lg bg-[#2563EB] text-white shadow-sm">
                 <Printer className="w-4 h-4" />
               </div>
-              <span className="text-base font-black tracking-tight text-slate-900">
+              <span className="text-[16px] font-[800] tracking-tight text-[#2563EB]">
                 CloudPrint
               </span>
             </div>
-            <p className="text-xs font-bold text-slate-400 leading-relaxed">
+            <p className="text-[#64748B] leading-[1.7]">
               Automating university printing hubs through dynamic cloud systems, safe collections, and dynamic Student discounts.
             </p>
           </div>
 
           <div>
-            <h4 className="text-xs font-black uppercase tracking-widest text-slate-900 mb-4">Features</h4>
-            <div className="flex flex-col gap-2.5">
-              <a href="#features" className="hover:text-slate-900 transition-colors">OTP Safe Printing</a>
-              <a href="#locations" className="hover:text-slate-900 transition-colors">Campus Map</a>
-              <Link to="/blocks" className="hover:text-slate-900 transition-colors">Location Selector</Link>
+            <h4 className="text-[#111827] font-[700] uppercase tracking-widest mb-4 text-xs">Features</h4>
+            <div className="flex flex-col gap-2.5 font-[500]">
+              <a href="#features" className="text-[#334155] hover:text-[#2563EB] transition-[0.3s]">OTP Safe Printing</a>
+              <a href="#locations" className="text-[#334155] hover:text-[#2563EB] transition-[0.3s]">Campus Map</a>
+              <Link to="/blocks" className="text-[#334155] hover:text-[#2563EB] transition-[0.3s]">Location Selector</Link>
             </div>
           </div>
 
           <div>
-            <h4 className="text-xs font-black uppercase tracking-widest text-slate-900 mb-4">Support & Documentation</h4>
-            <div className="flex flex-col gap-2.5">
-              <Link to="/admin-login" className="hover:text-slate-900 transition-colors">Admin Login</Link>
-              <span className="normal-case font-black text-blue-600 block">🌐 {window.location.host || 'saipraveen.soye'}</span>
+            <h4 className="text-[#111827] font-[700] uppercase tracking-widest mb-4 text-xs">Support & Documentation</h4>
+            <div className="flex flex-col gap-2.5 font-[500]">
+              <Link to="/admin-login" className="text-[#334155] hover:text-[#2563EB] transition-[0.3s]">Admin Login</Link>
+              <span className="normal-case font-[700] text-[#2563EB] block">🌐 {window.location.host || 'saipraveen.soye'}</span>
             </div>
           </div>
 
           <div>
-            <h4 className="text-xs font-black uppercase tracking-widest text-slate-900 mb-4">CloudPrint Ecosystem</h4>
-            <p className="text-xs text-slate-400 font-bold leading-normal">
+            <h4 className="text-[#111827] font-[700] uppercase tracking-widest mb-4 text-xs">CloudPrint Ecosystem</h4>
+            <p className="text-[#64748B] leading-[1.7]">
               Designed for high-performance kiosk TVs, student notebooks, and campus admins.
             </p>
-            <p className="mt-4 text-[10px] text-slate-300 font-black">
+            <p className="mt-4 text-[11px] text-[#94A3B8] font-[500]">
               © {new Date().getFullYear()} CloudPrint Inc. All rights reserved.
             </p>
           </div>
