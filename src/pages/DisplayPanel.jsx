@@ -7,7 +7,7 @@ import studentAd from "../assets/cloud_print_student_offers_ad.png";
 
 function DisplayPanel() {
     const [orders, setOrders] = useState([]);
-    const [displayBlock, setDisplayBlock] = useState("C Block");
+    const [displayBlock, setDisplayBlock] = useState("");
     const [blocks, setBlocks] = useState([]);
     const [slideIndex, setSlideIndex] = useState(0);
     const [pickupQueue, setPickupQueue] = useState([]);
@@ -55,12 +55,29 @@ function DisplayPanel() {
     const timersRef = useRef([]);
 
     useEffect(() => {
+        // Capture admin details before logging out for security
+        const role = localStorage.getItem("adminRole");
+        const college = localStorage.getItem("adminCollege");
+        
+        // Log out admin to prevent unauthorized access if back button is pressed
+        localStorage.removeItem("adminToken");
+        localStorage.removeItem("adminRole");
+        localStorage.removeItem("adminUser");
+        localStorage.removeItem("adminCollege");
+
         const fetchBlocks = async () => {
             try {
                 const response = await api.get("/blocks/all");
-                setBlocks(response.data);
-                if (response.data.length > 0) {
-                    const names = response.data.map(b => b.name);
+                let fetchedBlocks = response.data;
+                
+                // Filter blocks based on captured college if sub-admin
+                if (role === "SUB_ADMIN" && college) {
+                    fetchedBlocks = fetchedBlocks.filter(b => b.college === college);
+                }
+                
+                setBlocks(fetchedBlocks);
+                if (fetchedBlocks.length > 0) {
+                    const names = fetchedBlocks.map(b => b.name);
                     if (!names.includes(displayBlock)) {
                         setDisplayBlock(names[0]);
                     }
@@ -136,7 +153,7 @@ function DisplayPanel() {
         const nextStatuses = new Map();
 
         incomingOrders.forEach((order) => {
-            const location = order.blockLocation || "C Block";
+            const location = order.blockLocation;
 
             if (location !== displayBlock) {
                 return;
@@ -172,7 +189,7 @@ function DisplayPanel() {
                 ["PENDING_SCAN", "CANCEL_WINDOW", "QUEUE", "PRINTING"].includes(
                     order.status
                 ) &&
-                (order.blockLocation || "C Block") === displayBlock
+                order.blockLocation === displayBlock
         )
         .sort((a, b) => a.id - b.id);
 
