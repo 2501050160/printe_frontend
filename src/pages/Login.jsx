@@ -19,6 +19,7 @@ function Login() {
     const [oauthNewUser, setOauthNewUser] = useState(null);
     const [oauthPassword, setOauthPassword] = useState("");
     const [oauthPasswordConfirm, setOauthPasswordConfirm] = useState("");
+    const [oauthCollege, setOauthCollege] = useState("KLU");
     const [settingPasswordLoading, setSettingPasswordLoading] = useState(false);
     const [errorMessage, setErrorMessage] = useState("");
 
@@ -69,6 +70,7 @@ function Login() {
             const formData = new URLSearchParams();
             formData.append("email", oauthNewUser.email);
             formData.append("newPassword", oauthPassword);
+            formData.append("college", oauthCollege);
 
             await api.post("/oauth/set-password", formData, {
                 headers: {
@@ -76,7 +78,7 @@ function Login() {
                 }
             });
 
-            persistUser(oauthNewUser);
+            persistUser({ ...oauthNewUser, college: oauthCollege });
             navigate("/blocks");
         } catch (err) {
             console.error(err);
@@ -433,6 +435,20 @@ function Login() {
                                         value={oauthPasswordConfirm}
                                         onChange={(e) => setOauthPasswordConfirm(e.target.value)}
                                     />
+                                </div>
+                                <div className="flex flex-col gap-1.5">
+                                    <label className="text-[10px] font-black uppercase tracking-wider text-slate-400">Select College / Campus</label>
+                                    <select
+                                        value={oauthCollege}
+                                        onChange={(e) => setOauthCollege(e.target.value)}
+                                        className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl font-bold text-sm focus:outline-none focus:border-blue-600 transition-colors cursor-pointer"
+                                        required
+                                    >
+                                        <option value="KLU">KLU College</option>
+                                        <option value="UoH">UoH College</option>
+                                        <option value="VIT">VIT College</option>
+                                        <option value="SRM">SRM College</option>
+                                    </select>
                                 </div>
 
                                 {errorMessage && (

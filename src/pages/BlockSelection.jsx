@@ -408,7 +408,7 @@ function BlockSelection() {
                 <motion.header 
                     initial={{ opacity: 0, y: -10 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="w-full glass-panel py-4 px-6 rounded-2xl flex items-center justify-between gap-6"
+                    className="w-full glass-panel py-4 px-6 rounded-2xl flex items-center justify-between gap-6 relative z-50"
                 >
                     <div className="flex items-center gap-3">
                         <span className="w-2.5 h-2.5 rounded-full bg-[#37E67D] animate-pulse" />
@@ -435,7 +435,7 @@ function BlockSelection() {
                             <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-[#FF5C7A]" />
                         </button>
 
-                        <div className="flex items-center gap-3 pl-3 border-l border-white/10">
+                        <div className="flex items-center gap-3 pl-3 border-l border-white/10 relative z-50">
                             <button 
                                 onClick={() => setShowProfileDropdown(!showProfileDropdown)}
                                 className="flex items-center gap-2 text-left hover:opacity-90 transition-all bg-slate-900/40 p-1.5 rounded-xl border border-white/5"
@@ -454,7 +454,7 @@ function BlockSelection() {
                                         initial={{ opacity: 0, y: 10 }}
                                         animate={{ opacity: 1, y: 0 }}
                                         exit={{ opacity: 0, y: 10 }}
-                                        className="absolute right-0 top-12 z-50 w-48 rounded-xl bg-slate-950 border border-white/10 p-2 shadow-2xl"
+                                        className="absolute right-0 top-12 z-[9999] w-48 rounded-xl bg-slate-950 border border-white/10 p-2 shadow-2xl"
                                     >
                                         <div className="p-2 border-b border-white/5 text-left mb-1">
                                             <p className="text-xs font-black text-white">{userName}</p>
