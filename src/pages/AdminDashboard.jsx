@@ -1661,8 +1661,22 @@ function AdminDashboard() {
                                 <div className="h-64 flex items-end justify-between px-2 pb-4 border-b border-slate-200">
                                     {(() => {
                                         const hours = ["08:00", "10:00", "12:00", "14:00", "16:00", "18:00", "20:00"];
-                                        const counts = [12, 45, 87, 65, 34, 78, 23];
-                                        const maxCount = Math.max(...counts);
+                                        const counts = [0, 0, 0, 0, 0, 0, 0];
+                                        
+                                        displayOrders.forEach(order => {
+                                            const d = new Date(order.uploadTime || order.createdAt);
+                                            const hr = d.getHours();
+                                            
+                                            if (hr >= 8 && hr < 10) counts[0]++;
+                                            else if (hr >= 10 && hr < 12) counts[1]++;
+                                            else if (hr >= 12 && hr < 14) counts[2]++;
+                                            else if (hr >= 14 && hr < 16) counts[3]++;
+                                            else if (hr >= 16 && hr < 18) counts[4]++;
+                                            else if (hr >= 18 && hr < 20) counts[5]++;
+                                            else if (hr >= 20) counts[6]++;
+                                        });
+
+                                        const maxCount = Math.max(1, ...counts);
  
                                         return counts.map((count, index) => {
                                             const pct = (count / maxCount) * 100;
