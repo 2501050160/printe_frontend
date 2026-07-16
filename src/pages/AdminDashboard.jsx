@@ -305,6 +305,9 @@ function AdminDashboard() {
             fetchSystemSettings();
         } else if (activeTab === "blocks") {
             fetchBlocks();
+        } else if (activeTab === "colleges") {
+            fetchBlocks();
+            fetchSuspendedColleges();
         } else if (activeTab === "frontend") {
             fetchSystemSettings();
             fetchSections();
@@ -1324,6 +1327,22 @@ function AdminDashboard() {
                     >
                         🏛️ Manage Blocks
                     </button>
+                    {(loggedInAdminRole === "MAIN_ADMIN" || loggedInAdminUser === "admin") && (
+                        <button
+                            onClick={() => {
+                                setActiveTab("colleges");
+                                fetchBlocks();
+                                fetchSuspendedColleges();
+                            }}
+                            className={`px-4 py-2 font-bold text-sm rounded-lg transition-all ${
+                                activeTab === "colleges"
+                                    ? "bg-slate-900 text-white shadow-md"
+                                    : "text-slate-600 hover:bg-slate-100/60"
+                            }`}
+                        >
+                            🏫 College Management
+                        </button>
+                    )}
                     <button
                         onClick={() => {
                             setActiveTab("users");
@@ -2282,43 +2301,7 @@ function AdminDashboard() {
                 {/* Blocks Management Tab */}
                 {activeTab === "blocks" && (
                     <div className="mt-6 space-y-6">
-                        {/* Colleges Overview panel */}
-                        {(loggedInAdminRole !== "SUB_ADMIN" || loggedInAdminUser === "admin") && (
-                            <motion.section 
-                                className="panel p-6"
-                                initial={{ opacity: 0, y: 12 }}
-                                animate={{ opacity: 1, y: 0 }}
-                            >
-                                <div className="section-header pb-4 border-b border-slate-100">
-                                    <h3 className="font-bold text-lg">College Operations & Suspension</h3>
-                                    <p className="text-sm text-slate-500 font-semibold mt-1">Colleges are automatically created when you add a block with a new college name. You can temporarily suspend printing operations for entire colleges here.</p>
-                                </div>
-                                <div className="mt-4 flex flex-wrap gap-4">
-                                    {Array.from(new Set(allBlocks.map(b => b.college).filter(Boolean))).map(col => {
-                                        const isSuspended = suspendedColleges.split(",").map(s => s.trim()).includes(col);
-                                        return (
-                                            <div key={col} className="p-4 border border-slate-200 rounded-xl bg-slate-50 flex flex-col justify-between items-start gap-4 flex-1 min-w-[200px]">
-                                                <div>
-                                                    <h4 className="font-black text-slate-900">{col}</h4>
-                                                    <span className={`text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md mt-2 inline-block ${isSuspended ? 'bg-rose-100 text-rose-700' : 'bg-emerald-100 text-emerald-700'}`}>
-                                                        {isSuspended ? 'SUSPENDED' : 'OPERATIONAL'}
-                                                    </span>
-                                                </div>
-                                                <button 
-                                                    onClick={() => toggleCollegeSuspension(col)}
-                                                    className={`btn text-xs py-1.5 px-3 min-h-0 w-full ${isSuspended ? 'secondary' : 'danger'}`}
-                                                >
-                                                    {isSuspended ? 'Resume Printing' : 'Suspend College'}
-                                                </button>
-                                            </div>
-                                        );
-                                    })}
-                                    {Array.from(new Set(allBlocks.map(b => b.college).filter(Boolean))).length === 0 && (
-                                        <div className="text-sm font-bold text-slate-400 py-4">No colleges found. Add a block to create a college.</div>
-                                    )}
-                                </div>
-                            </motion.section>
-                        )}
+
 
                         <div className="grid gap-6 lg:grid-cols-2">
                             {/* Add Block Panel */}
@@ -2547,6 +2530,127 @@ function AdminDashboard() {
                                     )}
                                 </tbody>
                             </table>
+                        </motion.section>
+                    </div>
+                )}
+
+                {/* College Management Tab (Main Admin Only) */}
+                {activeTab === "colleges" && (loggedInAdminRole === "MAIN_ADMIN" || loggedInAdminUser === "admin") && (
+                    <div className="mt-6 space-y-6">
+                        {/* Colleges Overview panel */}
+                        <motion.section 
+                            className="panel p-6"
+                            initial={{ opacity: 0, y: 12 }}
+                            animate={{ opacity: 1, y: 0 }}
+                        >
+                            <div className="section-header pb-4 border-b border-slate-100">
+                                <h3 className="font-bold text-lg">Manage All Colleges</h3>
+                                <p className="text-sm text-slate-500 font-semibold mt-1">Suspend colleges, view their blocks, or delete entire colleges (which removes all associated blocks).</p>
+                            </div>
+                            
+                            <div className="mt-6 flex flex-wrap gap-4">
+                                {Array.from(new Set(allBlocks.map(b => b.college).filter(Boolean))).map(col => {
+                                    const isSuspended = suspendedColleges.split(",").map(s => s.trim()).includes(col);
+                                    const colBlocks = allBlocks.filter(b => b.college === col);
+                                    return (
+                                        <div key={col} className="p-4 border border-slate-200 rounded-xl bg-slate-50 flex flex-col justify-between items-start gap-4 flex-1 min-w-[280px]">
+                                            <div className="w-full">
+                                                <div className="flex justify-between items-start mb-2">
+                                                    <h4 className="font-black text-slate-900 text-xl">{col}</h4>
+                                                    <span className={`text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md ${isSuspended ? 'bg-rose-100 text-rose-700' : 'bg-emerald-100 text-emerald-700'}`}>
+                                                        {isSuspended ? 'SUSPENDED' : 'OPERATIONAL'}
+                                                    </span>
+                                                </div>
+                                                
+                                                <div className="mt-4 mb-4">
+                                                    <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Associated Blocks ({colBlocks.length})</p>
+                                                    <ul className="text-sm font-semibold text-slate-700 space-y-1 bg-white p-2 border border-slate-200 rounded-lg max-h-[120px] overflow-y-auto">
+                                                        {colBlocks.map(cb => (
+                                                            <li key={cb.id} className="flex justify-between border-b border-slate-100 pb-1 last:border-0 last:pb-0">
+                                                                <span>{cb.name}</span>
+                                                            </li>
+                                                        ))}
+                                                        {colBlocks.length === 0 && <li className="text-slate-400">No blocks</li>}
+                                                    </ul>
+                                                </div>
+                                            </div>
+                                            
+                                            <div className="flex w-full gap-2 mt-auto">
+                                                <button 
+                                                    onClick={() => toggleCollegeSuspension(col)}
+                                                    className={`btn text-xs py-2 flex-1 ${isSuspended ? 'secondary' : 'warning'}`}
+                                                >
+                                                    {isSuspended ? 'Resume' : 'Suspend'}
+                                                </button>
+                                                <button 
+                                                    onClick={async () => {
+                                                        if (window.confirm(`Are you sure you want to DELETE the college "${col}" and ALL its ${colBlocks.length} blocks? This cannot be undone.`)) {
+                                                            try {
+                                                                // Delete all blocks for this college
+                                                                for (const block of colBlocks) {
+                                                                    await api.delete(`/admin/blocks/delete/${block.id}`);
+                                                                }
+                                                                fetchBlocks();
+                                                                // Remove from suspended colleges if it was there
+                                                                if (isSuspended) {
+                                                                    toggleCollegeSuspension(col);
+                                                                }
+                                                                alert(`${col} and all its blocks have been deleted.`);
+                                                            } catch (err) {
+                                                                alert("Error deleting some blocks.");
+                                                            }
+                                                        }
+                                                    }}
+                                                    className="btn danger text-xs py-2 flex-1"
+                                                >
+                                                    Delete College
+                                                </button>
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                                {Array.from(new Set(allBlocks.map(b => b.college).filter(Boolean))).length === 0 && (
+                                    <div className="text-sm font-bold text-slate-400 py-4">No colleges found in the system.</div>
+                                )}
+                            </div>
+                        </motion.section>
+
+                        <motion.section 
+                            className="panel p-6"
+                            initial={{ opacity: 0, y: 12 }}
+                            animate={{ opacity: 1, y: 0 }}
+                        >
+                            <div className="section-header pb-4 border-b border-slate-100 mb-4">
+                                <h3 className="font-bold text-lg">Add New College</h3>
+                                <p className="text-sm text-slate-500 font-semibold mt-1">A college requires at least one block to be created. This will create the new college and its first block.</p>
+                            </div>
+                            <form onSubmit={addBlock} className="space-y-4 max-w-lg">
+                                <label className="block">
+                                    <span className="block text-sm font-black text-slate-700 mb-2">New College Name</span>
+                                    <input
+                                        type="text"
+                                        placeholder="e.g. Stanford University"
+                                        className="field"
+                                        value={newBlockCollege}
+                                        onChange={(e) => setNewBlockCollege(e.target.value)}
+                                        required
+                                    />
+                                </label>
+                                <label className="block">
+                                    <span className="block text-sm font-black text-slate-700 mb-2">First Block Name</span>
+                                    <input
+                                        type="text"
+                                        placeholder="e.g. Main Campus Block"
+                                        className="field"
+                                        value={newBlockName}
+                                        onChange={(e) => setNewBlockName(e.target.value)}
+                                        required
+                                    />
+                                </label>
+                                <button type="submit" className="btn success w-full">
+                                    ➕ Create College & Block
+                                </button>
+                            </form>
                         </motion.section>
                     </div>
                 )}
