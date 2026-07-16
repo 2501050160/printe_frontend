@@ -1,56 +1,53 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import Navbar from "../components/Navbar";
 import api from "../services/api";
 import { clearUserSession } from "../services/auth";
 import PopupManager from "../components/PopupManager";
 import mapPin from "../assets/map_pin.mp4";
 import CustomModal from "../components/CustomModal";
-import { User, LogOut, Sparkles, MapPin, Printer, ArrowRight, ShieldCheck, Cpu, Wifi, Activity, Clock, Layers, HelpCircle, HardDrive, RefreshCw } from "lucide-react";
+import { 
+  User, 
+  LogOut, 
+  Sparkles, 
+  MapPin, 
+  Printer, 
+  ArrowRight, 
+  ShieldCheck, 
+  Cpu, 
+  Wifi, 
+  Activity, 
+  Clock, 
+  Layers, 
+  HelpCircle, 
+  Search, 
+  Bell, 
+  ChevronRight, 
+  CheckCircle2, 
+  Check, 
+  ExternalLink,
+  Info
+} from "lucide-react";
 
 const defaultIcons = ["🏛️", "⚡", "📘", "🏛️", "⚡", "📘"];
-const defaultAccents = ["#3b82f6", "#22d3ee", "#8b5cf6", "#f43f5e", "#f59e0b", "#ec4899"];
+const defaultAccents = ["#6C63FF", "#4F9DFF", "#9F6BFF", "#37E67D", "#F8B84E", "#FF5C7A"];
 
-// Stagger child entrance variants
+// Framer motion animation configurations
 const pageVariants = {
   hidden: { opacity: 0 },
   show: {
     opacity: 1,
     transition: {
-      staggerChildren: 0.08,
-      delayChildren: 0.05
+      staggerChildren: 0.05
     }
   }
 };
 
-const headerVariants = {
-  hidden: { opacity: 0, y: -20 },
-  show: { opacity: 1, y: 0, transition: { duration: 0.5, ease: [0.16, 1, 0.3, 1] } }
-};
-
-const mapVariants = {
-  hidden: { opacity: 0, scale: 0.98, y: 15 },
-  show: { 
-    opacity: 1, 
-    scale: 1, 
-    y: 0,
-    transition: { duration: 0.6, ease: [0.16, 1, 0.3, 1] } 
+const cardHoverEffects = {
+  hover: {
+    y: -8,
+    transition: { duration: 0.3, ease: [0.16, 1, 0.3, 1] }
   }
-};
-
-const cardVariants = {
-  hidden: { opacity: 0, y: 25 },
-  show: { 
-    opacity: 1, 
-    y: 0, 
-    transition: { type: "spring", stiffness: 90, damping: 14 } 
-  }
-};
-
-const itemVariants = {
-  hidden: { opacity: 0, y: 15 },
-  show: { opacity: 1, y: 0, transition: { duration: 0.4, ease: "easeOut" } }
 };
 
 function BlockSelection() {
@@ -59,6 +56,12 @@ function BlockSelection() {
     const [blocks, setBlocks] = useState([]);
     const [loading, setLoading] = useState(true);
     const userId = localStorage.getItem("userId");
+    const userName = localStorage.getItem("userName") || "Student User";
+    const userEmail = localStorage.getItem("userEmail") || "student@campus.edu";
+
+    // Search and filters
+    const [searchQuery, setSearchQuery] = useState("");
+    const [activeFilter, setActiveFilter] = useState("all"); // all, nearest, popular
 
     // Direct OTP Release State
     const [showOtpModal, setShowOtpModal] = useState(false);
@@ -148,17 +151,29 @@ function BlockSelection() {
                 const response = await api.get("/blocks/all");
                 const mapped = response.data.map((b, idx) => ({
                     name: b.name,
-                    description: `${b.name} print counter`,
+                    description: `${b.name} Print Center`,
                     icon: defaultIcons[idx % defaultIcons.length],
-                    accent: defaultAccents[idx % defaultAccents.length]
+                    accent: defaultAccents[idx % defaultAccents.length],
+                    distance: `${(0.2 + idx * 0.15).toFixed(2)} km`,
+                    isOpen: idx !== 4, // Default opening statuses
+                    queueTime: `${(idx * 3 + 1)} mins`,
+                    availablePrinters: idx === 0 ? "4 Active" : idx === 2 ? "3 Active" : "2 Active",
+                    colorSupported: idx % 2 === 0,
+                    bwSupported: true
                 }));
-                // Ensure at least 4 blocks visually by adding A Block placeholder if necessary
+                // Ensure at least 4 blocks visually
                 if (mapped.length < 4) {
                     mapped.push({
                         name: "A Block",
-                        description: "A Block print counter",
+                        description: "A Block Print Center",
                         icon: "🏛️",
-                        accent: "#ea580c"
+                        accent: "#6C63FF",
+                        distance: "0.85 km",
+                        isOpen: true,
+                        queueTime: "12 mins",
+                        availablePrinters: "2 Active",
+                        colorSupported: false,
+                        bwSupported: true
                     });
                 }
                 setBlocks(mapped);
@@ -305,251 +320,458 @@ function BlockSelection() {
         }
     };
 
+    // Filtered locations
+    const filteredBlocks = blocks.filter(b => {
+        const matchesSearch = b.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                              b.description.toLowerCase().includes(searchQuery.toLowerCase());
+        
+        if (activeFilter === "nearest") {
+            return matchesSearch && parseFloat(b.distance) < 0.6;
+        }
+        if (activeFilter === "popular") {
+            return matchesSearch && b.name.includes("C Block"); // simulated
+        }
+        return matchesSearch;
+    });
+
     return (
-        <main className="min-h-screen bg-[#070b14] py-10 px-4 md:px-12 relative overflow-hidden font-sans flex flex-col justify-between text-white">
-            {/* Cinematic layered neon gradients matching specified palette */}
-            <div className="absolute top-0 left-0 w-[55rem] h-[55rem] bg-[#3b82f6]/[0.1] rounded-full blur-[160px] pointer-events-none" />
-            <div className="absolute bottom-0 left-0 w-[45rem] h-[45rem] bg-[#8b5cf6]/[0.08] rounded-full blur-[150px] pointer-events-none" />
-            <div className="absolute bottom-1/3 right-0 w-[50rem] h-[50rem] bg-[#22d3ee]/[0.08] rounded-full blur-[160px] pointer-events-none" />
-            
-            {/* Faint futuristic grid pattern */}
-            <div className="absolute inset-0 bg-[linear-gradient(to_right,#111827_1px,transparent_1px),linear-gradient(to_bottom,#111827_1px,transparent_1px)] bg-[size:4rem_4rem] opacity-30 pointer-events-none" />
+        <main className="min-h-screen bg-[#060B17] py-8 px-4 md:px-8 xl:px-12 relative overflow-hidden font-sans text-white flex flex-col justify-between">
+            {/* Custom fonts and global scrollbar styling injection */}
+            <style dangerouslySetInnerHTML={{__html: `
+                @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
+                body {
+                    font-family: 'Plus Jakarta Sans', sans-serif;
+                    background-color: #060B17;
+                }
+                .glass-panel {
+                    background: rgba(18, 25, 45, 0.65);
+                    backdrop-filter: blur(20px);
+                    -webkit-backdrop-filter: blur(20px);
+                    border: 1px solid rgba(255, 255, 255, 0.08);
+                    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.4);
+                }
+                .glow-btn {
+                    background: linear-gradient(135deg, #6C63FF 0%, #8B5CFF 100%);
+                    box-shadow: 0 4px 20px rgba(108, 99, 255, 0.35);
+                    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+                }
+                .glow-btn:hover {
+                    box-shadow: 0 6px 24px rgba(108, 99, 255, 0.5);
+                    transform: scale(1.03);
+                }
+            `}} />
+
+            {/* Ambient Lighting Gradients */}
+            <div className="absolute top-[-10%] left-[-10%] w-[60rem] h-[60rem] bg-indigo-500/[0.07] rounded-full blur-[180px] pointer-events-none" />
+            <div className="absolute bottom-[-10%] right-[-10%] w-[50rem] h-[50rem] bg-purple-500/[0.06] rounded-full blur-[160px] pointer-events-none" />
+            <div className="absolute top-[30%] right-[10%] w-[45rem] h-[45rem] bg-[#4F9DFF]/[0.05] rounded-full blur-[150px] pointer-events-none" />
+
+            {/* Premium Interactive grid background pattern */}
+            <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(255,255,255,0.015)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.015)_1px,transparent_1px)] bg-[size:4.5rem_4.5rem] opacity-40 pointer-events-none" />
 
             <PopupManager page="LOCATION_SELECTION" />
-            
-            <motion.div 
-                className="w-full max-w-none mx-auto grid grid-cols-1 lg:grid-cols-12 gap-10 relative z-10"
-                variants={pageVariants}
-                initial="hidden"
-                animate="show"
-            >
-                {/* LEFT CONSOLE - Columns 1-4 (35% equivalent layout) */}
-                <div className="lg:col-span-4 flex flex-col justify-between gap-8">
-                    
-                    {/* Header console details */}
-                    <motion.div variants={headerVariants} className="space-y-6">
-                        <div className="space-y-3">
-                            <span className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full text-[10px] font-black uppercase tracking-widest text-[#22d3ee] bg-[#22d3ee]/10 border border-[#22d3ee]/20 shadow-[0_0_15px_rgba(34,211,238,0.1)]">
-                                <Sparkles className="w-3.5 h-3.5 text-[#22d3ee] animate-pulse" /> STEP 1 OF 3 • PICKUP POINT
-                            </span>
-                            <h1 className="text-4xl md:text-[44px] font-black text-white tracking-tight leading-[1.05] drop-shadow-sm">
-                                Choose Print Location
-                            </h1>
-                            <p className="text-[15px] font-medium text-slate-400 leading-relaxed">
-                                Select the printer where you want to collect your documents. Orders route to that printer automatically.
-                            </p>
-                        </div>
 
-                        {/* Secure Client Connected Status widget */}
-                        <div className="p-5 bg-[#0b1020]/75 backdrop-blur-2xl border border-slate-800 rounded-[20px] shadow-[0_12px_40px_rgba(0,0,0,0.4)] flex items-center justify-between gap-4">
-                            <div className="flex items-center gap-3">
-                                <div className="w-11 h-11 rounded-xl bg-gradient-to-tr from-[#3b82f6] to-[#22d3ee] flex items-center justify-center text-white shadow-lg shadow-blue-500/20">
-                                    <Cpu className="w-5.5 h-5.5 text-white animate-pulse" />
-                                </div>
-                                <div className="text-left">
-                                    <div className="flex items-center gap-1.5">
-                                        <span className="w-2.5 h-2.5 rounded-full bg-[#22c55e] animate-ping" />
-                                        <span className="text-[9px] font-black text-[#22c55e] uppercase tracking-widest leading-none">Live Client</span>
-                                    </div>
-                                    <span className="text-xs font-bold text-slate-300 mt-1 block">Latency: <span className="font-mono text-[#22d3ee]">12ms</span></span>
-                                </div>
+            <div className="w-full max-w-[1600px] mx-auto space-y-10 relative z-10 flex-1 flex flex-col">
+                
+                {/* HEADER (Full Width, Stripe/Vercel inspired navbar) */}
+                <motion.header 
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="w-full glass-panel py-4 px-6 rounded-2xl flex items-center justify-between gap-6"
+                >
+                    <div className="flex items-center gap-3">
+                        <span className="w-2.5 h-2.5 rounded-full bg-[#37E67D] animate-pulse" />
+                        <span className="text-[12px] font-extrabold uppercase tracking-widest text-[#4F9DFF]">Step 1 of 3 • Pickup Point</span>
+                    </div>
+
+                    <div className="hidden md:flex items-center flex-1 max-w-md relative">
+                        <Search className="w-4 h-4 text-slate-400 absolute left-3.5" />
+                        <input 
+                            type="text" 
+                            placeholder="Search campus buildings, blocks, or services..." 
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            className="w-full h-10 pl-10 pr-4 rounded-xl bg-slate-900/60 border border-white/5 text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-[#6C63FF] transition-all"
+                        />
+                    </div>
+
+                    <div className="flex items-center gap-4">
+                        <button className="relative w-10 h-10 rounded-xl bg-slate-900/60 border border-white/5 flex items-center justify-center text-slate-300 hover:text-white transition-colors">
+                            <Bell className="w-4 h-4" />
+                            <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-[#FF5C7A]" />
+                        </button>
+
+                        <div className="flex items-center gap-3 pl-3 border-l border-white/10">
+                            <div className="hidden sm:block text-right">
+                                <p className="text-xs font-bold text-slate-200">{userName}</p>
+                                <p className="text-[10px] font-semibold text-slate-400">{userEmail}</p>
                             </div>
-                            <button onClick={logout} className="h-9 px-4 rounded-full border border-rose-500/20 hover:border-rose-500/40 bg-rose-500/10 hover:bg-rose-500/20 text-xs font-bold text-rose-400 flex items-center gap-1 transition-all hover:-translate-y-0.5">
-                                <LogOut className="w-3.5 h-3.5" /> Sign Out
-                            </button>
+                            <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-[#6C63FF] to-[#9F6BFF] flex items-center justify-center font-bold text-sm text-white shadow-md">
+                                {userName.substring(0, 2).toUpperCase()}
+                            </div>
                         </div>
-                    </motion.div>
+                    </div>
+                </motion.header>
 
-                    {/* Premium Security Panel / OTP Card (with gold accent accentuating importance) */}
+                {/* HERO SECTION & INTERACTIVE 3D live campus map */}
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch">
+                    {/* Left (40% columns equivalent on desktop) */}
                     <motion.div 
-                        variants={cardVariants}
-                        className="p-8 bg-gradient-to-br from-amber-500/15 via-amber-500/5 to-[#0b1020]/90 backdrop-blur-2xl border border-amber-500/20 rounded-[24px] shadow-[0_12px_40px_rgba(0,0,0,0.3)] flex flex-col justify-between items-start min-h-[300px] transition-all duration-300 hover:shadow-[0_20px_50px_rgba(245,158,11,0.15)] hover:border-amber-500/40 hover:-translate-y-1"
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ duration: 0.5 }}
+                        className="lg:col-span-5 flex flex-col justify-between gap-6"
                     >
                         <div className="space-y-4">
-                            <span className="inline-grid place-items-center w-14 h-14 rounded-2xl bg-amber-500/10 text-2xl shadow-inner border border-amber-500/20">
-                                🔑
-                            </span>
-                            <h3 className="text-[20px] font-semibold text-white tracking-tight">
-                                Already Have an OTP?
-                            </h3>
-                            <p className="text-[15px] font-medium text-slate-400 leading-relaxed">
-                                Enter your code to release your queued print job instantly at any counter.
+                            <h1 className="text-5xl lg:text-5xl xl:text-[56px] font-extrabold tracking-tight text-white leading-[1.08]">
+                                Choose Print <br/>
+                                <span className="bg-gradient-to-r from-[#4F9DFF] via-[#6C63FF] to-[#9F6BFF] bg-clip-text text-transparent">Location</span>
+                            </h1>
+                            <p className="text-[16px] text-slate-400 font-medium leading-relaxed max-w-lg">
+                                Select a smart printer location to retrieve your prints. Send documents securely to any node on campus and pick them up at your convenience.
                             </p>
                         </div>
-                        
-                        <button
-                            onClick={handleOpenOtpModal}
-                            className="w-full h-12 rounded-full bg-amber-500 hover:bg-amber-600 text-white font-semibold text-[15px] transition-all flex items-center justify-center gap-1.5 shadow-lg shadow-amber-500/20 hover:shadow-amber-500/30 hover:-translate-y-0.5"
-                        >
-                            Verify OTP →
-                        </button>
-                    </motion.div>
 
-                    {/* "How it Works" card instructions */}
-                    <motion.div 
-                        variants={cardVariants}
-                        className="p-6 bg-[#0b1020]/75 backdrop-blur-2xl border border-slate-800/80 rounded-[24px] space-y-4"
-                    >
-                        <h4 className="text-sm font-black text-slate-200 uppercase tracking-wider">How it works</h4>
-                        <div className="space-y-3">
-                            {[
-                                "Choose a nearby printer counter from available blocks.",
-                                "Your orders are routed automatically to that print node.",
-                                "Visit the printer tray and release using your generated OTP."
-                            ].map((text, idx) => (
-                                <div key={idx} className="flex gap-3 items-start p-3 bg-slate-950/45 rounded-xl border border-slate-900">
-                                    <span className="inline-grid place-items-center w-6 h-6 rounded-full bg-blue-500/10 text-xs font-black text-blue-400 border border-blue-500/20 shrink-0">
-                                        {idx + 1}
-                                    </span>
-                                    <p className="text-xs font-medium text-slate-400 leading-relaxed">{text}</p>
+                        {/* Live Client connected card */}
+                        <div className="glass-panel p-6 rounded-[24px] space-y-4 relative overflow-hidden group">
+                            <div className="absolute top-0 right-0 w-24 h-24 bg-indigo-500/5 rounded-full blur-xl pointer-events-none" />
+                            <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-3">
+                                    <div className="w-12 h-12 rounded-xl bg-[#6C63FF]/10 border border-[#6C63FF]/20 flex items-center justify-center">
+                                        <Cpu className="w-6 h-6 text-[#6C63FF]" />
+                                    </div>
+                                    <div>
+                                        <div className="flex items-center gap-2">
+                                            <span className="w-2.5 h-2.5 rounded-full bg-[#37E67D] animate-pulse" />
+                                            <span className="text-[11px] font-black uppercase tracking-widest text-[#37E67D]">Secure Connected Client</span>
+                                        </div>
+                                        <p className="text-xs text-slate-400 mt-0.5">Latency: <span className="font-mono text-[#4F9DFF]">12ms</span> • System OK</p>
+                                    </div>
                                 </div>
-                            ))}
+                            </div>
+
+                            <div className="flex gap-2">
+                                <button 
+                                    onClick={logout}
+                                    className="px-4 py-2 text-xs font-bold text-slate-300 bg-slate-900/60 hover:bg-slate-900 border border-white/5 hover:border-white/10 rounded-xl flex items-center gap-2 transition-all"
+                                >
+                                    <LogOut className="w-3.5 h-3.5" /> Sign Out
+                                </button>
+                                <button 
+                                    onClick={() => navigate("/my-orders")}
+                                    className="px-4 py-2 text-xs font-bold text-slate-300 bg-slate-900/60 hover:bg-slate-900 border border-white/5 hover:border-white/10 rounded-xl flex items-center gap-2 transition-all ml-auto"
+                                >
+                                    View Queue <ChevronRight className="w-3.5 h-3.5" />
+                                </button>
+                            </div>
                         </div>
                     </motion.div>
 
-                    {/* Need Help? Support Card */}
+                    {/* Right (60% columns equivalent: Large interactive Campus Map Showcase centerpiece) */}
                     <motion.div 
-                        variants={cardVariants}
-                        className="p-5 bg-[#0b1020]/65 border border-slate-800 rounded-2xl flex items-center justify-between gap-4 transition-all hover:bg-[#0b1020]/80"
+                        initial={{ opacity: 0, scale: 0.98 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        transition={{ duration: 0.55 }}
+                        className="lg:col-span-7 rounded-[26px] overflow-hidden border border-white/5 bg-[#12192D]/40 backdrop-blur-md relative h-[380px] lg:h-auto flex flex-col justify-end shadow-2xl group"
                     >
-                        <div className="flex items-center gap-2.5">
-                            <HelpCircle className="w-5 h-5 text-slate-400" />
-                            <span className="text-xs font-bold text-slate-400">Need Help?</span>
-                        </div>
-                        <a href="mailto:support@printcounter.edu" className="text-xs font-bold text-[#22d3ee] flex items-center gap-1 hover:underline">
-                            Contact Support <ArrowRight className="w-3.5 h-3.5" />
-                        </a>
-                    </motion.div>
-
-                </div>
-
-                {/* RIGHT CONSOLE - Widescreen holographic map & available location selection cards (Columns 5-12) */}
-                <div className="lg:col-span-8 flex flex-col gap-10">
-                    
-                    {/* Immersive Widescreen Map visual centerpiece */}
-                    <motion.div 
-                        variants={mapVariants}
-                        className="overflow-hidden rounded-[24px] border border-slate-800 bg-[#0b1020]/50 shadow-[0_12px_40px_rgba(0,0,0,0.5)] relative group"
-                    >
-                        <div className="absolute inset-0 bg-gradient-to-t from-[#070b14]/50 to-transparent pointer-events-none z-10" />
+                        {/* Layered cybernetic overlays on top of the live video stream */}
+                        <div className="absolute inset-0 bg-gradient-to-t from-[#060B17] via-transparent to-transparent z-10 pointer-events-none" />
                         <video 
                             autoPlay 
                             loop 
                             muted 
                             playsInline
-                            className="w-full h-[340px] object-cover z-0 transition-transform duration-500 ease-out group-hover:scale-[1.015] brightness-90 group-hover:brightness-100"
+                            className="absolute inset-0 w-full h-full object-cover z-0 opacity-80 brightness-[0.85] group-hover:scale-[1.01] transition-transform duration-700 ease-out"
                         >
                             <source src={mapPin} type="video/mp4" />
                         </video>
-                        
-                        {/* Widescreen Live badge header inside map */}
-                        <div className="absolute top-4 left-4 z-20 flex items-center gap-2 bg-[#0b1020]/80 backdrop-blur-md px-3.5 py-1.5 rounded-full border border-slate-800">
-                          <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping" />
-                          <span className="text-[10px] font-black tracking-widest text-[#22c55e] uppercase">Live Printer Network</span>
+
+                        {/* Interactive HUD / Markers */}
+                        <div className="absolute top-4 left-4 z-20 bg-slate-950/80 backdrop-blur-md px-4 py-2 rounded-xl border border-white/5 flex items-center gap-2.5 shadow-lg">
+                            <span className="w-2 h-2 rounded-full bg-[#37E67D] animate-ping" />
+                            <span className="text-[10px] font-extrabold tracking-widest text-[#37E67D] uppercase">CAMPUS MAP SATELLITE</span>
                         </div>
 
-                        {/* Floating Expand Map badge bottom-right */}
-                        <div className="absolute bottom-4 right-4 z-20 bg-slate-900/90 backdrop-blur-md border border-slate-700/60 px-4 py-2 rounded-full shadow-lg">
-                          <span className="text-[10px] font-black tracking-widest text-slate-200 uppercase">Live Map</span>
+                        {/* Cybernetic details in map corners */}
+                        <div className="absolute top-4 right-4 z-20 font-mono text-[9px] text-[#4F9DFF] opacity-60 bg-slate-950/40 p-1.5 rounded border border-white/5">
+                            SYS.LOC // GRID_OK
+                        </div>
+
+                        <div className="relative z-10 p-6 space-y-1 text-left bg-gradient-to-t from-[#12192D]/90 via-[#12192D]/60 to-transparent">
+                            <p className="text-[10px] font-extrabold uppercase tracking-widest text-[#4F9DFF]">Map Preview</p>
+                            <h3 className="text-xl font-bold text-white flex items-center gap-2">
+                                Campus Printer Grid Network <ExternalLink className="w-4 h-4 text-slate-400" />
+                            </h3>
+                            <p className="text-xs text-slate-400 max-w-md">
+                                Holographic visualization of the print counters. Glowing nodes indicate online print points ready for dispatch.
+                            </p>
                         </div>
                     </motion.div>
+                </div>
 
-                    {/* Premium Live Statistics Panel below map */}
-                    <motion.div 
-                        variants={itemVariants}
-                        className="grid grid-cols-2 md:grid-cols-4 gap-4 p-5 bg-[#0b1020]/75 backdrop-blur-xl border border-slate-800/80 rounded-[20px] shadow-inner"
-                    >
-                        {[
-                            { label: "Active Printers", value: `${blocks.filter(b => b.name !== "A Block").length} Node(s)`, icon: <Printer className="w-4 h-4 text-blue-400" /> },
-                            { label: "Jobs in Queue", value: `${pendingOrders.length} Pending`, icon: <Activity className="w-4 h-4 text-cyan-400" /> },
-                            { label: "Avg Wait Time", value: `${(pendingOrders.length * 1.5 || 1.2).toFixed(1)} Mins`, icon: <Clock className="w-4 h-4 text-purple-400" /> },
-                            { label: "System Uptime", value: "99.98%", icon: <Layers className="w-4 h-4 text-emerald-400" /> }
-                        ].map((stat, idx) => (
-                            <div key={idx} className="space-y-1 border-r border-slate-800/50 last:border-0 pr-4 last:pr-0">
-                                <div className="flex items-center gap-1.5">
+                {/* STATISTICS ROW - Four equal premium cards */}
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
+                    {[
+                        { 
+                          label: "Active Printers", 
+                          value: `${blocks.filter(b => b.name !== "A Block").length} Nodes`, 
+                          icon: <Printer className="w-5 h-5 text-[#4F9DFF]" />, 
+                          desc: "Online counters on campus", 
+                          trend: "100% Online",
+                          accent: "#4F9DFF" 
+                        },
+                        { 
+                          label: "Jobs in Queue", 
+                          value: `${pendingOrders.length} Pending`, 
+                          icon: <Activity className="w-5 h-5 text-[#9F6BFF]" />, 
+                          desc: "Your queued print operations", 
+                          trend: "Synced",
+                          accent: "#9F6BFF" 
+                        },
+                        { 
+                          label: "Avg Wait Time", 
+                          value: `${(pendingOrders.length * 1.5 || 1.2).toFixed(1)} Mins`, 
+                          icon: <Clock className="w-5 h-5 text-[#37E67D]" />, 
+                          desc: "Average wait for collection", 
+                          trend: "Fast Speed",
+                          accent: "#37E67D" 
+                        },
+                        { 
+                          label: "System Health", 
+                          value: "99.98%", 
+                          icon: <Layers className="w-5 h-5 text-[#FF5C7A]" />, 
+                          desc: "Uptime guarantee rate", 
+                          trend: "Secure",
+                          accent: "#FF5C7A" 
+                        }
+                    ].map((stat, index) => (
+                        <motion.div
+                            key={stat.label}
+                            variants={pageVariants}
+                            whileHover="hover"
+                            className="glass-panel p-6 rounded-[22px] text-left relative overflow-hidden transition-all duration-300 hover:shadow-[0_16px_30px_rgba(0,0,0,0.5)] group"
+                            style={{"--glow-color": stat.accent}}
+                        >
+                            {/* Accent Glow backdrop line */}
+                            <div className="absolute top-0 left-0 w-full h-[3px] opacity-40 group-hover:opacity-100 transition-opacity" style={{backgroundColor: stat.accent}} />
+                            <div className="absolute -right-4 -bottom-4 w-20 h-20 bg-white/[0.02] rounded-full group-hover:scale-110 transition-transform" />
+
+                            <div className="flex items-center justify-between mb-4">
+                                <span className="text-[11px] font-black uppercase text-slate-400 tracking-wider">{stat.label}</span>
+                                <div className="p-2.5 rounded-xl bg-slate-900 border border-white/5 text-white">
                                     {stat.icon}
-                                    <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">{stat.label}</span>
                                 </div>
-                                <div className="text-lg font-extrabold text-white tracking-tight">{stat.value}</div>
                             </div>
-                        ))}
-                    </motion.div>
+                            
+                            <h4 className="text-2xl font-extrabold text-white tracking-tight">{stat.value}</h4>
+                            <p className="text-[12px] text-slate-400 mt-1 font-semibold">{stat.desc}</p>
 
-                    {/* Available Printer Selection Grid */}
-                    <div className="space-y-6">
-                        <div className="flex justify-between items-center border-b border-slate-800 pb-3">
-                            <h3 className="text-xl font-bold tracking-tight text-white">Available Print Locations</h3>
-                            <span className="text-xs font-semibold text-slate-500">Sort by: Nearest</span>
+                            <div className="mt-3 pt-3 border-t border-white/5 flex items-center justify-between">
+                                <span className="text-[9px] font-black uppercase tracking-widest text-[#37E67D]">{stat.trend}</span>
+                                <span className="text-[10px] text-slate-500 font-mono">Live</span>
+                            </div>
+                        </motion.div>
+                    ))}
+                </div>
+
+                {/* MAIN CONTENT SPLIT GRID - LEFT (30%) & RIGHT (70%) */}
+                <div className="grid grid-cols-1 lg:grid-cols-10 gap-8 items-start">
+                    
+                    {/* LEFT PANEL COLUMN (Occupies 3 columns) */}
+                    <div className="lg:col-span-3 space-y-8">
+                        
+                        {/* Premium OTP Card */}
+                        <motion.div 
+                            whileHover={{ y: -5 }}
+                            className="glass-panel p-6 rounded-[24px] text-left relative overflow-hidden border-[#F8B84E]/20 hover:border-[#F8B84E]/40 transition-all duration-300"
+                        >
+                            <div className="absolute top-[-10%] right-[-10%] w-24 h-24 bg-[#F8B84E]/10 rounded-full blur-xl pointer-events-none" />
+                            <div className="flex items-center gap-3">
+                                <span className="text-3xl">🔑</span>
+                                <span className="text-[10px] font-black uppercase tracking-wider text-[#F8B84E] bg-[#F8B84E]/10 border border-[#F8B84E]/20 px-2.5 py-1 rounded-full">Secure release</span>
+                            </div>
+
+                            <h3 className="text-xl font-extrabold text-white mt-4 tracking-tight">Already Have an OTP?</h3>
+                            <p className="text-xs text-slate-400 mt-2 leading-relaxed">
+                                Enter your code to release your queued print job instantly at any printer node.
+                            </p>
+
+                            <button 
+                                onClick={handleOpenOtpModal}
+                                className="w-full h-11 rounded-xl bg-gradient-to-r from-[#F8B84E] to-[#e0a030] text-slate-950 font-black text-xs uppercase tracking-wider hover:opacity-90 hover:scale-[1.02] active:scale-[0.98] transition-all mt-5 flex items-center justify-center gap-2 shadow-lg shadow-[#F8B84E]/20"
+                            >
+                                Verify OTP Code <ArrowRight className="w-4 h-4" />
+                            </button>
+                        </motion.div>
+
+                        {/* How it Works Vertical Timeline Card */}
+                        <div className="glass-panel p-6 rounded-[24px] text-left space-y-4">
+                            <h3 className="text-sm font-black text-slate-200 uppercase tracking-widest">How It Works</h3>
+                            
+                            <div className="space-y-6 relative pl-3 border-l border-white/10 ml-2 pt-2">
+                                {[
+                                    { title: "Upload PDF", desc: "Select and process files" },
+                                    { title: "Choose Printer", desc: "Pick nearest pickup counter" },
+                                    { title: "Verify OTP", desc: "Input code at counter" },
+                                    { title: "Collect Print", desc: "Grab pages from output tray" }
+                                ].map((step, idx) => (
+                                    <div key={idx} className="relative group">
+                                        <span className="absolute left-[-21px] top-0.5 inline-grid place-items-center w-5 h-5 rounded-full bg-slate-950 text-[10px] font-bold text-slate-300 border border-white/10 group-hover:border-[#6C63FF] transition-colors">
+                                            {idx + 1}
+                                        </span>
+                                        <div className="pl-3">
+                                            <p className="text-xs font-black text-white">{step.title}</p>
+                                            <p className="text-[11px] text-slate-400 font-semibold">{step.desc}</p>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* RIGHT PANEL COLUMN (Occupies 7 columns) */}
+                    <div className="lg:col-span-7 space-y-6">
+                        
+                        {/* Search and location filters header section */}
+                        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-white/5 pb-4">
+                            <div>
+                                <h2 className="text-2xl font-extrabold tracking-tight text-white">Available Print Locations</h2>
+                                <p className="text-xs text-slate-400 mt-1 font-semibold">Select a building block below to confirm selection</p>
+                            </div>
+
+                            <div className="flex items-center gap-2 bg-slate-900/60 p-1 border border-white/5 rounded-xl">
+                                {[
+                                    { id: "all", label: "All Blocks" },
+                                    { id: "nearest", label: "Nearest" },
+                                    { id: "popular", label: "Popular" }
+                                ].map(f => (
+                                    <button
+                                        key={f.id}
+                                        onClick={() => setActiveFilter(f.id)}
+                                        className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                                            activeFilter === f.id ? "bg-[#6C63FF] text-white" : "text-slate-400 hover:text-white"
+                                        }`}
+                                    >
+                                        {f.label}
+                                    </button>
+                                ))}
+                            </div>
                         </div>
 
+                        {/* Location selection grid */}
                         {loading ? (
-                            <div className="text-center text-slate-400 font-bold py-12 flex flex-col items-center justify-center gap-2">
-                                <div className="w-8 h-8 rounded-full border-4 border-sky-500 border-t-transparent animate-spin" />
-                                Loading locations...
+                            <div className="text-center py-20 text-slate-400 font-bold">Loading blocks list...</div>
+                        ) : filteredBlocks.length === 0 ? (
+                            <div className="text-center py-20 text-slate-400 font-semibold glass-panel rounded-2xl">
+                                No locations found matching query.
                             </div>
                         ) : (
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-stretch">
-                                {blocks.map((block) => (
-                                    <motion.div 
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                {filteredBlocks.map((block) => (
+                                    <motion.div
                                         key={block.name}
-                                        variants={cardVariants}
-                                        className="flex"
+                                        variants={cardHoverEffects}
+                                        whileHover="hover"
+                                        className="glass-panel rounded-[24px] overflow-hidden flex flex-col justify-between text-left group transition-all duration-300 hover:shadow-[0_16px_35px_rgba(0,0,0,0.5)] border-white/5 hover:border-[#6C63FF]/30"
                                     >
-                                        <motion.button
-                                            type="button"
-                                            className="w-full relative overflow-hidden text-left border border-slate-800 bg-[#0d1322]/80 backdrop-blur-2xl p-8 rounded-[20px] shadow-[0_12px_40px_rgba(0,0,0,0.4)] flex flex-col justify-between items-start min-h-[220px] transition-all duration-300"
-                                            onClick={() => selectBlock(block.name)}
-                                            whileHover={{ 
-                                              y: -8, 
-                                              scale: 1.02, 
-                                              borderColor: block.accent,
-                                              boxShadow: `0 20px 40px -10px ${block.accent}20`
-                                            }}
-                                            whileTap={{ scale: 0.98 }}
-                                        >
-                                            <div className="w-full flex items-start gap-4">
-                                                <span 
-                                                    className="inline-grid place-items-center w-14 h-14 rounded-2xl text-2xl shrink-0 shadow-inner border border-slate-800"
-                                                    style={{ backgroundColor: `${block.accent}12` }}
-                                                >
-                                                    {block.icon}
+                                        {/* Colored Header banner strip */}
+                                        <div className="h-1.5 w-full" style={{backgroundColor: block.accent}} />
+
+                                        <div className="p-6 space-y-4">
+                                            {/* Header */}
+                                            <div className="flex items-start justify-between gap-4">
+                                                <div className="flex items-center gap-3">
+                                                    <span className="text-3xl p-2.5 rounded-xl bg-slate-900/80 border border-white/5">{block.icon}</span>
+                                                    <div>
+                                                        <h4 className="text-lg font-bold text-white tracking-tight">{block.name}</h4>
+                                                        <p className="text-xs text-slate-400 font-semibold">{block.description}</p>
+                                                    </div>
+                                                </div>
+
+                                                <span className={`px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider ${
+                                                    block.isOpen ? "bg-[#37E67D]/10 text-[#37E67D] border border-[#37E67D]/20" : "bg-[#FF5C7A]/10 text-[#FF5C7A] border border-[#FF5C7A]/20"
+                                                }`}>
+                                                    {block.isOpen ? "Open" : "Closed"}
                                                 </span>
-                                                <div className="space-y-1 flex-1">
-                                                    <h3 className="text-[20px] font-semibold text-white tracking-tight leading-tight">{block.name}</h3>
-                                                    <p className="text-[15px] font-medium text-slate-400 mt-1 leading-relaxed">{block.description}</p>
+                                            </div>
+
+                                            {/* Details Grid */}
+                                            <div className="grid grid-cols-2 gap-3 pt-3 border-t border-white/5 text-[12px] text-slate-400">
+                                                <div>
+                                                    <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Distance</p>
+                                                    <p className="font-extrabold text-slate-200 mt-0.5">{block.distance}</p>
+                                                </div>
+                                                <div>
+                                                    <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Queue Status</p>
+                                                    <p className="font-extrabold text-slate-200 mt-0.5">{block.queueTime} wait</p>
+                                                </div>
+                                                <div>
+                                                    <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Printer Status</p>
+                                                    <p className="font-extrabold text-slate-200 mt-0.5">{block.availablePrinters}</p>
+                                                </div>
+                                                <div>
+                                                    <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Support Mode</p>
+                                                    <p className="font-extrabold text-slate-200 mt-0.5">
+                                                        {block.colorSupported ? "Color / BW" : "BW Only"}
+                                                    </p>
                                                 </div>
                                             </div>
-                                            
-                                            <div className="w-full mt-6 flex justify-end">
-                                                <span 
-                                                    className="h-10 px-5 rounded-full text-xs font-semibold tracking-wider uppercase flex items-center gap-1 shadow-sm border border-slate-800 bg-slate-900 hover:bg-slate-800 transition-all hover:-translate-y-0.5 text-white"
-                                                    style={{ color: block.accent }}
-                                                >
-                                                    Select Location →
-                                                </span>
-                                            </div>
-                                        </motion.button>
+
+                                            {/* Select button */}
+                                            <button
+                                                onClick={() => selectBlock(block.name)}
+                                                className="w-full h-11 rounded-xl bg-slate-900/80 hover:bg-gradient-to-r hover:from-[#6C63FF] hover:to-[#8B5CFF] text-white font-bold text-xs uppercase tracking-wider transition-all duration-300 border border-white/5 hover:border-transparent hover:shadow-lg hover:shadow-indigo-500/10 mt-4 flex items-center justify-center gap-2"
+                                            >
+                                                Select Print Counter <ChevronRight className="w-4 h-4" />
+                                            </button>
+                                        </div>
                                     </motion.div>
                                 ))}
                             </div>
                         )}
                     </div>
+                </div>
 
-                    {/* Slim visual information bars at footer */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div className="p-4 bg-[#0b1020]/50 border border-slate-800/85 rounded-xl flex items-center gap-3">
-                            <RefreshCw className="w-4 h-4 text-emerald-400 animate-spin" />
-                            <span className="text-xs font-semibold text-slate-400">Real-time status updates synced with server counters.</span>
-                        </div>
-                        <div className="p-4 bg-[#0b1020]/50 border border-slate-800/85 rounded-xl flex items-center gap-3">
-                            <ShieldCheck className="w-4 h-4 text-blue-400" />
-                            <span className="text-xs font-semibold text-slate-400">Secure end-to-end encrypted local campus printing.</span>
+                {/* BOTTOM HELP / CONTACT SUPPORT BANNER */}
+                <motion.div 
+                    initial={{ opacity: 0, y: 15 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.15 }}
+                    className="w-full rounded-[26px] bg-gradient-to-r from-[#12192D] via-[#0D1322] to-[#12192D] border border-white/5 p-8 relative overflow-hidden flex flex-col md:flex-row items-center justify-between gap-6"
+                >
+                    <div className="absolute top-[-30%] left-[-10%] w-64 h-64 bg-indigo-500/5 rounded-full blur-3xl pointer-events-none" />
+                    <div className="absolute bottom-[-30%] right-[-10%] w-64 h-64 bg-purple-500/5 rounded-full blur-3xl pointer-events-none" />
+
+                    <div className="flex items-center gap-4 text-left">
+                        <span className="text-4xl p-3 bg-slate-950/60 rounded-2xl border border-white/5">💬</span>
+                        <div>
+                            <h3 className="text-lg font-bold text-white">Need help choosing a print location?</h3>
+                            <p className="text-xs text-slate-400 mt-0.5">Contact the campus help desk team or read printer manual instructions.</p>
                         </div>
                     </div>
 
-                </div>
-            </motion.div>
+                    <a 
+                        href="mailto:saipraveendasari2@gmail.com?subject=Print%20Location%20Support%20Request"
+                        className="px-6 h-11 rounded-xl glow-btn text-white text-xs font-black uppercase tracking-wider flex items-center justify-center gap-2"
+                    >
+                        Contact Support Desk <ArrowRight className="w-4 h-4" />
+                    </a>
+                </motion.div>
 
+                {/* Slim footer stats / verification security badges */}
+                <footer className="grid grid-cols-1 md:grid-cols-2 gap-4 border-t border-white/5 pt-6 text-slate-500 text-xs font-semibold">
+                    <div className="flex items-center justify-center md:justify-start gap-2.5">
+                        <ShieldCheck className="w-4.5 h-4.5 text-[#37E67D]" />
+                        <span>Protected by campus end-to-end local network encryption.</span>
+                    </div>
+                    <div className="flex items-center justify-center md:justify-end gap-2.5">
+                        <Info className="w-4.5 h-4.5 text-[#4F9DFF]" />
+                        <span>Real-time status logs are active and monitored.</span>
+                    </div>
+                </footer>
+            </div>
+
+            {/* Custom Modal overlay popup */}
             <CustomModal
                 isOpen={modalConfig.isOpen}
                 onClose={() => setModalConfig(prev => ({ ...prev, isOpen: false }))}
@@ -559,6 +781,7 @@ function BlockSelection() {
                 onConfirm={modalConfig.onConfirm}
             />
 
+            {/* Verification OTP Modal Overlay */}
             <AnimatePresence>
                 {showOtpModal && (
                     <motion.div 
@@ -568,15 +791,16 @@ function BlockSelection() {
                         exit={{ opacity: 0 }}
                     >
                         <motion.div 
-                            className="w-full max-w-sm rounded-2xl border border-slate-800 bg-slate-950 p-6 text-center shadow-2xl"
+                            className="w-full max-w-sm rounded-[24px] border border-white/10 bg-[#12192D] p-6 text-center shadow-2xl relative overflow-hidden"
                             initial={{ scale: 0.95, y: 15 }}
                             animate={{ scale: 1, y: 0 }}
                             exit={{ scale: 0.95, y: 15 }}
                         >
-                            <p className="text-xs font-black uppercase tracking-widest text-sky-400">
+                            <div className="absolute top-0 left-0 w-full h-[4px] bg-gradient-to-r from-[#F8B84E] to-[#9F6BFF]" />
+                            <p className="text-[10px] font-black uppercase tracking-widest text-[#4F9DFF]">
                                 Direct Print Release
                             </p>
-                            <h3 className="mt-2 text-xl font-black text-white">
+                            <h3 className="mt-2 text-xl font-extrabold text-white">
                                 Enter Order & OTP
                             </h3>
                             
@@ -594,7 +818,7 @@ function BlockSelection() {
                                             setOtpError("");
                                             setSelectedOrderId(e.target.value);
                                         }}
-                                        className="w-full h-12 rounded-xl bg-slate-900 border border-slate-800 text-center text-sm font-bold text-white focus:border-sky-500 focus:outline-none appearance-none px-4"
+                                        className="w-full h-12 rounded-xl bg-slate-900 border border-white/5 text-center text-sm font-bold text-white focus:border-[#6C63FF] focus:outline-none appearance-none px-4"
                                     >
                                         {pendingOrders.map(order => (
                                             <option key={order.orderId} value={order.orderId}>
@@ -605,7 +829,7 @@ function BlockSelection() {
                                 )}
 
                                 {selectedOrderId && pendingOrders.find(o => o.orderId === selectedOrderId) && (
-                                    <div className="text-center text-xs font-bold text-amber-500 bg-amber-500/10 border border-amber-500/20 py-2 rounded-xl mt-2">
+                                    <div className="text-center text-xs font-bold text-[#F8B84E] bg-[#F8B84E]/10 border border-[#F8B84E]/20 py-2 rounded-xl mt-2">
                                         ⏱️ OTP Expires in: <span className="font-mono text-sm font-black">{formatTime(otpTimeLeft)}</span>
                                     </div>
                                 )}
@@ -619,12 +843,12 @@ function BlockSelection() {
                                         setOtpError("");
                                         setInputOtp(e.target.value);
                                     }}
-                                    className="w-full h-12 rounded-xl bg-slate-900 border border-slate-800 text-center text-lg font-bold text-white placeholder-slate-500 tracking-[0.5em] focus:border-sky-500 focus:outline-none"
+                                    className="w-full h-12 rounded-xl bg-slate-900 border border-white/5 text-center text-lg font-bold text-white placeholder-slate-500 tracking-[0.5em] focus:border-[#6C63FF] focus:outline-none"
                                 />
                             </div>
 
                             {otpError && (
-                                <p className="text-xs font-bold text-rose-500 mt-4 bg-rose-500/10 border border-rose-500/20 py-2 rounded-lg">
+                                <p className="text-xs font-bold text-[#FF5C7A] mt-4 bg-[#FF5C7A]/10 border border-[#FF5C7A]/20 py-2 rounded-lg">
                                     ⚠️ {otpError}
                                 </p>
                             )}
@@ -636,14 +860,14 @@ function BlockSelection() {
                                         setOtpError("");
                                         setInputOtp("");
                                     }}
-                                    className="h-11 rounded-xl border border-slate-800 bg-slate-900 hover:bg-slate-800 text-xs font-bold text-white transition-colors"
+                                    className="h-11 rounded-xl border border-white/5 bg-slate-900 hover:bg-slate-800 text-xs font-bold text-white transition-colors"
                                 >
                                     Cancel
                                 </button>
                                 <button
                                     onClick={handleDirectRelease}
                                     disabled={releasing || pendingOrders.length === 0}
-                                    className="h-11 rounded-xl bg-sky-500 hover:bg-sky-600 text-xs font-black text-white transition-colors disabled:opacity-50"
+                                    className="h-11 rounded-xl bg-[#6C63FF] hover:bg-[#8B5CFF] text-xs font-black text-white transition-colors disabled:opacity-50"
                                 >
                                     {releasing ? "Releasing..." : "Verify & Print"}
                                 </button>
