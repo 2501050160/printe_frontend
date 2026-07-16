@@ -154,6 +154,8 @@ function AdminDashboard() {
                 if (header === "User ID" || header === "ID") val = row.id != null ? row.id : "";
                 else if (header === "Name") val = row.name != null ? row.name : "";
                 else if (header === "Username" || header === "Email") val = row.email != null ? row.email : "";
+                else if (header === "College") val = row.college || "KLU";
+                else if (header === "Orders") val = allOrders.filter(o => o.email === row.email).length;
                 else if (header === "Referral Code") val = row.referralCode != null ? row.referralCode : "";
                 else if (header === "Wallet Balance") val = row.walletBalance != null ? row.walletBalance.toFixed(2) : "0.00";
                 else if (header === "Status") val = row.blocked ? "BLOCKED" : "ACTIVE";
@@ -1936,7 +1938,12 @@ function AdminDashboard() {
                                 <ul className="space-y-2">
                                     {blocks.map(b => (
                                         <li key={b.id} className="flex items-center justify-between p-2 border rounded">
-                                            <span>{b.name}</span>
+                                            <div className="flex items-center gap-2">
+                                                <span className="font-bold text-slate-800">{b.name}</span>
+                                                <span className="text-xs font-black px-2 py-0.5 rounded bg-slate-100 text-slate-600 border border-slate-200">
+                                                    {b.college || "KLU"}
+                                                </span>
+                                            </div>
                                             <div className="flex gap-2">
                                                 <button onClick={() => renameBlock(b.id, b.name)} className="btn small">Rename</button>
                                                 <button onClick={() => deleteBlock(b.id)} className="btn danger small">Delete</button>
@@ -2390,7 +2397,7 @@ function AdminDashboard() {
                                     </div>
                                 )}
                                 <button
-                                    onClick={() => exportToCSV(users, "registered_users", ["User ID", "Name", "Email", "Referral Code", "Wallet Balance", "Status"])}
+                                    onClick={() => exportToCSV(users, "registered_users", ["User ID", "Name", "Email", "College", "Orders", "Referral Code", "Wallet Balance", "Status"])}
                                     className="btn secondary px-4 py-2 text-sm font-bold min-h-0"
                                 >
                                     📥 Export Excel
