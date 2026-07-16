@@ -83,12 +83,14 @@ function AdminDashboard() {
     const [sqlExecuting, setSqlExecuting] = useState(false);
 
     // Section Creator States
+    const [sections, setSections] = useState([]);
     const [secTitle, setSecTitle] = useState("");
-    const [secContent, setSecContent] = useState("");
     const [secType, setSecType] = useState("ADVERTISING");
-    const [secImage, setSecImage] = useState("");
-    const [secRedirect, setSecRedirect] = useState("");
-    const [secOrder, setSecOrder] = useState(0);
+    const [secContent, setSecContent] = useState("");
+    const [secOrder, setSecOrder] = useState(1);
+    const [secActive, setSecActive] = useState(true);
+
+    const [suspendedColleges, setSuspendedColleges] = useState("");
 
     // Custom Popups States
     const [popups, setPopups] = useState([]);
@@ -1155,6 +1157,33 @@ function AdminDashboard() {
         }
     };
 
+    const fetchSuspendedColleges = async () => {
+        try {
+            const response = await api.get("/system/settings");
+            setSuspendedColleges(response.data?.suspendedColleges || "");
+        } catch (error) {
+            console.error("Error fetching suspended colleges:", error);
+        }
+    };
+
+    const toggleCollegeSuspension = async (college) => {
+        try {
+            let currentSuspended = suspendedColleges ? suspendedColleges.split(",").map(s => s.trim()).filter(Boolean) : [];
+            if (currentSuspended.includes(college)) {
+                currentSuspended = currentSuspended.filter(c => c !== college);
+            } else {
+                currentSuspended.push(college);
+            }
+            const newValue = currentSuspended.join(",");
+            await api.post("/admin/settings/update", { suspendedColleges: newValue });
+            setSuspendedColleges(newValue);
+            showAlert("Success", `${college} suspension status updated`, "success");
+        } catch (error) {
+            console.error("Error updating suspension:", error);
+            showAlert("Error", "Failed to update college suspension", "error");
+        }
+    };
+
     const addPopup = async (e) => {
         e.preventDefault();
         if (!popTitle.trim() || !popMessage.trim()) {
@@ -1282,6 +1311,7 @@ function AdminDashboard() {
                         onClick={() => {
                             setActiveTab("blocks");
                             fetchBlocks();
+                            fetchSuspendedColleges();
                         }}
                         className={`px-4 py-2 font-bold text-sm rounded-lg transition-all ${
                             activeTab === "blocks"
