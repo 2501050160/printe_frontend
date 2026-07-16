@@ -90,6 +90,13 @@ function AdminDashboard() {
     const [newSubAdminCollege, setNewSubAdminCollege] = useState("KLU");
     const [isCreatingSubAdmin, setIsCreatingSubAdmin] = useState(false);
 
+    // Notifications management states
+    const [notifications, setNotifications] = useState([]);
+    const [notifTitle, setNotifTitle] = useState("");
+    const [notifMessage, setNotifMessage] = useState("");
+    const [notifCollege, setNotifCollege] = useState("ALL");
+    const [notifType, setNotifType] = useState("INFO");
+
     // Custom Modal configs
     const [modalConfig, setModalConfig] = useState({
         isOpen: false,
@@ -291,6 +298,8 @@ function AdminDashboard() {
             fetchRewards();
         } else if (activeTab === "subadmins") {
             fetchSubAdmins();
+        } else if (activeTab === "notifications") {
+            fetchNotifications();
         }
     }, [activeTab]);
 
@@ -644,6 +653,57 @@ function AdminDashboard() {
             } catch (err) {
                 console.error("Error deleting sub-admin:", err);
                 showAlert("Error", "Failed to delete sub-admin", "error");
+            }
+        });
+    };
+
+    // Notifications management
+    const fetchNotifications = async () => {
+        try {
+            const res = await api.get("/notifications/all");
+            setNotifications(res.data || []);
+        } catch (err) {
+            console.error("Error fetching notifications:", err);
+        }
+    };
+
+    const createNotification = async (e) => {
+        e.preventDefault();
+        if (!notifTitle.trim() || !notifMessage.trim()) {
+            showAlert("Required Fields", "Title and message are required.", "warning");
+            return;
+        }
+        // Sub-admin can only create notifications for their own college
+        const college = (loggedInAdminRole === "SUB_ADMIN" && loggedInAdminUser !== "admin")
+            ? loggedInAdminCollege
+            : notifCollege;
+        try {
+            await api.post("/notifications/create", {
+                title: notifTitle.trim(),
+                message: notifMessage.trim(),
+                college: college,
+                type: notifType
+            });
+            showAlert("Success", "Notification published successfully!", "success");
+            setNotifTitle("");
+            setNotifMessage("");
+            setNotifCollege("ALL");
+            fetchNotifications();
+        } catch (err) {
+            console.error("Error creating notification:", err);
+            showAlert("Error", "Failed to create notification.", "error");
+        }
+    };
+
+    const deleteNotification = async (id) => {
+        showConfirm("Delete Notification", "Are you sure you want to remove this notification?", async () => {
+            try {
+                await api.delete("/notifications/delete", { params: { id } });
+                showAlert("Deleted", "Notification removed successfully.", "success");
+                fetchNotifications();
+            } catch (err) {
+                console.error("Error deleting notification:", err);
+                showAlert("Error", "Failed to delete notification.", "error");
             }
         });
     };
@@ -1258,18 +1318,34 @@ function AdminDashboard() {
 
                     <button
                         onClick={() => {
-                            setActiveTab("sql");
-                            setSqlResult(null);
-                            setSqlError("");
+                            setActiveTab("notifications");
+                            fetchNotifications();
                         }}
                         className={`px-4 py-2 font-bold text-sm rounded-lg transition-all ${
-                            activeTab === "sql"
+                            activeTab === "notifications"
                                 ? "bg-slate-900 text-white shadow-md"
                                 : "text-slate-600 hover:bg-slate-100/60"
                         }`}
                     >
-                        SQL Terminal
+                        🔔 Notifications
                     </button>
+
+                    {(loggedInAdminRole === "MAIN_ADMIN" || loggedInAdminUser === "admin") && (
+                        <button
+                            onClick={() => {
+                                setActiveTab("sql");
+                                setSqlResult(null);
+                                setSqlError("");
+                            }}
+                            className={`px-4 py-2 font-bold text-sm rounded-lg transition-all ${
+                                activeTab === "sql"
+                                    ? "bg-slate-900 text-white shadow-md"
+                                    : "text-slate-600 hover:bg-slate-100/60"
+                            }`}
+                        >
+                            SQL Terminal
+                        </button>
+                    )}
                 </div>
 
                 {/* Queue & Analytics Tab */}
@@ -2005,14 +2081,24 @@ function AdminDashboard() {
                                     </label>
                                     <label className="block">
                                         <span className="block text-sm font-black text-slate-700 mb-2">College Name</span>
-                                        <input
-                                            type="text"
-                                            placeholder="e.g. KLU, UoH, etc."
-                                            className="field"
-                                            value={newBlockCollege}
-                                            onChange={(e) => setNewBlockCollege(e.target.value)}
-                                            required
-                                        />
+                                        {(loggedInAdminRole === "SUB_ADMIN" && loggedInAdminUser !== "admin") ? (
+                                            <input
+                                                type="text"
+                                                className="field bg-slate-100 cursor-not-allowed"
+                                                value={loggedInAdminCollege}
+                                                readOnly
+                                                disabled
+                                            />
+                                        ) : (
+                                            <input
+                                                type="text"
+                                                placeholder="e.g. KLU, UoH, etc."
+                                                className="field"
+                                                value={newBlockCollege}
+                                                onChange={(e) => setNewBlockCollege(e.target.value)}
+                                                required
+                                            />
+                                        )}
                                     </label>
                                     <button type="submit" className="btn success w-full">
                                         ➕ Add Block to College
@@ -2894,7 +2980,8 @@ function AdminDashboard() {
                             </motion.section>
 
                             <div className="space-y-6">
-                                {/* Dynamic Block Creator */}
+                                {/* Dynamic Block Creator - only show for main admin in system tab */}
+                                {(loggedInAdminRole === "MAIN_ADMIN" || loggedInAdminUser === "admin") && (
                                 <motion.section 
                                     className="panel p-6"
                                     initial={{ opacity: 0, y: 12 }}
@@ -2927,6 +3014,7 @@ function AdminDashboard() {
                                         <button type="submit" className="btn w-full">Add Block</button>
                                     </form>
                                 </motion.section>
+                                )}
 
                                 {/* Printers paper count refills */}
                                 <motion.section 
@@ -2977,6 +3065,103 @@ function AdminDashboard() {
                                     </div>
                                 </motion.section>
                             </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* Notifications Management Tab */}
+                {activeTab === "notifications" && (
+                    <div className="mt-6 space-y-6">
+                        <div className="grid gap-6 lg:grid-cols-2">
+                            {/* Create Notification Form */}
+                            <motion.section
+                                className="panel p-6"
+                                initial={{ opacity: 0, y: 12 }}
+                                animate={{ opacity: 1, y: 0 }}
+                            >
+                                <div className="section-header mb-4">
+                                    <div>
+                                        <p className="eyebrow">Campus Alerts</p>
+                                        <h2 className="text-2xl font-black text-slate-900">Create Notification</h2>
+                                        <p className="subtitle">Send a campus notification to users of a specific college or all colleges.</p>
+                                    </div>
+                                </div>
+                                <form onSubmit={createNotification} className="space-y-4">
+                                    <label className="block">
+                                        <span className="block text-xs font-bold text-slate-500 mb-1">Title</span>
+                                        <input type="text" className="field" placeholder="Notification title" value={notifTitle} onChange={(e) => setNotifTitle(e.target.value)} required />
+                                    </label>
+                                    <label className="block">
+                                        <span className="block text-xs font-bold text-slate-500 mb-1">Message</span>
+                                        <textarea className="field min-h-[90px]" placeholder="Write notification message..." value={notifMessage} onChange={(e) => setNotifMessage(e.target.value)} required />
+                                    </label>
+                                    <div className="grid gap-3 sm:grid-cols-2">
+                                        <label className="block">
+                                            <span className="block text-xs font-bold text-slate-500 mb-1">Type</span>
+                                            <select className="field" value={notifType} onChange={(e) => setNotifType(e.target.value)}>
+                                                <option value="INFO">ℹ️ Info</option>
+                                                <option value="ALERT">🚨 Alert</option>
+                                                <option value="ANNOUNCEMENT">📢 Announcement</option>
+                                            </select>
+                                        </label>
+                                        <label className="block">
+                                            <span className="block text-xs font-bold text-slate-500 mb-1">Target College</span>
+                                            {(loggedInAdminRole === "SUB_ADMIN" && loggedInAdminUser !== "admin") ? (
+                                                <input type="text" className="field bg-slate-100 cursor-not-allowed" value={loggedInAdminCollege} readOnly disabled />
+                                            ) : (
+                                                <select className="field" value={notifCollege} onChange={(e) => setNotifCollege(e.target.value)}>
+                                                    <option value="ALL">All Colleges</option>
+                                                    <option value="KLU">KLU</option>
+                                                    <option value="UoH">UoH</option>
+                                                    <option value="VIT">VIT</option>
+                                                    <option value="SRM">SRM</option>
+                                                </select>
+                                            )}
+                                        </label>
+                                    </div>
+                                    <button type="submit" className="btn w-full">📢 Publish Notification</button>
+                                </form>
+                            </motion.section>
+
+                            {/* Notifications List */}
+                            <motion.section
+                                className="panel p-6 overflow-x-auto"
+                                initial={{ opacity: 0, y: 12 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: 0.05 }}
+                            >
+                                <div className="section-header mb-4">
+                                    <div>
+                                        <p className="eyebrow">Active Alerts</p>
+                                        <h2 className="text-2xl font-black text-slate-900">Published Notifications</h2>
+                                    </div>
+                                </div>
+                                <div className="space-y-3">
+                                    {notifications
+                                        .filter(n => {
+                                            if (loggedInAdminRole === "SUB_ADMIN" && loggedInAdminUser !== "admin") {
+                                                return n.college === loggedInAdminCollege || n.college === "ALL";
+                                            }
+                                            return true;
+                                        })
+                                        .map((notif) => (
+                                        <div key={notif.id} className="flex items-start justify-between gap-4 p-4 rounded-xl bg-slate-50 border border-slate-100">
+                                            <div className="flex-1 min-w-0">
+                                                <div className="flex items-center gap-2 flex-wrap">
+                                                    <p className="font-black text-slate-900 text-sm">{notif.title}</p>
+                                                    <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-full bg-slate-200 text-slate-600">{notif.type || 'INFO'}</span>
+                                                    <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-full bg-blue-100 text-blue-700">{notif.college || 'ALL'}</span>
+                                                </div>
+                                                <p className="text-xs text-slate-500 font-medium mt-1 leading-relaxed">{notif.message}</p>
+                                            </div>
+                                            <button onClick={() => deleteNotification(notif.id)} className="btn danger min-h-0 px-3 py-1.5 text-xs font-bold shrink-0">Delete</button>
+                                        </div>
+                                    ))}
+                                    {notifications.length === 0 && (
+                                        <div className="text-center py-8 text-slate-400 font-bold text-sm">No notifications published yet. Create one above.</div>
+                                    )}
+                                </div>
+                            </motion.section>
                         </div>
                     </div>
                 )}

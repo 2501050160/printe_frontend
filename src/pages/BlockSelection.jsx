@@ -69,6 +69,12 @@ function BlockSelection() {
     const isAdminUser = userEmail.toLowerCase().includes("admin");
     const [selectedCollege, setSelectedCollege] = useState(!isAdminUser && userCollege ? userCollege : "");
 
+    // Notification states
+    const [showNotifPanel, setShowNotifPanel] = useState(false);
+    const [notifications, setNotifications] = useState([]);
+    const [isCollegeSuspended, setIsCollegeSuspended] = useState(false);
+    const [suspendedMessage, setSuspendedMessage] = useState("");
+
     // Direct OTP Release State
     const [showOtpModal, setShowOtpModal] = useState(false);
     const [pendingOrders, setPendingOrders] = useState([]);
@@ -150,6 +156,38 @@ function BlockSelection() {
             navigate("/");
         }
     }, [userId, navigate]);
+
+    // Fetch notifications and check suspension status
+    useEffect(() => {
+        if (!userId) return;
+        const college = localStorage.getItem("userCollege") || "KLU";
+
+        const fetchNotifications = async () => {
+            try {
+                const res = await api.get("/notifications/user", { params: { college } });
+                setNotifications(res.data || []);
+            } catch (err) {
+                console.error("Failed to fetch notifications:", err);
+            }
+        };
+
+        const checkSuspension = async () => {
+            try {
+                const res = await api.get("/system/settings");
+                const suspended = res.data?.suspendedColleges || "";
+                const suspendedList = suspended.split(",").map(s => s.trim().toUpperCase()).filter(Boolean);
+                if (suspendedList.includes(college.toUpperCase())) {
+                    setIsCollegeSuspended(true);
+                    setSuspendedMessage(`Printing services for ${college} are temporarily suspended by the administrator. Please try again later.`);
+                }
+            } catch (err) {
+                console.error("Failed to check suspension status:", err);
+            }
+        };
+
+        fetchNotifications();
+        checkSuspension();
+    }, [userId]);
 
     const fetchData = async () => {
         try {
@@ -390,6 +428,8 @@ function BlockSelection() {
                     pointer-events: none;
                     z-index: 20;
                 }
+                .notif-panel-enter { animation: slideInRight 0.28s cubic-bezier(0.16,1,0.3,1); }
+                @keyframes slideInRight { from { opacity:0; transform: translateX(24px); } to { opacity:1; transform: translateX(0); } }
             `}} />
 
             {/* Glowing Refined Accents */}
@@ -399,6 +439,105 @@ function BlockSelection() {
 
             {/* Premium Cyber grid background pattern */}
             <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(255,255,255,0.015)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.015)_1px,transparent_1px)] bg-[size:5rem_5rem] opacity-30 pointer-events-none" />
+
+            {/* === SUSPENSION SCREEN OVERLAY === */}
+            {isCollegeSuspended && (
+                <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/95 backdrop-blur-xl p-6">
+                    <motion.div
+                        initial={{ scale: 0.9, opacity: 0 }}
+                        animate={{ scale: 1, opacity: 1 }}
+                        className="max-w-md w-full text-center"
+                    >
+                        <div className="text-7xl mb-6">🚫</div>
+                        <h2 className="text-3xl font-black text-white mb-3">Service Suspended</h2>
+                        <p className="text-slate-400 text-sm font-semibold leading-relaxed mb-8">{suspendedMessage}</p>
+                        <div className="glass-panel rounded-2xl p-4 border border-[#FF5C7A]/20">
+                            <p className="text-xs text-[#FF5C7A] font-bold uppercase tracking-wider">Contact your college administrator for more information.</p>
+                        </div>
+                        <button onClick={logout} className="mt-8 px-6 py-3 rounded-xl bg-slate-800 border border-white/10 text-sm font-bold text-slate-300 hover:bg-slate-700 transition-colors">
+                            Sign Out
+                        </button>
+                    </motion.div>
+                </div>
+            )}
+
+            {/* === NOTIFICATION PANEL DRAWER === */}
+            <AnimatePresence>
+                {showNotifPanel && (
+                    <>
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            className="fixed inset-0 z-[199] bg-black/40 backdrop-blur-sm"
+                            onClick={() => setShowNotifPanel(false)}
+                        />
+                        <motion.div
+                            initial={{ opacity: 0, x: 32 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            exit={{ opacity: 0, x: 32 }}
+                            transition={{ duration: 0.28, ease: [0.16, 1, 0.3, 1] }}
+                            className="fixed top-0 right-0 h-full w-full max-w-sm z-[200] flex flex-col"
+                            style={{ background: 'rgba(10, 14, 28, 0.97)', borderLeft: '1px solid rgba(255,255,255,0.08)', boxShadow: '-24px 0 80px rgba(0,0,0,0.5)' }}
+                        >
+                            {/* Panel Header */}
+                            <div className="flex items-center justify-between px-6 py-5 border-b border-white/5">
+                                <div>
+                                    <p className="text-[10px] font-black uppercase tracking-widest text-[#6C63FF]">Campus Updates</p>
+                                    <h3 className="text-lg font-extrabold text-white mt-0.5">Notifications</h3>
+                                </div>
+                                <button
+                                    onClick={() => setShowNotifPanel(false)}
+                                    className="w-8 h-8 rounded-lg bg-slate-800 flex items-center justify-center text-slate-400 hover:text-white hover:bg-slate-700 transition-colors"
+                                >
+                                    ✕
+                                </button>
+                            </div>
+
+                            {/* Notifications List */}
+                            <div className="flex-1 overflow-y-auto px-4 py-4 space-y-3">
+                                {notifications.length === 0 ? (
+                                    <div className="flex flex-col items-center justify-center h-48 text-slate-500">
+                                        <Bell className="w-10 h-10 mb-3 opacity-30" />
+                                        <p className="text-sm font-semibold">No notifications yet</p>
+                                        <p className="text-xs mt-1 opacity-70">Check back later for campus updates</p>
+                                    </div>
+                                ) : (
+                                    notifications.map((notif, idx) => (
+                                        <motion.div
+                                            key={notif.id || idx}
+                                            initial={{ opacity: 0, y: 8 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            transition={{ delay: idx * 0.04 }}
+                                            className="rounded-xl p-4 border border-white/5 bg-slate-900/60"
+                                        >
+                                            <div className="flex items-start gap-3">
+                                                <span className="text-xl mt-0.5">
+                                                    {notif.type === 'ALERT' ? '🚨' : notif.type === 'INFO' ? 'ℹ️' : '📢'}
+                                                </span>
+                                                <div className="flex-1 min-w-0">
+                                                    <p className="text-xs font-black text-white">{notif.title || 'Campus Notification'}</p>
+                                                    <p className="text-xs text-slate-400 font-medium mt-1 leading-relaxed">{notif.message}</p>
+                                                    {notif.college && notif.college !== 'ALL' && (
+                                                        <span className="inline-block mt-2 text-[9px] font-black uppercase tracking-wider bg-[#6C63FF]/10 text-[#6C63FF] border border-[#6C63FF]/20 px-2 py-0.5 rounded-full">
+                                                            {notif.college}
+                                                        </span>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        </motion.div>
+                                    ))
+                                )}
+                            </div>
+
+                            {/* Panel Footer */}
+                            <div className="px-6 py-4 border-t border-white/5">
+                                <p className="text-[10px] text-slate-600 font-semibold text-center">Notifications from your campus administrator</p>
+                            </div>
+                        </motion.div>
+                    </>
+                )}
+            </AnimatePresence>
 
             <PopupManager page="LOCATION_SELECTION" />
 
@@ -430,9 +569,14 @@ function BlockSelection() {
 
                     {/* Profile & Dropdown Sign Out */}
                     <div className="flex items-center gap-4 relative">
-                        <button className="relative w-10 h-10 rounded-xl bg-slate-900/60 border border-white/5 flex items-center justify-center text-slate-300 hover:text-white transition-colors">
+                        <button
+                            onClick={() => setShowNotifPanel(true)}
+                            className="relative w-10 h-10 rounded-xl bg-slate-900/60 border border-white/5 flex items-center justify-center text-slate-300 hover:text-white transition-colors"
+                        >
                             <Bell className="w-4 h-4" />
-                            <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-[#FF5C7A]" />
+                            {notifications.length > 0 && (
+                                <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-[#FF5C7A] animate-pulse" />
+                            )}
                         </button>
 
                         <div className="flex items-center gap-3 pl-3 border-l border-white/10 relative z-50">
