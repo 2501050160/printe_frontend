@@ -35,6 +35,16 @@ function AdminLogin() {
                 response.data.username
             );
 
+            localStorage.setItem(
+                "adminRole",
+                response.data.role
+            );
+
+            localStorage.setItem(
+                "adminCollege",
+                response.data.college
+            );
+
             navigate("/admin");
 
         } catch (error) {

@@ -9,7 +9,7 @@ function AdminDashboard() {
     const navigate = useNavigate();
 
     const [coupons, setCoupons] = useState([]);
-    const [orders, setOrders] = useState([]);
+    const [allOrders, setOrders] = useState([]);
     const [stats, setStats] = useState({});
     const [revenuePeriod, setRevenuePeriod] = useState("all");
     const [selectedCollegeFilter, setSelectedCollegeFilter] = useState("ALL");
@@ -22,18 +22,18 @@ function AdminDashboard() {
     const [expiryDate, setExpiryDate] = useState("");
     const [maxUses, setMaxUses] = useState("");
 
-    const [users, setUsers] = useState([]);
+    const [allUsers, setUsers] = useState([]);
     const [selectedUsers, setSelectedUsers] = useState([]);
     const [selectedCoupons, setSelectedCoupons] = useState([]);
-    const [supportTickets, setSupportTickets] = useState([]);
+    const [allSupportTickets, setSupportTickets] = useState([]);
     const [selectedPricingBlock, setSelectedPricingBlock] = useState("C Block");
     const [activeTab, setActiveTab] = useState("queue");
 
     // Dynamic settings & blocks
-    const [blocks, setBlocks] = useState([]);
+    const [allBlocks, setBlocks] = useState([]);
     const [newBlockName, setNewBlockName] = useState("");
     const [newBlockCollege, setNewBlockCollege] = useState("KLU");
-    const [printers, setPrinters] = useState([]);
+    const [allPrinters, setPrinters] = useState([]);
     const [printerPapers, setPrinterPapers] = useState({});
     const [sections, setSections] = useState([]);
     const [systemSettings, setSystemSettings] = useState({
@@ -83,6 +83,12 @@ function AdminDashboard() {
     const [popTarget, setPopTarget] = useState("ALL");
     const [popDismissible, setPopDismissible] = useState(true);
     const [popActive, setPopActive] = useState(true);
+
+    const [subAdmins, setSubAdmins] = useState([]);
+    const [newSubAdminUsername, setNewSubAdminUsername] = useState("");
+    const [newSubAdminPassword, setNewSubAdminPassword] = useState("");
+    const [newSubAdminCollege, setNewSubAdminCollege] = useState("KLU");
+    const [isCreatingSubAdmin, setIsCreatingSubAdmin] = useState(false);
 
     // Custom Modal configs
     const [modalConfig, setModalConfig] = useState({
@@ -283,6 +289,8 @@ function AdminDashboard() {
             fetchPrinters();
         } else if (activeTab === "rewards") {
             fetchRewards();
+        } else if (activeTab === "subadmins") {
+            fetchSubAdmins();
         }
     }, [activeTab]);
 
@@ -473,18 +481,24 @@ function AdminDashboard() {
     };
 
     const resetStats = async () => {
+        if (loggedInAdminRole !== "MAIN_ADMIN" && loggedInAdminUser !== "admin") {
+            showAlert("Permission Denied", "Only the main admin has permission to reset database statistics.", "error");
+            return;
+        }
         showConfirm(
             "CRITICAL WARNING",
             "This will permanently delete ALL orders and printing history. This action CANNOT be undone. Are you sure you want to proceed?",
             async () => {
                 try {
-                    await api.post("/admin/reset-stats");
+                    await api.post("/admin/reset-stats", null, {
+                        params: { adminUsername: loggedInAdminUser }
+                    });
                     showAlert("Reset Success", "Statistics and order logs have been reset successfully.", "success");
                     fetchStats();
                     fetchOrders();
                 } catch (error) {
                     console.error("Error resetting stats:", error);
-                    showAlert("Error", "Failed to reset statistics", "error");
+                    showAlert("Error", error.response?.data || "Failed to reset statistics", "error");
                 }
             }
         );
@@ -586,6 +600,54 @@ function AdminDashboard() {
         });
     };
 
+    const fetchSubAdmins = async () => {
+        try {
+            const response = await api.get("/admin/subadmins");
+            setSubAdmins(response.data);
+        } catch (err) {
+            console.error("Error fetching sub-admins:", err);
+        }
+    };
+
+    const createSubAdmin = async (e) => {
+        e.preventDefault();
+        if (!newSubAdminUsername || !newSubAdminPassword) {
+            showAlert("Error", "Username and Password are required", "error");
+            return;
+        }
+        setIsCreatingSubAdmin(true);
+        try {
+            await api.post("/admin/subadmins/create", {
+                username: newSubAdminUsername,
+                password: newSubAdminPassword,
+                college: newSubAdminCollege,
+                role: "SUB_ADMIN"
+            });
+            showAlert("Success", "Sub-Admin created successfully!", "success");
+            setNewSubAdminUsername("");
+            setNewSubAdminPassword("");
+            fetchSubAdmins();
+        } catch (err) {
+            console.error("Error creating sub-admin:", err);
+            showAlert("Creation Failed", err.response?.data || "Could not create sub-admin.", "error");
+        } finally {
+            setIsCreatingSubAdmin(false);
+        }
+    };
+
+    const deleteSubAdmin = async (id) => {
+        showConfirm("Confirm Delete", "Are you sure you want to delete this sub-admin?", async () => {
+            try {
+                await api.delete("/admin/subadmins/delete", { params: { id } });
+                showAlert("Success", "Sub-Admin deleted successfully", "success");
+                fetchSubAdmins();
+            } catch (err) {
+                console.error("Error deleting sub-admin:", err);
+                showAlert("Error", "Failed to delete sub-admin", "error");
+            }
+        });
+    };
+
     const updateStatus = async (id, status) => {
         try {
             await api.post("/pdf/updateStatus", null, {
@@ -627,10 +689,73 @@ function AdminDashboard() {
         ["month", "This Month"]
     ];
 
+    const loggedInAdminUser = localStorage.getItem("adminUser") || "admin";
+    const loggedInAdminRole = localStorage.getItem("adminRole") || "SUB_ADMIN";
+    const loggedInAdminCollege = localStorage.getItem("adminCollege") || "KLU";
+
+    const getRoleFilteredBlocks = () => {
+        if (loggedInAdminRole === "SUB_ADMIN" && loggedInAdminUser !== "admin") {
+            return allBlocks.filter(b => b.college && b.college.toUpperCase() === loggedInAdminCollege.toUpperCase());
+        }
+        return allBlocks;
+    };
+
+    const getRoleFilteredPrinters = () => {
+        if (loggedInAdminRole === "SUB_ADMIN" && loggedInAdminUser !== "admin") {
+            return allPrinters.filter(p => {
+                const b = allBlocks.find(x => x.name === p.blockLocation);
+                const col = b ? b.college : "KLU";
+                return col.toUpperCase() === loggedInAdminCollege.toUpperCase();
+            });
+        }
+        return allPrinters;
+    };
+
+    const getRoleFilteredOrders = () => {
+        if (loggedInAdminRole === "SUB_ADMIN" && loggedInAdminUser !== "admin") {
+            return allOrders.filter(o => {
+                const b = allBlocks.find(x => x.name === o.blockLocation);
+                const col = b ? b.college : "KLU";
+                return col.toUpperCase() === loggedInAdminCollege.toUpperCase();
+            });
+        }
+        return allOrders;
+    };
+
+    const getRoleFilteredUsers = () => {
+        if (loggedInAdminRole === "SUB_ADMIN" && loggedInAdminUser !== "admin") {
+            return allUsers.filter(u => u.college && u.college.toUpperCase() === loggedInAdminCollege.toUpperCase());
+        }
+        return allUsers;
+    };
+
+    const getRoleFilteredSupportTickets = () => {
+        if (loggedInAdminRole === "SUB_ADMIN" && loggedInAdminUser !== "admin") {
+            return allSupportTickets.filter(t => {
+                const u = allUsers.find(x => x.email === t.email);
+                const col = u ? u.college : "KLU";
+                return col.toUpperCase() === loggedInAdminCollege.toUpperCase();
+            });
+        }
+        return allSupportTickets;
+    };
+
+    const displayBlocks = getRoleFilteredBlocks();
+    const displayPrinters = getRoleFilteredPrinters();
+    const displayOrders = getRoleFilteredOrders();
+    const displayUsers = getRoleFilteredUsers();
+    const displaySupportTickets = getRoleFilteredSupportTickets();
+
+    const orders = displayOrders;
+    const users = displayUsers;
+    const blocks = displayBlocks;
+    const printers = displayPrinters;
+    const supportTickets = displaySupportTickets;
+
     const getFilteredStats = () => {
-        const collegeFilteredOrders = orders.filter(o => {
+        const collegeFilteredOrders = displayOrders.filter(o => {
             if (selectedCollegeFilter === "ALL") return true;
-            const b = blocks.find(x => x.name === o.blockLocation);
+            const b = displayBlocks.find(x => x.name === o.blockLocation);
             const col = b ? b.college : "KLU";
             return col.toUpperCase() === selectedCollegeFilter.toUpperCase();
         });
@@ -1114,6 +1239,23 @@ function AdminDashboard() {
                     >
                         Rewards Panel
                     </button>
+                    
+                    {(loggedInAdminRole === "MAIN_ADMIN" || loggedInAdminUser === "admin") && (
+                        <button
+                            onClick={() => {
+                                setActiveTab("subadmins");
+                                fetchSubAdmins();
+                            }}
+                            className={`px-4 py-2 font-bold text-sm rounded-lg transition-all ${
+                                activeTab === "subadmins"
+                                    ? "bg-slate-900 text-white shadow-md"
+                                    : "text-slate-600 hover:bg-slate-100/60"
+                            }`}
+                        >
+                            🔑 Sub-Admins
+                        </button>
+                    )}
+
                     <button
                         onClick={() => {
                             setActiveTab("sql");
@@ -1288,7 +1430,7 @@ function AdminDashboard() {
                                 <p className="font-bold text-slate-500 mb-4 text-sm">Print Volume by Block Location</p>
                                 <div className="h-64 flex items-end justify-around pb-4 border-b border-slate-200">
                                     {(() => {
-                                        const blockCounts = orders.reduce((acc, order) => {
+                                        const blockCounts = displayOrders.reduce((acc, order) => {
                                             const loc = order.blockLocation || "C Block";
                                             acc[loc] = (acc[loc] || 0) + 1;
                                             return acc;
@@ -1350,8 +1492,8 @@ function AdminDashboard() {
                                 <p className="font-bold text-slate-500 mb-4 text-sm">Print Volume by College / Campus</p>
                                 <div className="h-64 flex items-end justify-around pb-4 border-b border-slate-200">
                                     {(() => {
-                                        const collegeCounts = orders.reduce((acc, order) => {
-                                            const block = blocks.find(b => b.name === order.blockLocation);
+                                        const collegeCounts = displayOrders.reduce((acc, order) => {
+                                            const block = displayBlocks.find(b => b.name === order.blockLocation);
                                             const col = block ? block.college : "KLU";
                                             acc[col] = (acc[col] || 0) + 1;
                                             return acc;
@@ -3067,6 +3209,116 @@ function AdminDashboard() {
                             </div>
                         )}
                     </motion.section>
+                )}
+
+                {/* Sub-Admins Tab (Only Main Admin) */}
+                {activeTab === "subadmins" && (loggedInAdminRole === "MAIN_ADMIN" || loggedInAdminUser === "admin") && (
+                    <div className="mt-6 space-y-6">
+                        <div className="grid gap-6 md:grid-cols-[1fr_1.5fr]">
+                            {/* Create Sub-Admin Form */}
+                            <motion.section
+                                className="panel p-6"
+                                initial={{ opacity: 0, x: -18 }}
+                                animate={{ opacity: 1, x: 0 }}
+                            >
+                                <div className="section-header mb-4">
+                                    <div>
+                                        <p className="eyebrow">Access Management</p>
+                                        <h2 className="text-2xl font-black text-slate-900">Add Sub-Admin</h2>
+                                        <p className="subtitle">Provision a college-specific admin with dedicated credentials.</p>
+                                    </div>
+                                </div>
+                                <form onSubmit={createSubAdmin} className="space-y-4">
+                                    <label className="block">
+                                        <span className="block text-xs font-bold text-slate-500 mb-1">Username / Email</span>
+                                        <input 
+                                            type="text" 
+                                            className="field" 
+                                            placeholder="e.g. kluadmin" 
+                                            value={newSubAdminUsername} 
+                                            onChange={(e) => setNewSubAdminUsername(e.target.value)} 
+                                            required 
+                                        />
+                                    </label>
+                                    <label className="block">
+                                        <span className="block text-xs font-bold text-slate-500 mb-1">Choose Password</span>
+                                        <input 
+                                            type="password" 
+                                            className="field" 
+                                            placeholder="Min 6 characters" 
+                                            value={newSubAdminPassword} 
+                                            onChange={(e) => setNewSubAdminPassword(e.target.value)} 
+                                            required 
+                                        />
+                                    </label>
+                                    <label className="block">
+                                        <span className="block text-xs font-bold text-slate-500 mb-1">Assign College / Campus</span>
+                                        <select
+                                            value={newSubAdminCollege}
+                                            onChange={(e) => setNewSubAdminCollege(e.target.value)}
+                                            className="field cursor-pointer"
+                                            required
+                                        >
+                                            <option value="KLU">KLU College</option>
+                                            <option value="UoH">UoH College</option>
+                                            <option value="VIT">VIT College</option>
+                                            <option value="SRM">SRM College</option>
+                                        </select>
+                                    </label>
+                                    <button type="submit" className="btn success w-full mt-2" disabled={isCreatingSubAdmin}>
+                                        {isCreatingSubAdmin ? "Creating..." : "Save Sub-Admin Account"}
+                                    </button>
+                                </form>
+                            </motion.section>
+
+                            {/* Active Sub-Admins List */}
+                            <motion.section
+                                className="panel p-6 overflow-x-auto"
+                                initial={{ opacity: 0, x: 18 }}
+                                animate={{ opacity: 1, x: 0 }}
+                            >
+                                <div className="section-header mb-4">
+                                    <div>
+                                        <p className="eyebrow">Active Accounts</p>
+                                        <h2 className="text-2xl font-black text-slate-900">Sub-Admins Directory</h2>
+                                    </div>
+                                </div>
+                                <table className="data-table w-full">
+                                    <thead>
+                                        <tr>
+                                            <th>ID</th>
+                                            <th>Username</th>
+                                            <th>Assigned Campus</th>
+                                            <th>Role / Scope</th>
+                                            <th>Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {subAdmins.map(adminAcc => (
+                                            <tr key={adminAcc.id}>
+                                                <td className="font-bold text-slate-400">#{adminAcc.id}</td>
+                                                <td className="font-bold text-slate-900">{adminAcc.username}</td>
+                                                <td className="text-xs font-black text-[#4F9DFF] uppercase">{adminAcc.college}</td>
+                                                <td>
+                                                    <span className="status-pill status-paid" style={{ fontSize: '10px', minHeight: '22px' }}>
+                                                        {adminAcc.role}
+                                                    </span>
+                                                </td>
+                                                <td>
+                                                    <button onClick={() => deleteSubAdmin(adminAcc.id)} className="btn danger min-h-0 px-3 py-1.5 text-xs font-bold">Revoke Access</button>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                        {subAdmins.length === 0 && (
+                                            <tr>
+                                                <td colSpan="5" className="text-center font-bold text-slate-500 py-6">No sub-admins provisioned yet.</td>
+                                            </tr>
+                                        )}
+                                    </tbody>
+                                </table>
+                            </motion.section>
+                        </div>
+                    </div>
                 )}
             </div>
 
