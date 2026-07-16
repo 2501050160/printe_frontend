@@ -26,7 +26,8 @@ import {
   CheckCircle2, 
   Check, 
   ExternalLink,
-  Info
+  Info,
+  ChevronDown
 } from "lucide-react";
 
 const defaultIcons = ["🏛️", "⚡", "📘", "🏛️", "⚡", "📘"];
@@ -54,14 +55,16 @@ function BlockSelection() {
     const navigate = useNavigate();
     const [searchParams, setSearchParams] = useSearchParams();
     const [blocks, setBlocks] = useState([]);
+    const [printers, setPrinters] = useState([]);
     const [loading, setLoading] = useState(true);
     const userId = localStorage.getItem("userId");
     const userName = localStorage.getItem("userName") || "Student User";
     const userEmail = localStorage.getItem("userEmail") || "student@campus.edu";
 
-    // Search and filters
+    // Dropdowns and menus
+    const [showProfileDropdown, setShowProfileDropdown] = useState(false);
     const [searchQuery, setSearchQuery] = useState("");
-    const [activeFilter, setActiveFilter] = useState("all"); // all, nearest, popular
+    const [selectedCollege, setSelectedCollege] = useState("KLU");
 
     // Direct OTP Release State
     const [showOtpModal, setShowOtpModal] = useState(false);
@@ -145,45 +148,44 @@ function BlockSelection() {
         }
     }, [userId, navigate]);
 
-    useEffect(() => {
-        const fetchBlocks = async () => {
-            try {
-                const response = await api.get("/blocks/all");
-                const mapped = response.data.map((b, idx) => ({
+    const fetchData = async () => {
+        try {
+            setLoading(true);
+            
+            // 1. Fetch blocks
+            const blocksRes = await api.get("/blocks/all");
+            
+            // 2. Fetch printers status
+            const printersRes = await api.get("/printer/all");
+            const printerList = printersRes.data || [];
+            setPrinters(printerList);
+
+            const mapped = blocksRes.data.map((b, idx) => {
+                const printer = printerList.find(p => p.blockLocation === b.name);
+                return {
                     name: b.name,
+                    college: b.college || "KLU",
                     description: `${b.name} Print Center`,
                     icon: defaultIcons[idx % defaultIcons.length],
                     accent: defaultAccents[idx % defaultAccents.length],
                     distance: `${(0.2 + idx * 0.15).toFixed(2)} km`,
-                    isOpen: idx !== 4, // Default opening statuses
-                    queueTime: `${(idx * 3 + 1)} mins`,
-                    availablePrinters: idx === 0 ? "4 Active" : idx === 2 ? "3 Active" : "2 Active",
-                    colorSupported: idx % 2 === 0,
+                    availablePrinters: printer ? (printer.active && !printer.paused ? "Active Printer" : "Offline") : "Not configured",
+                    paperCount: printer ? printer.paperCount : 0,
+                    maintenance: printer ? printer.maintenance : false,
+                    isOnline: printer ? (printer.active && !printer.paused) : false,
+                    colorSupported: printer ? printer.colourSupported : false,
                     bwSupported: true
-                }));
-                // Ensure at least 4 blocks visually
-                if (mapped.length < 4) {
-                    mapped.push({
-                        name: "A Block",
-                        description: "A Block Print Center",
-                        icon: "🏛️",
-                        accent: "#6C63FF",
-                        distance: "0.85 km",
-                        isOpen: true,
-                        queueTime: "12 mins",
-                        availablePrinters: "2 Active",
-                        colorSupported: false,
-                        bwSupported: true
-                    });
-                }
-                setBlocks(mapped);
-            } catch (err) {
-                console.error("Failed to load blocks", err);
-            } finally {
-                setLoading(false);
-            }
-        };
+                };
+            });
+            setBlocks(mapped);
+        } catch (err) {
+            console.error("Failed to load blocks or printer details", err);
+        } finally {
+            setLoading(false);
+        }
+    };
 
+    useEffect(() => {
         const fetchPendingOrders = async () => {
             if (!userId) return;
             try {
@@ -197,7 +199,7 @@ function BlockSelection() {
             }
         };
 
-        fetchBlocks();
+        fetchData();
         fetchPendingOrders();
     }, [userId]);
 
@@ -320,23 +322,20 @@ function BlockSelection() {
         }
     };
 
-    // Filtered locations
+    // Get unique list of colleges
+    const collegesList = ["KLU", ...Array.from(new Set(blocks.map(b => b.college))).filter(c => c !== "KLU" && c)];
+
+    // Filtered blocks based on selected college and search query
     const filteredBlocks = blocks.filter(b => {
+        const matchesCollege = b.college.toUpperCase() === selectedCollege.toUpperCase();
         const matchesSearch = b.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
                               b.description.toLowerCase().includes(searchQuery.toLowerCase());
-        
-        if (activeFilter === "nearest") {
-            return matchesSearch && parseFloat(b.distance) < 0.6;
-        }
-        if (activeFilter === "popular") {
-            return matchesSearch && b.name.includes("C Block"); // simulated
-        }
-        return matchesSearch;
+        return matchesCollege && matchesSearch;
     });
 
     return (
         <main className="min-h-screen bg-[#060B17] py-8 px-4 md:px-8 xl:px-12 relative overflow-hidden font-sans text-white flex flex-col justify-between">
-            {/* Custom fonts and global scrollbar styling injection */}
+            {/* Styles for glassmorphism, background, and maintenance stamp */}
             <style dangerouslySetInnerHTML={{__html: `
                 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
                 body {
@@ -345,8 +344,8 @@ function BlockSelection() {
                 }
                 .glass-panel {
                     background: rgba(18, 25, 45, 0.65);
-                    backdrop-filter: blur(20px);
-                    -webkit-backdrop-filter: blur(20px);
+                    backdrop-filter: blur(24px);
+                    -webkit-backdrop-filter: blur(24px);
                     border: 1px solid rgba(255, 255, 255, 0.08);
                     box-shadow: 0 16px 40px rgba(0, 0, 0, 0.4);
                 }
@@ -359,19 +358,38 @@ function BlockSelection() {
                     box-shadow: 0 6px 24px rgba(108, 99, 255, 0.5);
                     transform: scale(1.03);
                 }
+                .maintenance-stamp {
+                    position: absolute;
+                    top: 25px;
+                    right: 15px;
+                    border: 3px double #FF5C7A;
+                    color: #FF5C7A;
+                    background-color: rgba(255, 92, 122, 0.07);
+                    font-family: 'Impact', sans-serif;
+                    font-size: 14px;
+                    font-weight: 900;
+                    letter-spacing: 2px;
+                    padding: 4px 10px;
+                    text-transform: uppercase;
+                    transform: rotate(-12deg);
+                    border-radius: 4px;
+                    box-shadow: 0 0 10px rgba(255, 92, 122, 0.15);
+                    pointer-events: none;
+                    z-index: 20;
+                }
             `}} />
 
-            {/* Ambient Lighting Gradients */}
-            <div className="absolute top-[-10%] left-[-10%] w-[60rem] h-[60rem] bg-indigo-500/[0.07] rounded-full blur-[180px] pointer-events-none" />
-            <div className="absolute bottom-[-10%] right-[-10%] w-[50rem] h-[50rem] bg-purple-500/[0.06] rounded-full blur-[160px] pointer-events-none" />
-            <div className="absolute top-[30%] right-[10%] w-[45rem] h-[45rem] bg-[#4F9DFF]/[0.05] rounded-full blur-[150px] pointer-events-none" />
+            {/* Glowing Refined Accents */}
+            <div className="absolute top-[-15%] left-[-15%] w-[65rem] h-[65rem] bg-indigo-500/[0.08] rounded-full blur-[190px] pointer-events-none" />
+            <div className="absolute bottom-[-15%] right-[-15%] w-[55rem] h-[55rem] bg-purple-500/[0.07] rounded-full blur-[170px] pointer-events-none" />
+            <div className="absolute top-[35%] right-[5%] w-[50rem] h-[50rem] bg-[#4F9DFF]/[0.06] rounded-full blur-[165px] pointer-events-none" />
 
-            {/* Premium Interactive grid background pattern */}
-            <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(255,255,255,0.015)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.015)_1px,transparent_1px)] bg-[size:4.5rem_4.5rem] opacity-40 pointer-events-none" />
+            {/* Premium Cyber grid background pattern */}
+            <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(255,255,255,0.015)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.015)_1px,transparent_1px)] bg-[size:5rem_5rem] opacity-30 pointer-events-none" />
 
             <PopupManager page="LOCATION_SELECTION" />
 
-            <div className="w-full max-w-[1600px] mx-auto space-y-10 relative z-10 flex-1 flex flex-col">
+            <div className="w-full max-w-[1600px] mx-auto space-y-8 relative z-10 flex-1 flex flex-col">
                 
                 {/* HEADER (Full Width, Stripe/Vercel inspired navbar) */}
                 <motion.header 
@@ -395,25 +413,52 @@ function BlockSelection() {
                         />
                     </div>
 
-                    <div className="flex items-center gap-4">
+                    {/* Profile & Dropdown Sign Out */}
+                    <div className="flex items-center gap-4 relative">
                         <button className="relative w-10 h-10 rounded-xl bg-slate-900/60 border border-white/5 flex items-center justify-center text-slate-300 hover:text-white transition-colors">
                             <Bell className="w-4 h-4" />
                             <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-[#FF5C7A]" />
                         </button>
 
                         <div className="flex items-center gap-3 pl-3 border-l border-white/10">
-                            <div className="hidden sm:block text-right">
-                                <p className="text-xs font-bold text-slate-200">{userName}</p>
-                                <p className="text-[10px] font-semibold text-slate-400">{userEmail}</p>
-                            </div>
-                            <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-[#6C63FF] to-[#9F6BFF] flex items-center justify-center font-bold text-sm text-white shadow-md">
-                                {userName.substring(0, 2).toUpperCase()}
-                            </div>
+                            <button 
+                                onClick={() => setShowProfileDropdown(!showProfileDropdown)}
+                                className="flex items-center gap-2 text-left hover:opacity-90 transition-all bg-slate-900/40 p-1.5 rounded-xl border border-white/5"
+                            >
+                                <div className="w-8 h-8 rounded-lg bg-gradient-to-tr from-[#6C63FF] to-[#9F6BFF] flex items-center justify-center font-bold text-xs text-white shadow-md">
+                                    {userName.substring(0, 2).toUpperCase()}
+                                </div>
+                                <span className="hidden sm:block text-xs font-bold text-slate-200">{userName}</span>
+                                <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
+                            </button>
+
+                            {/* Dropdown Menu */}
+                            <AnimatePresence>
+                                {showProfileDropdown && (
+                                    <motion.div 
+                                        initial={{ opacity: 0, y: 10 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        exit={{ opacity: 0, y: 10 }}
+                                        className="absolute right-0 top-12 z-50 w-48 rounded-xl bg-slate-950 border border-white/10 p-2 shadow-2xl"
+                                    >
+                                        <div className="p-2 border-b border-white/5 text-left mb-1">
+                                            <p className="text-xs font-black text-white">{userName}</p>
+                                            <p className="text-[10px] text-slate-500 font-semibold truncate">{userEmail}</p>
+                                        </div>
+                                        <button 
+                                            onClick={logout}
+                                            className="w-full flex items-center gap-2 p-2 rounded-lg text-xs font-bold text-[#FF5C7A] hover:bg-[#FF5C7A]/10 text-left transition-all"
+                                        >
+                                            <LogOut className="w-4 h-4" /> Sign Out
+                                        </button>
+                                    </motion.div>
+                                )}
+                            </AnimatePresence>
                         </div>
                     </div>
                 </motion.header>
 
-                {/* HERO SECTION & INTERACTIVE 3D live campus map */}
+                {/* HERO SECTION & INTERACTIVE CAMPUS MAP */}
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch">
                     {/* Left (40% columns equivalent on desktop) */}
                     <motion.div 
@@ -432,49 +477,28 @@ function BlockSelection() {
                             </p>
                         </div>
 
-                        {/* Live Client connected card */}
-                        <div className="glass-panel p-6 rounded-[24px] space-y-4 relative overflow-hidden group">
-                            <div className="absolute top-0 right-0 w-24 h-24 bg-indigo-500/5 rounded-full blur-xl pointer-events-none" />
-                            <div className="flex items-center justify-between">
-                                <div className="flex items-center gap-3">
-                                    <div className="w-12 h-12 rounded-xl bg-[#6C63FF]/10 border border-[#6C63FF]/20 flex items-center justify-center">
-                                        <Cpu className="w-6 h-6 text-[#6C63FF]" />
-                                    </div>
-                                    <div>
-                                        <div className="flex items-center gap-2">
-                                            <span className="w-2.5 h-2.5 rounded-full bg-[#37E67D] animate-pulse" />
-                                            <span className="text-[11px] font-black uppercase tracking-widest text-[#37E67D]">Secure Connected Client</span>
-                                        </div>
-                                        <p className="text-xs text-slate-400 mt-0.5">Latency: <span className="font-mono text-[#4F9DFF]">12ms</span> • System OK</p>
-                                    </div>
-                                </div>
+                        {/* Direct action links */}
+                        <div className="glass-panel p-6 rounded-[24px] flex items-center justify-between gap-4">
+                            <div>
+                                <p className="text-xs font-bold text-slate-400">Ready to upload files?</p>
+                                <p className="text-[10px] text-slate-500 font-semibold mt-0.5">Proceed to document upload directly</p>
                             </div>
-
-                            <div className="flex gap-2">
-                                <button 
-                                    onClick={logout}
-                                    className="px-4 py-2 text-xs font-bold text-slate-300 bg-slate-900/60 hover:bg-slate-900 border border-white/5 hover:border-white/10 rounded-xl flex items-center gap-2 transition-all"
-                                >
-                                    <LogOut className="w-3.5 h-3.5" /> Sign Out
-                                </button>
-                                <button 
-                                    onClick={() => navigate("/my-orders")}
-                                    className="px-4 py-2 text-xs font-bold text-slate-300 bg-slate-900/60 hover:bg-slate-900 border border-white/5 hover:border-white/10 rounded-xl flex items-center gap-2 transition-all ml-auto"
-                                >
-                                    View Queue <ChevronRight className="w-3.5 h-3.5" />
-                                </button>
-                            </div>
+                            <button 
+                                onClick={() => navigate("/my-orders")}
+                                className="px-5 h-11 rounded-xl bg-slate-900 border border-white/5 hover:border-white/10 hover:bg-slate-900 text-xs font-bold text-slate-300 flex items-center gap-2 transition-all"
+                            >
+                                View Order History <ArrowRight className="w-4 h-4 text-slate-400" />
+                            </button>
                         </div>
                     </motion.div>
 
-                    {/* Right (60% columns equivalent: Large interactive Campus Map Showcase centerpiece) */}
+                    {/* Right (60% columns equivalent: Campus Map Satellite centerpiece) */}
                     <motion.div 
                         initial={{ opacity: 0, scale: 0.98 }}
                         animate={{ opacity: 1, scale: 1 }}
                         transition={{ duration: 0.55 }}
-                        className="lg:col-span-7 rounded-[26px] overflow-hidden border border-white/5 bg-[#12192D]/40 backdrop-blur-md relative h-[380px] lg:h-auto flex flex-col justify-end shadow-2xl group"
+                        className="lg:col-span-7 rounded-[26px] overflow-hidden border border-white/5 bg-[#12192D]/40 backdrop-blur-md relative h-[300px] lg:h-auto flex flex-col justify-end shadow-2xl group"
                     >
-                        {/* Layered cybernetic overlays on top of the live video stream */}
                         <div className="absolute inset-0 bg-gradient-to-t from-[#060B17] via-transparent to-transparent z-10 pointer-events-none" />
                         <video 
                             autoPlay 
@@ -486,15 +510,9 @@ function BlockSelection() {
                             <source src={mapPin} type="video/mp4" />
                         </video>
 
-                        {/* Interactive HUD / Markers */}
                         <div className="absolute top-4 left-4 z-20 bg-slate-950/80 backdrop-blur-md px-4 py-2 rounded-xl border border-white/5 flex items-center gap-2.5 shadow-lg">
                             <span className="w-2 h-2 rounded-full bg-[#37E67D] animate-ping" />
                             <span className="text-[10px] font-extrabold tracking-widest text-[#37E67D] uppercase">CAMPUS MAP SATELLITE</span>
-                        </div>
-
-                        {/* Cybernetic details in map corners */}
-                        <div className="absolute top-4 right-4 z-20 font-mono text-[9px] text-[#4F9DFF] opacity-60 bg-slate-950/40 p-1.5 rounded border border-white/5">
-                            SYS.LOC // GRID_OK
                         </div>
 
                         <div className="relative z-10 p-6 space-y-1 text-left bg-gradient-to-t from-[#12192D]/90 via-[#12192D]/60 to-transparent">
@@ -502,77 +520,42 @@ function BlockSelection() {
                             <h3 className="text-xl font-bold text-white flex items-center gap-2">
                                 Campus Printer Grid Network <ExternalLink className="w-4 h-4 text-slate-400" />
                             </h3>
-                            <p className="text-xs text-slate-400 max-w-md">
-                                Holographic visualization of the print counters. Glowing nodes indicate online print points ready for dispatch.
-                            </p>
                         </div>
                     </motion.div>
                 </div>
 
-                {/* STATISTICS ROW - Four equal premium cards */}
-                <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
-                    {[
-                        { 
-                          label: "Active Printers", 
-                          value: `${blocks.filter(b => b.name !== "A Block").length} Nodes`, 
-                          icon: <Printer className="w-5 h-5 text-[#4F9DFF]" />, 
-                          desc: "Online counters on campus", 
-                          trend: "100% Online",
-                          accent: "#4F9DFF" 
-                        },
-                        { 
-                          label: "Jobs in Queue", 
-                          value: `${pendingOrders.length} Pending`, 
-                          icon: <Activity className="w-5 h-5 text-[#9F6BFF]" />, 
-                          desc: "Your queued print operations", 
-                          trend: "Synced",
-                          accent: "#9F6BFF" 
-                        },
-                        { 
-                          label: "Avg Wait Time", 
-                          value: `${(pendingOrders.length * 1.5 || 1.2).toFixed(1)} Mins`, 
-                          icon: <Clock className="w-5 h-5 text-[#37E67D]" />, 
-                          desc: "Average wait for collection", 
-                          trend: "Fast Speed",
-                          accent: "#37E67D" 
-                        },
-                        { 
-                          label: "System Health", 
-                          value: "99.98%", 
-                          icon: <Layers className="w-5 h-5 text-[#FF5C7A]" />, 
-                          desc: "Uptime guarantee rate", 
-                          trend: "Secure",
-                          accent: "#FF5C7A" 
-                        }
-                    ].map((stat, index) => (
-                        <motion.div
-                            key={stat.label}
-                            variants={pageVariants}
-                            whileHover="hover"
-                            className="glass-panel p-6 rounded-[22px] text-left relative overflow-hidden transition-all duration-300 hover:shadow-[0_16px_30px_rgba(0,0,0,0.5)] group"
-                            style={{"--glow-color": stat.accent}}
-                        >
-                            {/* Accent Glow backdrop line */}
-                            <div className="absolute top-0 left-0 w-full h-[3px] opacity-40 group-hover:opacity-100 transition-opacity" style={{backgroundColor: stat.accent}} />
-                            <div className="absolute -right-4 -bottom-4 w-20 h-20 bg-white/[0.02] rounded-full group-hover:scale-110 transition-transform" />
+                {/* CAMPUS / COLLEGE SELECTION ROW (replaces stats row) */}
+                <motion.div 
+                    initial={{ opacity: 0, y: 15 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="glass-panel p-6 rounded-[22px] text-left space-y-4"
+                >
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <p className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Campus Directory</p>
+                            <h3 className="text-xl font-extrabold text-white mt-1">Select College</h3>
+                        </div>
+                        <span className="text-xs font-semibold text-[#4F9DFF] bg-[#4F9DFF]/10 border border-[#4F9DFF]/20 px-3 py-1 rounded-full">
+                            {filteredBlocks.length} Blocks Available
+                        </span>
+                    </div>
 
-                            <div className="flex items-center justify-between mb-4">
-                                <span className="text-[11px] font-black uppercase text-slate-400 tracking-wider">{stat.label}</span>
-                                <div className="p-2.5 rounded-xl bg-slate-900 border border-white/5 text-white">
-                                    {stat.icon}
-                                </div>
-                            </div>
-                            
-                            <h4 className="text-2xl font-extrabold text-white tracking-tight">{stat.value}</h4>
-                            <p className="text-[12px] text-slate-400 mt-1 font-semibold">{stat.desc}</p>
-
-                            <div className="mt-3 pt-3 border-t border-white/5 flex items-center justify-between">
-                                <span className="text-[9px] font-black uppercase tracking-widest text-[#37E67D]">{stat.trend}</span>
-                                <span className="text-[10px] text-slate-500 font-mono">Live</span>
-                            </div>
-                        </motion.div>
-                    ))}
-                </div>
+                    <div className="flex flex-wrap gap-3">
+                        {collegesList.map(college => (
+                            <button
+                                key={college}
+                                onClick={() => setSelectedCollege(college)}
+                                className={`px-6 py-3 rounded-xl font-black text-sm uppercase tracking-wider transition-all border ${
+                                    selectedCollege.toUpperCase() === college.toUpperCase()
+                                        ? "bg-gradient-to-r from-[#6C63FF] to-[#8B5CFF] text-white border-transparent shadow-lg shadow-indigo-500/25 scale-[1.02]"
+                                        : "bg-slate-900/60 text-slate-400 hover:text-white border-white/5 hover:border-white/10"
+                                }`}
+                            >
+                                🏫 {college}
+                            </button>
+                        ))}
+                    </div>
+                </motion.div>
 
                 {/* MAIN CONTENT SPLIT GRID - LEFT (30%) & RIGHT (70%) */}
                 <div className="grid grid-cols-1 lg:grid-cols-10 gap-8 items-start">
@@ -636,25 +619,7 @@ function BlockSelection() {
                         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-white/5 pb-4">
                             <div>
                                 <h2 className="text-2xl font-extrabold tracking-tight text-white">Available Print Locations</h2>
-                                <p className="text-xs text-slate-400 mt-1 font-semibold">Select a building block below to confirm selection</p>
-                            </div>
-
-                            <div className="flex items-center gap-2 bg-slate-900/60 p-1 border border-white/5 rounded-xl">
-                                {[
-                                    { id: "all", label: "All Blocks" },
-                                    { id: "nearest", label: "Nearest" },
-                                    { id: "popular", label: "Popular" }
-                                ].map(f => (
-                                    <button
-                                        key={f.id}
-                                        onClick={() => setActiveFilter(f.id)}
-                                        className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
-                                            activeFilter === f.id ? "bg-[#6C63FF] text-white" : "text-slate-400 hover:text-white"
-                                        }`}
-                                    >
-                                        {f.label}
-                                    </button>
-                                ))}
+                                <p className="text-xs text-slate-400 mt-1 font-semibold">Select a building block within {selectedCollege} to confirm selection</p>
                             </div>
                         </div>
 
@@ -663,7 +628,7 @@ function BlockSelection() {
                             <div className="text-center py-20 text-slate-400 font-bold">Loading blocks list...</div>
                         ) : filteredBlocks.length === 0 ? (
                             <div className="text-center py-20 text-slate-400 font-semibold glass-panel rounded-2xl">
-                                No locations found matching query.
+                                No locations found for {selectedCollege}.
                             </div>
                         ) : (
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -672,10 +637,17 @@ function BlockSelection() {
                                         key={block.name}
                                         variants={cardHoverEffects}
                                         whileHover="hover"
-                                        className="glass-panel rounded-[24px] overflow-hidden flex flex-col justify-between text-left group transition-all duration-300 hover:shadow-[0_16px_35px_rgba(0,0,0,0.5)] border-white/5 hover:border-[#6C63FF]/30"
+                                        className="glass-panel rounded-[24px] overflow-hidden flex flex-col justify-between text-left group transition-all duration-300 hover:shadow-[0_16px_35px_rgba(0,0,0,0.5)] border-white/5 hover:border-[#6C63FF]/30 relative"
                                     >
                                         {/* Colored Header banner strip */}
                                         <div className="h-1.5 w-full" style={{backgroundColor: block.accent}} />
+
+                                        {/* Under Maintenance Stamp if maintenance mode active */}
+                                        {block.maintenance && (
+                                            <div className="maintenance-stamp">
+                                                UNDER MAINTENANCE
+                                            </div>
+                                        )}
 
                                         <div className="p-6 space-y-4">
                                             {/* Header */}
@@ -689,9 +661,13 @@ function BlockSelection() {
                                                 </div>
 
                                                 <span className={`px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider ${
-                                                    block.isOpen ? "bg-[#37E67D]/10 text-[#37E67D] border border-[#37E67D]/20" : "bg-[#FF5C7A]/10 text-[#FF5C7A] border border-[#FF5C7A]/20"
+                                                    block.maintenance 
+                                                        ? "bg-[#FF5C7A]/10 text-[#FF5C7A] border border-[#FF5C7A]/20"
+                                                        : block.isOnline 
+                                                            ? "bg-[#37E67D]/10 text-[#37E67D] border border-[#37E67D]/20" 
+                                                            : "bg-slate-500/10 text-slate-400 border border-slate-500/20"
                                                 }`}>
-                                                    {block.isOpen ? "Open" : "Closed"}
+                                                    {block.maintenance ? "Maintenance" : block.isOnline ? "Online" : "Offline"}
                                                 </span>
                                             </div>
 
@@ -710,9 +686,9 @@ function BlockSelection() {
                                                     <p className="font-extrabold text-slate-200 mt-0.5">{block.availablePrinters}</p>
                                                 </div>
                                                 <div>
-                                                    <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Support Mode</p>
+                                                    <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Paper Availability</p>
                                                     <p className="font-extrabold text-slate-200 mt-0.5">
-                                                        {block.colorSupported ? "Color / BW" : "BW Only"}
+                                                        📄 {block.paperCount != null ? `${block.paperCount} Sheets` : "0 Sheets"}
                                                     </p>
                                                 </div>
                                             </div>
@@ -721,6 +697,8 @@ function BlockSelection() {
                                             <button
                                                 onClick={() => selectBlock(block.name)}
                                                 className="w-full h-11 rounded-xl bg-slate-900/80 hover:bg-gradient-to-r hover:from-[#6C63FF] hover:to-[#8B5CFF] text-white font-bold text-xs uppercase tracking-wider transition-all duration-300 border border-white/5 hover:border-transparent hover:shadow-lg hover:shadow-indigo-500/10 mt-4 flex items-center justify-center gap-2"
+                                                disabled={block.maintenance}
+                                                style={block.maintenance ? { opacity: 0.5, cursor: "not-allowed" } : {}}
                                             >
                                                 Select Print Counter <ChevronRight className="w-4 h-4" />
                                             </button>
@@ -731,32 +709,6 @@ function BlockSelection() {
                         )}
                     </div>
                 </div>
-
-                {/* BOTTOM HELP / CONTACT SUPPORT BANNER */}
-                <motion.div 
-                    initial={{ opacity: 0, y: 15 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.15 }}
-                    className="w-full rounded-[26px] bg-gradient-to-r from-[#12192D] via-[#0D1322] to-[#12192D] border border-white/5 p-8 relative overflow-hidden flex flex-col md:flex-row items-center justify-between gap-6"
-                >
-                    <div className="absolute top-[-30%] left-[-10%] w-64 h-64 bg-indigo-500/5 rounded-full blur-3xl pointer-events-none" />
-                    <div className="absolute bottom-[-30%] right-[-10%] w-64 h-64 bg-purple-500/5 rounded-full blur-3xl pointer-events-none" />
-
-                    <div className="flex items-center gap-4 text-left">
-                        <span className="text-4xl p-3 bg-slate-950/60 rounded-2xl border border-white/5">💬</span>
-                        <div>
-                            <h3 className="text-lg font-bold text-white">Need help choosing a print location?</h3>
-                            <p className="text-xs text-slate-400 mt-0.5">Contact the campus help desk team or read printer manual instructions.</p>
-                        </div>
-                    </div>
-
-                    <a 
-                        href="mailto:saipraveendasari2@gmail.com?subject=Print%20Location%20Support%20Request"
-                        className="px-6 h-11 rounded-xl glow-btn text-white text-xs font-black uppercase tracking-wider flex items-center justify-center gap-2"
-                    >
-                        Contact Support Desk <ArrowRight className="w-4 h-4" />
-                    </a>
-                </motion.div>
 
                 {/* Slim footer stats / verification security badges */}
                 <footer className="grid grid-cols-1 md:grid-cols-2 gap-4 border-t border-white/5 pt-6 text-slate-500 text-xs font-semibold">

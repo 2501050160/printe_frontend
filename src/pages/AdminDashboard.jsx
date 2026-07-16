@@ -31,6 +31,7 @@ function AdminDashboard() {
     // Dynamic settings & blocks
     const [blocks, setBlocks] = useState([]);
     const [newBlockName, setNewBlockName] = useState("");
+    const [newBlockCollege, setNewBlockCollege] = useState("KLU");
     const [printers, setPrinters] = useState([]);
     const [printerPapers, setPrinterPapers] = useState({});
     const [sections, setSections] = useState([]);
@@ -689,10 +690,14 @@ function AdminDashboard() {
         }
         try {
             await api.post("/blocks/add", null, {
-                params: { name: newBlockName.trim() }
+                params: { 
+                    name: newBlockName.trim(),
+                    college: newBlockCollege.trim()
+                }
             });
-            showAlert("Success", `Block '${newBlockName}' added and default prices initialized.`, "success");
+            showAlert("Success", `Block '${newBlockName}' added to college '${newBlockCollege}' and default prices initialized.`, "success");
             setNewBlockName("");
+            setNewBlockCollege("KLU");
             fetchBlocks();
         } catch (error) {
             console.error("Error adding block:", error);
@@ -1729,8 +1734,19 @@ function AdminDashboard() {
                                             required
                                         />
                                     </label>
+                                    <label className="block">
+                                        <span className="block text-sm font-black text-slate-700 mb-2">College Name</span>
+                                        <input
+                                            type="text"
+                                            placeholder="e.g. KLU, UoH, etc."
+                                            className="field"
+                                            value={newBlockCollege}
+                                            onChange={(e) => setNewBlockCollege(e.target.value)}
+                                            required
+                                        />
+                                    </label>
                                     <button type="submit" className="btn success w-full">
-                                        ➕ Add Block
+                                        ➕ Add Block to College
                                     </button>
                                 </form>
 
@@ -2622,15 +2638,24 @@ function AdminDashboard() {
                                             <h2 className="text-2xl font-black text-slate-900">Add Printing Block</h2>
                                         </div>
                                     </div>
-                                    <form onSubmit={addBlock} className="flex gap-3">
+                                    <form onSubmit={addBlock} className="space-y-3">
                                         <input 
                                             type="text" 
                                             placeholder="Block name (e.g. D Block)" 
                                             className="field"
                                             value={newBlockName}
                                             onChange={(e) => setNewBlockName(e.target.value)}
+                                            required
                                         />
-                                        <button type="submit" className="btn">Add Block</button>
+                                        <input 
+                                            type="text" 
+                                            placeholder="College name (e.g. KLU)" 
+                                            className="field"
+                                            value={newBlockCollege}
+                                            onChange={(e) => setNewBlockCollege(e.target.value)}
+                                            required
+                                        />
+                                        <button type="submit" className="btn w-full">Add Block</button>
                                     </form>
                                 </motion.section>
 
