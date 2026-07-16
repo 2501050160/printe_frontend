@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import api from "../services/api";
 import { getWalletBalance } from "../services/auth";
 import Navbar from "../components/Navbar";
+import documentCloudVideo from "../assets/doccument_cloud.mp4";
 
 function PaymentSuccess() {
     const navigate = useNavigate();
@@ -191,6 +192,17 @@ function PaymentSuccess() {
                         within the countdown and the amount will be credited to your
                         wallet.
                     </p>
+
+                    <div className="mx-auto mt-6 mb-2 rounded-2xl overflow-hidden shadow-md border border-slate-100 max-w-xs">
+                        <video 
+                            src={documentCloudVideo} 
+                            autoPlay 
+                            loop 
+                            muted 
+                            playsInline 
+                            className="w-full h-auto object-cover"
+                        />
+                    </div>
 
                     <div className="mx-auto mt-8 flex flex-col items-center">
                         <div
