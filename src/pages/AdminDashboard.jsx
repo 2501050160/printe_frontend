@@ -2613,7 +2613,7 @@ function AdminDashboard() {
                                                             try {
                                                                 // Delete all blocks for this college
                                                                 for (const block of colBlocks) {
-                                                                    await api.delete(`/admin/blocks/delete/${block.id}`);
+                                                                    await api.delete(`/blocks/delete/${block.id}`);
                                                                 }
                                                                 fetchBlocks();
                                                                 // Remove from suspended colleges if it was there
