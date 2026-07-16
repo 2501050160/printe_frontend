@@ -160,8 +160,17 @@ function BlockSelection() {
             const printerList = printersRes.data || [];
             setPrinters(printerList);
 
-            const mapped = blocksRes.data.map((b, idx) => {
+            // 3. Map block details and fetch queue length in parallel
+            const mapped = await Promise.all(blocksRes.data.map(async (b, idx) => {
                 const printer = printerList.find(p => p.blockLocation === b.name);
+                let queueCount = 0;
+                try {
+                    const queueRes = await api.get("/queue/pending", { params: { blockLocation: b.name } });
+                    queueCount = (queueRes.data || []).length;
+                } catch (qErr) {
+                    console.error("Failed to load queue size for block " + b.name, qErr);
+                }
+
                 return {
                     name: b.name,
                     college: b.college || "KLU",
@@ -173,10 +182,11 @@ function BlockSelection() {
                     paperCount: printer ? printer.paperCount : 0,
                     maintenance: printer ? printer.maintenance : false,
                     isOnline: printer ? (printer.active && !printer.paused) : false,
-                    colorSupported: printer ? printer.colourSupported : false,
-                    bwSupported: true
+                    colorSupported: printer ? printer.colourSupported === true : false,
+                    bwSupported: true,
+                    queueCount: queueCount
                 };
-            });
+            }));
             setBlocks(mapped);
         } catch (err) {
             console.error("Failed to load blocks or printer details", err);
@@ -678,17 +688,19 @@ function BlockSelection() {
                                                     <p className="font-extrabold text-slate-200 mt-0.5">{block.distance}</p>
                                                 </div>
                                                 <div>
-                                                    <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Queue Status</p>
-                                                    <p className="font-extrabold text-slate-200 mt-0.5">{block.queueTime} wait</p>
+                                                    <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Prints in Queue</p>
+                                                    <p className="font-extrabold text-slate-200 mt-0.5">⏳ {block.queueCount} prints waiting</p>
                                                 </div>
                                                 <div>
-                                                    <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Printer Status</p>
-                                                    <p className="font-extrabold text-slate-200 mt-0.5">{block.availablePrinters}</p>
-                                                </div>
-                                                <div>
-                                                    <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Paper Availability</p>
+                                                    <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Support Mode</p>
                                                     <p className="font-extrabold text-slate-200 mt-0.5">
-                                                        📄 {block.paperCount != null ? `${block.paperCount} Sheets` : "0 Sheets"}
+                                                        {block.colorSupported ? "Color & BW Available" : "Only BW Available"}
+                                                    </p>
+                                                </div>
+                                                <div>
+                                                    <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Paper Count</p>
+                                                    <p className="font-extrabold text-[#37E67D] mt-0.5">
+                                                        📄 {block.paperCount != null ? block.paperCount : 0} Sheets
                                                     </p>
                                                 </div>
                                             </div>
