@@ -43,7 +43,12 @@ function AdminDashboard() {
         adEnabled: true,
         adText: "",
         generalPopupEnabled: false,
-        generalPopupMessage: ""
+        generalPopupMessage: "",
+        offpeakDiscountPercent: 15.0,
+        offpeakStartHour: 21.0,
+        offpeakEndHour: 7.0,
+        offpeakMorningStart: 7.0,
+        offpeakMorningEnd: 9.0
     });
 
     // Rewards & Voucher creator states
@@ -2528,6 +2533,78 @@ function AdminDashboard() {
                                         </label>
                                     </div>
                                     <button type="submit" className="btn success w-full mt-4">Save Bulk Print Settings</button>
+                                </form>
+                            </motion.section>
+
+                            {/* Off-Peak Hour Settings */}
+                            <motion.section
+                                className="panel p-6"
+                                initial={{ opacity: 0, y: 12 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: 0.04 }}
+                            >
+                                <div className="section-header mb-4">
+                                    <div>
+                                        <p className="eyebrow">Off-Peak Printing</p>
+                                        <h2 className="text-2xl font-black text-slate-900">Off-Peak Hour Settings</h2>
+                                    </div>
+                                </div>
+                                <form onSubmit={saveSystemSettings} className="space-y-4">
+                                    <div className="grid gap-4 sm:grid-cols-2">
+                                        <label className="block">
+                                            <span className="block text-xs font-bold text-slate-500 mb-1">Start Hour (24h)</span>
+                                            <input 
+                                                type="number" 
+                                                className="field" 
+                                                value={systemSettings.offpeakStartHour !== undefined ? systemSettings.offpeakStartHour : 21}
+                                                onChange={(e) => setSystemSettings({...systemSettings, offpeakStartHour: Number(e.target.value)})}
+                                                min="0" max="23"
+                                            />
+                                        </label>
+                                        <label className="block">
+                                            <span className="block text-xs font-bold text-slate-500 mb-1">End Hour (24h)</span>
+                                            <input 
+                                                type="number" 
+                                                className="field" 
+                                                value={systemSettings.offpeakEndHour !== undefined ? systemSettings.offpeakEndHour : 7}
+                                                onChange={(e) => setSystemSettings({...systemSettings, offpeakEndHour: Number(e.target.value)})}
+                                                min="0" max="23"
+                                            />
+                                        </label>
+                                    </div>
+                                    <div className="grid gap-4 sm:grid-cols-2">
+                                        <label className="block">
+                                            <span className="block text-xs font-bold text-slate-500 mb-1">Morning Start Hour (24h)</span>
+                                            <input 
+                                                type="number" 
+                                                className="field" 
+                                                value={systemSettings.offpeakMorningStart !== undefined ? systemSettings.offpeakMorningStart : 7}
+                                                onChange={(e) => setSystemSettings({...systemSettings, offpeakMorningStart: Number(e.target.value)})}
+                                                min="0" max="23"
+                                            />
+                                        </label>
+                                        <label className="block">
+                                            <span className="block text-xs font-bold text-slate-500 mb-1">Morning End Hour (24h)</span>
+                                            <input 
+                                                type="number" 
+                                                className="field" 
+                                                value={systemSettings.offpeakMorningEnd !== undefined ? systemSettings.offpeakMorningEnd : 9}
+                                                onChange={(e) => setSystemSettings({...systemSettings, offpeakMorningEnd: Number(e.target.value)})}
+                                                min="0" max="23"
+                                            />
+                                        </label>
+                                    </div>
+                                    <label className="block">
+                                        <span className="block text-xs font-bold text-slate-500 mb-1">Discount Percentage (%)</span>
+                                        <input 
+                                            type="number" 
+                                            className="field" 
+                                            value={systemSettings.offpeakDiscountPercent !== undefined ? systemSettings.offpeakDiscountPercent : 15}
+                                            onChange={(e) => setSystemSettings({...systemSettings, offpeakDiscountPercent: Number(e.target.value)})}
+                                            step="0.5"
+                                        />
+                                    </label>
+                                    <button type="submit" className="btn success w-full mt-2">Save Off-Peak settings</button>
                                 </form>
                             </motion.section>
 
