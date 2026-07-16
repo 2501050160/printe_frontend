@@ -64,6 +64,7 @@ function AdminDashboard() {
     });
 
     const [userCollegeFilter, setUserCollegeFilter] = useState("ALL");
+    const [userSearchQuery, setUserSearchQuery] = useState("");
 
     // Rewards & Voucher creator states
     const [rewards, setRewards] = useState([]);
@@ -804,13 +805,23 @@ function AdminDashboard() {
     };
 
     const getRoleFilteredUsers = () => {
+        let filteredUsers = allUsers;
         if (loggedInAdminRole === "SUB_ADMIN" && loggedInAdminUser !== "admin") {
-            return allUsers.filter(u => u.college && u.college.toUpperCase() === loggedInAdminCollege.toUpperCase());
+            filteredUsers = filteredUsers.filter(u => u.college && u.college.toUpperCase() === loggedInAdminCollege.toUpperCase());
+        } else if (userCollegeFilter !== "ALL") {
+            filteredUsers = filteredUsers.filter(u => u.college && u.college.toUpperCase() === userCollegeFilter.toUpperCase());
         }
-        if (userCollegeFilter !== "ALL") {
-            return allUsers.filter(u => u.college && u.college.toUpperCase() === userCollegeFilter.toUpperCase());
+        
+        if (userSearchQuery.trim()) {
+            const query = userSearchQuery.toLowerCase();
+            filteredUsers = filteredUsers.filter(u => 
+                (u.email && u.email.toLowerCase().includes(query)) ||
+                (u.name && u.name.toLowerCase().includes(query)) ||
+                (u.id && u.id.toString().includes(query)) ||
+                (u.referralCode && u.referralCode.toLowerCase().includes(query))
+            );
         }
-        return allUsers;
+        return filteredUsers;
     };
 
     const getRoleFilteredSupportTickets = () => {
@@ -2352,7 +2363,17 @@ function AdminDashboard() {
                                 <h2 className="text-2xl font-black text-slate-900">Registered Users</h2>
                                 <p className="subtitle">Manage user accounts, block access, or remove accounts.</p>
                             </div>
-                            <div className="flex flex-wrap gap-2">
+                            <div className="flex flex-wrap gap-2 items-center">
+                                <div className="relative mr-2">
+                                    <input
+                                        type="text"
+                                        placeholder="Search users..."
+                                        value={userSearchQuery}
+                                        onChange={(e) => setUserSearchQuery(e.target.value)}
+                                        className="field !w-auto text-xs py-2 px-3 pl-8 font-black bg-slate-100 border border-slate-200 rounded-lg text-slate-800 focus:outline-none"
+                                    />
+                                    <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400">🔍</span>
+                                </div>
                                 {(loggedInAdminRole !== "SUB_ADMIN" || loggedInAdminUser === "admin") && (
                                     <div className="flex items-center gap-2 mr-2">
                                         <span className="text-xs font-bold text-slate-500">College:</span>
@@ -2362,7 +2383,7 @@ function AdminDashboard() {
                                             className="field !w-auto text-xs py-2 px-3 font-black bg-slate-100 border border-slate-200 rounded-lg text-slate-800 focus:outline-none cursor-pointer"
                                         >
                                             <option value="ALL">All Colleges</option>
-                                            {Array.from(new Set(blocks.map(b => b.college).filter(Boolean))).map(col => (
+                                            {Array.from(new Set(allBlocks.map(b => b.college).filter(Boolean))).map(col => (
                                                 <option key={col} value={col}>{col} College</option>
                                             ))}
                                         </select>
@@ -2419,6 +2440,8 @@ function AdminDashboard() {
                                     <th>User ID</th>
                                     <th>Name</th>
                                     <th>Username</th>
+                                    <th>College</th>
+                                    <th>Orders</th>
                                     <th>Referral Code</th>
                                     <th>Wallet Balance</th>
                                     <th>Status</th>
@@ -2450,6 +2473,8 @@ function AdminDashboard() {
                                         <td className="font-black">#{user.id}</td>
                                         <td className="font-bold text-slate-900">{user.name}</td>
                                         <td className="font-semibold text-slate-600">{user.email}</td>
+                                        <td className="font-bold text-slate-700">{user.college || "KLU"}</td>
+                                        <td className="font-bold text-slate-700">{allOrders.filter(o => o.email === user.email).length}</td>
                                         <td className="font-mono text-cyan-600 font-bold">{user.referralCode || "N/A"}</td>
                                         <td className="font-bold text-green-600">Rs. {user.walletBalance != null ? user.walletBalance.toFixed(2) : "0.00"}</td>
                                         <td>
