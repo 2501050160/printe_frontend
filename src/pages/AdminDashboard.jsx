@@ -301,6 +301,8 @@ function AdminDashboard() {
             fetchPrices(selectedPricingBlock);
             fetchCoupons();
             fetchBlocks();
+            fetchRewards();
+            fetchSystemSettings();
         } else if (activeTab === "blocks") {
             fetchBlocks();
         } else if (activeTab === "frontend") {
@@ -1297,6 +1299,8 @@ function AdminDashboard() {
                             fetchPrices(selectedPricingBlock);
                             fetchCoupons();
                             fetchBlocks();
+                            fetchRewards();
+                            fetchSystemSettings();
                         }}
                         className={`px-4 py-2 font-bold text-sm rounded-lg transition-all ${
                             activeTab === "settings"
