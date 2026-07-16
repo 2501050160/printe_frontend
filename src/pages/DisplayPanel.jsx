@@ -32,7 +32,16 @@ function DisplayPanel() {
 
     useEffect(() => {
         const handleFullscreenChange = () => {
-            setIsFullscreen(!!document.fullscreenElement);
+            const isFull = !!document.fullscreenElement;
+            setIsFullscreen(isFull);
+            if (!isFull) {
+                // Auto-logout when exiting fullscreen for security
+                localStorage.removeItem("adminToken");
+                localStorage.removeItem("adminRole");
+                localStorage.removeItem("adminUser");
+                localStorage.removeItem("adminCollege");
+                window.location.href = "/admin-login";
+            }
         };
         document.addEventListener("fullscreenchange", handleFullscreenChange);
         return () => document.removeEventListener("fullscreenchange", handleFullscreenChange);
@@ -55,15 +64,16 @@ function DisplayPanel() {
     const timersRef = useRef([]);
 
     useEffect(() => {
-        // Capture admin details before logging out for security
         const role = localStorage.getItem("adminRole");
         const college = localStorage.getItem("adminCollege");
-        
-        // Log out admin to prevent unauthorized access if back button is pressed
-        localStorage.removeItem("adminToken");
-        localStorage.removeItem("adminRole");
-        localStorage.removeItem("adminUser");
-        localStorage.removeItem("adminCollege");
+
+        // We'll set a cleanup function so if the user navigates away (e.g. Back button) they are logged out
+        const cleanup = () => {
+            localStorage.removeItem("adminToken");
+            localStorage.removeItem("adminRole");
+            localStorage.removeItem("adminUser");
+            localStorage.removeItem("adminCollege");
+        };
 
         const fetchBlocks = async () => {
             try {
@@ -87,6 +97,8 @@ function DisplayPanel() {
             }
         };
         fetchBlocks();
+
+        return cleanup;
     }, []);
 
     useEffect(() => {
