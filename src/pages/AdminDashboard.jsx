@@ -918,7 +918,7 @@ function AdminDashboard() {
         const totalOrders = collegeFilteredOrders.length;
         
         let totalCopies = 0;
-        collegeFilteredOrders.forEach(o => {
+        collegeFilteredOrders.filter(o => o.status === "COMPLETED").forEach(o => {
             totalCopies += (o.totalPages || 0) * (o.copies || 1);
         });
 
@@ -952,7 +952,6 @@ function AdminDashboard() {
         ["Total Orders", localStats.totalOrders || 0, "linear-gradient(135deg, #1677b7, #334155)"],
         ["Total Copies", localStats.totalCopies || 0, "linear-gradient(135deg, #5b6f95, #111827)"],
         ["Pending", localStats.pendingOrders || 0, "linear-gradient(135deg, #b7791f, #805ad5)"],
-        ["Printing", localStats.printingOrders || 0, "linear-gradient(135deg, #ca8a04, #c2413d)"],
         ["Completed", localStats.completedOrders || 0, "linear-gradient(135deg, #2563eb, #16865b)"]
     ];
 
