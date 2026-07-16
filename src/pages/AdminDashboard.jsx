@@ -2918,12 +2918,59 @@ function AdminDashboard() {
                                     <div>
                                         <p className="eyebrow">Off-Peak Printing</p>
                                         <h2 className="text-2xl font-black text-slate-900">Off-Peak Hour Settings</h2>
+                                        <p className="subtitle">Discounted rates during low-traffic windows. Toggle to enable or disable the program.</p>
                                     </div>
                                 </div>
                                 <form onSubmit={saveSystemSettings} className="space-y-4">
+
+                                    {/* Enable / Disable toggle */}
+                                    <div className={`flex items-center justify-between p-4 rounded-xl border-2 transition-all ${
+                                        systemSettings.offpeakEnabled
+                                            ? "border-emerald-400 bg-emerald-50"
+                                            : "border-slate-200 bg-slate-50"
+                                    }`}>
+                                        <div>
+                                            <p className="font-black text-slate-900 text-sm">Off-Peak Discount Program</p>
+                                            <p className="text-xs text-slate-500 font-semibold mt-0.5">
+                                                {systemSettings.offpeakEnabled ? "✅ Currently Active — discounts are being applied" : "⏸️ Currently Disabled — no discount applied"}
+                                            </p>
+                                        </div>
+                                        <label className="relative inline-flex items-center cursor-pointer">
+                                            <input
+                                                type="checkbox"
+                                                className="sr-only peer"
+                                                checked={systemSettings.offpeakEnabled || false}
+                                                onChange={(e) => setSystemSettings({...systemSettings, offpeakEnabled: e.target.checked})}
+                                            />
+                                            <div className="w-12 h-6 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-6 after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500"></div>
+                                        </label>
+                                    </div>
+
+                                    {/* Live time preview */}
+                                    {systemSettings.offpeakEnabled && (
+                                        <div className="p-4 rounded-xl bg-indigo-50 border border-indigo-100 space-y-1">
+                                            <p className="text-xs font-black text-indigo-700 uppercase tracking-wider mb-2">⏰ Active Discount Windows</p>
+                                            <div className="flex flex-wrap gap-3">
+                                                <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-indigo-100 text-indigo-800 text-xs font-bold">
+                                                    🌙 Night: {(() => { const h = systemSettings.offpeakStartHour ?? 21; return `${h % 12 || 12}:00 ${h < 12 ? 'AM' : 'PM'}`; })()}
+                                                    {" → "}
+                                                    {(() => { const h = systemSettings.offpeakEndHour ?? 7; return `${h % 12 || 12}:00 ${h < 12 ? 'AM' : 'PM'}`; })()}
+                                                </span>
+                                                <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-100 text-amber-800 text-xs font-bold">
+                                                    🌅 Morning: {(() => { const h = systemSettings.offpeakMorningStart ?? 7; return `${h % 12 || 12}:00 ${h < 12 ? 'AM' : 'PM'}`; })()}
+                                                    {" → "}
+                                                    {(() => { const h = systemSettings.offpeakMorningEnd ?? 9; return `${h % 12 || 12}:00 ${h < 12 ? 'AM' : 'PM'}`; })()}
+                                                </span>
+                                                <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-100 text-emerald-800 text-xs font-bold">
+                                                    🏷️ Discount: {systemSettings.offpeakDiscountPercent ?? 15}% OFF
+                                                </span>
+                                            </div>
+                                        </div>
+                                    )}
+
                                     <div className="grid gap-4 sm:grid-cols-2">
                                         <label className="block">
-                                            <span className="block text-xs font-bold text-slate-500 mb-1">Start Hour (24h)</span>
+                                            <span className="block text-xs font-bold text-slate-500 mb-1">🌙 Night Window — Start Hour (24h)</span>
                                             <input 
                                                 type="number" 
                                                 className="field" 
@@ -2931,9 +2978,12 @@ function AdminDashboard() {
                                                 onChange={(e) => setSystemSettings({...systemSettings, offpeakStartHour: Number(e.target.value)})}
                                                 min="0" max="23"
                                             />
+                                            <span className="text-[11px] text-slate-400 font-semibold mt-1 block">
+                                                = {(() => { const h = systemSettings.offpeakStartHour ?? 21; return `${h % 12 || 12}:00 ${h < 12 ? 'AM' : 'PM'}`; })()}
+                                            </span>
                                         </label>
                                         <label className="block">
-                                            <span className="block text-xs font-bold text-slate-500 mb-1">End Hour (24h)</span>
+                                            <span className="block text-xs font-bold text-slate-500 mb-1">🌙 Night Window — End Hour (24h)</span>
                                             <input 
                                                 type="number" 
                                                 className="field" 
@@ -2941,11 +2991,14 @@ function AdminDashboard() {
                                                 onChange={(e) => setSystemSettings({...systemSettings, offpeakEndHour: Number(e.target.value)})}
                                                 min="0" max="23"
                                             />
+                                            <span className="text-[11px] text-slate-400 font-semibold mt-1 block">
+                                                = {(() => { const h = systemSettings.offpeakEndHour ?? 7; return `${h % 12 || 12}:00 ${h < 12 ? 'AM' : 'PM'}`; })()}
+                                            </span>
                                         </label>
                                     </div>
                                     <div className="grid gap-4 sm:grid-cols-2">
                                         <label className="block">
-                                            <span className="block text-xs font-bold text-slate-500 mb-1">Morning Start Hour (24h)</span>
+                                            <span className="block text-xs font-bold text-slate-500 mb-1">🌅 Morning Window — Start Hour (24h)</span>
                                             <input 
                                                 type="number" 
                                                 className="field" 
@@ -2953,9 +3006,12 @@ function AdminDashboard() {
                                                 onChange={(e) => setSystemSettings({...systemSettings, offpeakMorningStart: Number(e.target.value)})}
                                                 min="0" max="23"
                                             />
+                                            <span className="text-[11px] text-slate-400 font-semibold mt-1 block">
+                                                = {(() => { const h = systemSettings.offpeakMorningStart ?? 7; return `${h % 12 || 12}:00 ${h < 12 ? 'AM' : 'PM'}`; })()}
+                                            </span>
                                         </label>
                                         <label className="block">
-                                            <span className="block text-xs font-bold text-slate-500 mb-1">Morning End Hour (24h)</span>
+                                            <span className="block text-xs font-bold text-slate-500 mb-1">🌅 Morning Window — End Hour (24h)</span>
                                             <input 
                                                 type="number" 
                                                 className="field" 
@@ -2963,6 +3019,9 @@ function AdminDashboard() {
                                                 onChange={(e) => setSystemSettings({...systemSettings, offpeakMorningEnd: Number(e.target.value)})}
                                                 min="0" max="23"
                                             />
+                                            <span className="text-[11px] text-slate-400 font-semibold mt-1 block">
+                                                = {(() => { const h = systemSettings.offpeakMorningEnd ?? 9; return `${h % 12 || 12}:00 ${h < 12 ? 'AM' : 'PM'}`; })()}
+                                            </span>
                                         </label>
                                     </div>
                                     <label className="block">
@@ -3316,8 +3375,8 @@ function AdminDashboard() {
                     </div>
                 )}
 
-                {/* SQL Terminal Tab */}
-                {activeTab === "sql" && (
+                {/* SQL Terminal Tab — Main Admin only */}
+                {activeTab === "sql" && (loggedInAdminRole === "MAIN_ADMIN" || loggedInAdminUser === "admin") && (
                     <motion.section 
                         className="panel mt-6 p-6"
                         initial={{ opacity: 0, y: 12 }}
