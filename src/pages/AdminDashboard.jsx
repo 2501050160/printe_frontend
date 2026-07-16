@@ -53,6 +53,18 @@ function AdminDashboard() {
         offpeakMorningEnd: 9.0
     });
 
+    const [offpeakCollege, setOffpeakCollege] = useState("KLU");
+    const [collegeOffpeakSettings, setCollegeOffpeakSettings] = useState({
+        offpeakEnabled: true,
+        offpeakDiscountPercent: 15.0,
+        offpeakStartHour: 21.0,
+        offpeakEndHour: 7.0,
+        offpeakMorningStart: 7.0,
+        offpeakMorningEnd: 9.0
+    });
+
+    const [userCollegeFilter, setUserCollegeFilter] = useState("ALL");
+
     // Rewards & Voucher creator states
     const [rewards, setRewards] = useState([]);
     const [rewardTitle, setRewardTitle] = useState("");
@@ -292,6 +304,15 @@ function AdminDashboard() {
             fetchPopups();
         } else if (activeTab === "system") {
             fetchSystemSettings();
+            
+            const currentRole = localStorage.getItem("adminRole") || "SUB_ADMIN";
+            const currentCollege = localStorage.getItem("adminCollege") || "KLU";
+            const isSubAdmin = currentRole === "SUB_ADMIN" && localStorage.getItem("adminUser") !== "admin";
+            
+            const initialOffpeakCollege = isSubAdmin ? currentCollege : "KLU";
+            setOffpeakCollege(initialOffpeakCollege);
+            fetchCollegeOffpeakSettings(initialOffpeakCollege);
+            
             fetchBlocks();
             fetchPrinters();
         } else if (activeTab === "rewards") {
@@ -786,6 +807,9 @@ function AdminDashboard() {
         if (loggedInAdminRole === "SUB_ADMIN" && loggedInAdminUser !== "admin") {
             return allUsers.filter(u => u.college && u.college.toUpperCase() === loggedInAdminCollege.toUpperCase());
         }
+        if (userCollegeFilter !== "ALL") {
+            return allUsers.filter(u => u.college && u.college.toUpperCase() === userCollegeFilter.toUpperCase());
+        }
         return allUsers;
     };
 
@@ -1002,6 +1026,26 @@ function AdminDashboard() {
             setSystemSettings(response.data);
         } catch (error) {
             console.error("Error fetching admin settings:", error);
+        }
+    };
+
+    const fetchCollegeOffpeakSettings = async (college) => {
+        try {
+            const response = await api.get(`/admin/settings/offpeak?college=${college}`);
+            setCollegeOffpeakSettings(response.data);
+        } catch (error) {
+            console.error("Error fetching offpeak settings:", error);
+        }
+    };
+
+    const saveCollegeOffpeakSettings = async (e) => {
+        e.preventDefault();
+        try {
+            await api.post(`/admin/settings/offpeak/update?college=${offpeakCollege}`, collegeOffpeakSettings);
+            showAlert("Success", "College Off-Peak Settings Updated Successfully", "success");
+        } catch (error) {
+            console.error("Error updating offpeak settings:", error);
+            showAlert("Error", "Failed to update offpeak settings", "error");
         }
     };
 
@@ -2309,6 +2353,21 @@ function AdminDashboard() {
                                 <p className="subtitle">Manage user accounts, block access, or remove accounts.</p>
                             </div>
                             <div className="flex flex-wrap gap-2">
+                                {(loggedInAdminRole !== "SUB_ADMIN" || loggedInAdminUser === "admin") && (
+                                    <div className="flex items-center gap-2 mr-2">
+                                        <span className="text-xs font-bold text-slate-500">College:</span>
+                                        <select
+                                            value={userCollegeFilter}
+                                            onChange={(e) => setUserCollegeFilter(e.target.value)}
+                                            className="field !w-auto text-xs py-2 px-3 font-black bg-slate-100 border border-slate-200 rounded-lg text-slate-800 focus:outline-none cursor-pointer"
+                                        >
+                                            <option value="ALL">All Colleges</option>
+                                            {Array.from(new Set(blocks.map(b => b.college).filter(Boolean))).map(col => (
+                                                <option key={col} value={col}>{col} College</option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                )}
                                 <button
                                     onClick={() => exportToCSV(users, "registered_users", ["User ID", "Name", "Email", "Referral Code", "Wallet Balance", "Status"])}
                                     className="btn secondary px-4 py-2 text-sm font-bold min-h-0"
@@ -2931,49 +2990,76 @@ function AdminDashboard() {
                                         <h2 className="text-2xl font-black text-slate-900">Off-Peak Hour Settings</h2>
                                         <p className="subtitle">Discounted rates during low-traffic windows. Toggle to enable or disable the program.</p>
                                     </div>
+                                    
+                                    {/* College Selector for Main Admin */}
+                                    {(loggedInAdminRole !== "SUB_ADMIN" || loggedInAdminUser === "admin") ? (
+                                        <div className="flex items-center gap-2 mt-4 sm:mt-0">
+                                            <span className="text-xs font-bold text-slate-500">Configure College:</span>
+                                            <select
+                                                value={offpeakCollege}
+                                                onChange={(e) => {
+                                                    setOffpeakCollege(e.target.value);
+                                                    fetchCollegeOffpeakSettings(e.target.value);
+                                                }}
+                                                className="field !w-auto text-xs py-2 px-3 font-black bg-slate-100 border border-slate-200 rounded-lg text-slate-800 focus:outline-none cursor-pointer"
+                                            >
+                                                <option value="ALL" disabled>Select a College</option>
+                                                {Array.from(new Set(blocks.map(b => b.college).filter(Boolean))).map(col => (
+                                                    <option key={col} value={col}>{col} College</option>
+                                                ))}
+                                            </select>
+                                        </div>
+                                    ) : (
+                                        <div className="flex items-center gap-2 mt-4 sm:mt-0">
+                                            <span className="text-xs font-bold text-slate-500">College:</span>
+                                            <span className="text-xs font-black px-3 py-1 rounded-lg bg-indigo-100 text-indigo-800 border border-indigo-200">
+                                                {offpeakCollege}
+                                            </span>
+                                        </div>
+                                    )}
                                 </div>
-                                <form onSubmit={saveSystemSettings} className="space-y-4">
+                                <form onSubmit={saveCollegeOffpeakSettings} className="space-y-4">
 
                                     {/* Enable / Disable toggle */}
                                     <div className={`flex items-center justify-between p-4 rounded-xl border-2 transition-all ${
-                                        systemSettings.offpeakEnabled
+                                        collegeOffpeakSettings.offpeakEnabled
                                             ? "border-emerald-400 bg-emerald-50"
                                             : "border-slate-200 bg-slate-50"
                                     }`}>
                                         <div>
-                                            <p className="font-black text-slate-900 text-sm">Off-Peak Discount Program</p>
+                                            <p className="font-black text-slate-900 text-sm">Off-Peak Discount Program ({offpeakCollege})</p>
                                             <p className="text-xs text-slate-500 font-semibold mt-0.5">
-                                                {systemSettings.offpeakEnabled ? "✅ Currently Active — discounts are being applied" : "⏸️ Currently Disabled — no discount applied"}
+                                                {collegeOffpeakSettings.offpeakEnabled ? "✅ Currently Active — discounts are being applied" : "⏸️ Currently Disabled — no discount applied"}
                                             </p>
                                         </div>
                                         <label className="relative inline-flex items-center cursor-pointer">
                                             <input
                                                 type="checkbox"
                                                 className="sr-only peer"
-                                                checked={systemSettings.offpeakEnabled || false}
-                                                onChange={(e) => setSystemSettings({...systemSettings, offpeakEnabled: e.target.checked})}
+                                                checked={collegeOffpeakSettings.offpeakEnabled || false}
+                                                onChange={(e) => setCollegeOffpeakSettings({...collegeOffpeakSettings, offpeakEnabled: e.target.checked})}
                                             />
                                             <div className="w-12 h-6 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-6 after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500"></div>
                                         </label>
                                     </div>
 
                                     {/* Live time preview */}
-                                    {systemSettings.offpeakEnabled && (
+                                    {collegeOffpeakSettings.offpeakEnabled && (
                                         <div className="p-4 rounded-xl bg-indigo-50 border border-indigo-100 space-y-1">
                                             <p className="text-xs font-black text-indigo-700 uppercase tracking-wider mb-2">⏰ Active Discount Windows</p>
                                             <div className="flex flex-wrap gap-3">
                                                 <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-indigo-100 text-indigo-800 text-xs font-bold">
-                                                    🌙 Night: {(() => { const h = systemSettings.offpeakStartHour ?? 21; return `${h % 12 || 12}:00 ${h < 12 ? 'AM' : 'PM'}`; })()}
+                                                    🌙 Night: {(() => { const h = collegeOffpeakSettings.offpeakStartHour ?? 21; return `${h % 12 || 12}:00 ${h < 12 ? 'AM' : 'PM'}`; })()}
                                                     {" → "}
-                                                    {(() => { const h = systemSettings.offpeakEndHour ?? 7; return `${h % 12 || 12}:00 ${h < 12 ? 'AM' : 'PM'}`; })()}
+                                                    {(() => { const h = collegeOffpeakSettings.offpeakEndHour ?? 7; return `${h % 12 || 12}:00 ${h < 12 ? 'AM' : 'PM'}`; })()}
                                                 </span>
                                                 <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-100 text-amber-800 text-xs font-bold">
-                                                    🌅 Morning: {(() => { const h = systemSettings.offpeakMorningStart ?? 7; return `${h % 12 || 12}:00 ${h < 12 ? 'AM' : 'PM'}`; })()}
+                                                    🌅 Morning: {(() => { const h = collegeOffpeakSettings.offpeakMorningStart ?? 7; return `${h % 12 || 12}:00 ${h < 12 ? 'AM' : 'PM'}`; })()}
                                                     {" → "}
-                                                    {(() => { const h = systemSettings.offpeakMorningEnd ?? 9; return `${h % 12 || 12}:00 ${h < 12 ? 'AM' : 'PM'}`; })()}
+                                                    {(() => { const h = collegeOffpeakSettings.offpeakMorningEnd ?? 9; return `${h % 12 || 12}:00 ${h < 12 ? 'AM' : 'PM'}`; })()}
                                                 </span>
                                                 <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-100 text-emerald-800 text-xs font-bold">
-                                                    🏷️ Discount: {systemSettings.offpeakDiscountPercent ?? 15}% OFF
+                                                    🏷️ Discount: {collegeOffpeakSettings.offpeakDiscountPercent ?? 15}% OFF
                                                 </span>
                                             </div>
                                         </div>
@@ -2985,12 +3071,12 @@ function AdminDashboard() {
                                             <input 
                                                 type="number" 
                                                 className="field" 
-                                                value={systemSettings.offpeakStartHour !== undefined ? systemSettings.offpeakStartHour : 21}
-                                                onChange={(e) => setSystemSettings({...systemSettings, offpeakStartHour: Number(e.target.value)})}
+                                                value={collegeOffpeakSettings.offpeakStartHour !== undefined ? collegeOffpeakSettings.offpeakStartHour : 21}
+                                                onChange={(e) => setCollegeOffpeakSettings({...collegeOffpeakSettings, offpeakStartHour: Number(e.target.value)})}
                                                 min="0" max="23"
                                             />
                                             <span className="text-[11px] text-slate-400 font-semibold mt-1 block">
-                                                = {(() => { const h = systemSettings.offpeakStartHour ?? 21; return `${h % 12 || 12}:00 ${h < 12 ? 'AM' : 'PM'}`; })()}
+                                                = {(() => { const h = collegeOffpeakSettings.offpeakStartHour ?? 21; return `${h % 12 || 12}:00 ${h < 12 ? 'AM' : 'PM'}`; })()}
                                             </span>
                                         </label>
                                         <label className="block">
@@ -2998,12 +3084,12 @@ function AdminDashboard() {
                                             <input 
                                                 type="number" 
                                                 className="field" 
-                                                value={systemSettings.offpeakEndHour !== undefined ? systemSettings.offpeakEndHour : 7}
-                                                onChange={(e) => setSystemSettings({...systemSettings, offpeakEndHour: Number(e.target.value)})}
+                                                value={collegeOffpeakSettings.offpeakEndHour !== undefined ? collegeOffpeakSettings.offpeakEndHour : 7}
+                                                onChange={(e) => setCollegeOffpeakSettings({...collegeOffpeakSettings, offpeakEndHour: Number(e.target.value)})}
                                                 min="0" max="23"
                                             />
                                             <span className="text-[11px] text-slate-400 font-semibold mt-1 block">
-                                                = {(() => { const h = systemSettings.offpeakEndHour ?? 7; return `${h % 12 || 12}:00 ${h < 12 ? 'AM' : 'PM'}`; })()}
+                                                = {(() => { const h = collegeOffpeakSettings.offpeakEndHour ?? 7; return `${h % 12 || 12}:00 ${h < 12 ? 'AM' : 'PM'}`; })()}
                                             </span>
                                         </label>
                                     </div>
@@ -3013,12 +3099,12 @@ function AdminDashboard() {
                                             <input 
                                                 type="number" 
                                                 className="field" 
-                                                value={systemSettings.offpeakMorningStart !== undefined ? systemSettings.offpeakMorningStart : 7}
-                                                onChange={(e) => setSystemSettings({...systemSettings, offpeakMorningStart: Number(e.target.value)})}
+                                                value={collegeOffpeakSettings.offpeakMorningStart !== undefined ? collegeOffpeakSettings.offpeakMorningStart : 7}
+                                                onChange={(e) => setCollegeOffpeakSettings({...collegeOffpeakSettings, offpeakMorningStart: Number(e.target.value)})}
                                                 min="0" max="23"
                                             />
                                             <span className="text-[11px] text-slate-400 font-semibold mt-1 block">
-                                                = {(() => { const h = systemSettings.offpeakMorningStart ?? 7; return `${h % 12 || 12}:00 ${h < 12 ? 'AM' : 'PM'}`; })()}
+                                                = {(() => { const h = collegeOffpeakSettings.offpeakMorningStart ?? 7; return `${h % 12 || 12}:00 ${h < 12 ? 'AM' : 'PM'}`; })()}
                                             </span>
                                         </label>
                                         <label className="block">
@@ -3026,12 +3112,12 @@ function AdminDashboard() {
                                             <input 
                                                 type="number" 
                                                 className="field" 
-                                                value={systemSettings.offpeakMorningEnd !== undefined ? systemSettings.offpeakMorningEnd : 9}
-                                                onChange={(e) => setSystemSettings({...systemSettings, offpeakMorningEnd: Number(e.target.value)})}
+                                                value={collegeOffpeakSettings.offpeakMorningEnd !== undefined ? collegeOffpeakSettings.offpeakMorningEnd : 9}
+                                                onChange={(e) => setCollegeOffpeakSettings({...collegeOffpeakSettings, offpeakMorningEnd: Number(e.target.value)})}
                                                 min="0" max="23"
                                             />
                                             <span className="text-[11px] text-slate-400 font-semibold mt-1 block">
-                                                = {(() => { const h = systemSettings.offpeakMorningEnd ?? 9; return `${h % 12 || 12}:00 ${h < 12 ? 'AM' : 'PM'}`; })()}
+                                                = {(() => { const h = collegeOffpeakSettings.offpeakMorningEnd ?? 9; return `${h % 12 || 12}:00 ${h < 12 ? 'AM' : 'PM'}`; })()}
                                             </span>
                                         </label>
                                     </div>
@@ -3040,8 +3126,8 @@ function AdminDashboard() {
                                         <input 
                                             type="number" 
                                             className="field" 
-                                            value={systemSettings.offpeakDiscountPercent !== undefined ? systemSettings.offpeakDiscountPercent : 15}
-                                            onChange={(e) => setSystemSettings({...systemSettings, offpeakDiscountPercent: Number(e.target.value)})}
+                                            value={collegeOffpeakSettings.offpeakDiscountPercent !== undefined ? collegeOffpeakSettings.offpeakDiscountPercent : 15}
+                                            onChange={(e) => setCollegeOffpeakSettings({...collegeOffpeakSettings, offpeakDiscountPercent: Number(e.target.value)})}
                                             step="0.5"
                                         />
                                     </label>
