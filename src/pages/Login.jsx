@@ -19,9 +19,26 @@ function Login() {
     const [oauthNewUser, setOauthNewUser] = useState(null);
     const [oauthPassword, setOauthPassword] = useState("");
     const [oauthPasswordConfirm, setOauthPasswordConfirm] = useState("");
-    const [oauthCollege, setOauthCollege] = useState("KLU");
+    const [oauthCollege, setOauthCollege] = useState("");
+    const [collegesList, setCollegesList] = useState([]);
     const [settingPasswordLoading, setSettingPasswordLoading] = useState(false);
     const [errorMessage, setErrorMessage] = useState("");
+
+    useEffect(() => {
+        const fetchColleges = async () => {
+            try {
+                const response = await api.get("/blocks/all");
+                const uniqueColleges = Array.from(new Set(response.data.map(b => b.college).filter(Boolean)));
+                setCollegesList(uniqueColleges);
+                if (uniqueColleges.length > 0) {
+                    setOauthCollege(uniqueColleges[0]);
+                }
+            } catch (err) {
+                console.error("Failed to fetch colleges", err);
+            }
+        };
+        fetchColleges();
+    }, []);
 
     const handleOAuth = (provider) => {
         setOauthRedirecting(provider);
@@ -444,10 +461,10 @@ function Login() {
                                         className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl font-bold text-sm focus:outline-none focus:border-blue-600 transition-colors cursor-pointer"
                                         required
                                     >
-                                        <option value="KLU">KLU College</option>
-                                        <option value="UoH">UoH College</option>
-                                        <option value="VIT">VIT College</option>
-                                        <option value="SRM">SRM College</option>
+                                        {collegesList.length === 0 && <option value="">Loading Colleges...</option>}
+                                        {collegesList.map((col, idx) => (
+                                            <option key={idx} value={col}>{col} College</option>
+                                        ))}
                                     </select>
                                 </div>
 
