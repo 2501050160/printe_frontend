@@ -193,13 +193,13 @@ function PaymentSuccess() {
                         wallet.
                     </p>
 
-                    <div className="mx-auto mt-6 mb-2 rounded-2xl overflow-hidden shadow-md border border-slate-100 max-w-xs">
+                    <div className="mx-auto mt-8 mb-6 rounded-3xl overflow-hidden shadow-2xl border border-slate-200 w-full">
                         <video 
                             src={documentCloudVideo} 
                             autoPlay 
                             loop 
-                            muted 
                             playsInline 
+                            controls
                             className="w-full h-auto object-cover"
                         />
                     </div>
