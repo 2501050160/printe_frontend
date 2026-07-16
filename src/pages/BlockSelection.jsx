@@ -27,7 +27,8 @@ import {
   Check, 
   ExternalLink,
   Info,
-  ChevronDown
+  ChevronDown,
+  ArrowLeft
 } from "lucide-react";
 
 const defaultIcons = ["🏛️", "⚡", "📘", "🏛️", "⚡", "📘"];
@@ -64,7 +65,7 @@ function BlockSelection() {
     // Dropdowns and menus
     const [showProfileDropdown, setShowProfileDropdown] = useState(false);
     const [searchQuery, setSearchQuery] = useState("");
-    const [selectedCollege, setSelectedCollege] = useState("KLU");
+    const [selectedCollege, setSelectedCollege] = useState(""); // Empty initially so user must select a college first
 
     // Direct OTP Release State
     const [showOtpModal, setShowOtpModal] = useState(false);
@@ -401,7 +402,7 @@ function BlockSelection() {
 
             <div className="w-full max-w-[1600px] mx-auto space-y-8 relative z-10 flex-1 flex flex-col">
                 
-                {/* HEADER (Full Width, Stripe/Vercel inspired navbar) */}
+                {/* HEADER (Full Width, Stripe/Vercel navbar) */}
                 <motion.header 
                     initial={{ opacity: 0, y: -10 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -409,7 +410,9 @@ function BlockSelection() {
                 >
                     <div className="flex items-center gap-3">
                         <span className="w-2.5 h-2.5 rounded-full bg-[#37E67D] animate-pulse" />
-                        <span className="text-[12px] font-extrabold uppercase tracking-widest text-[#4F9DFF]">Step 1 of 3 • Pickup Point</span>
+                        <span className="text-[12px] font-extrabold uppercase tracking-widest text-[#4F9DFF]">
+                            {selectedCollege ? `Block Selection • ${selectedCollege}` : "College Selection • Pick a Campus"}
+                        </span>
                     </div>
 
                     <div className="hidden md:flex items-center flex-1 max-w-md relative">
@@ -479,11 +482,13 @@ function BlockSelection() {
                     >
                         <div className="space-y-4">
                             <h1 className="text-5xl lg:text-5xl xl:text-[56px] font-extrabold tracking-tight text-white leading-[1.08]">
-                                Choose Print <br/>
-                                <span className="bg-gradient-to-r from-[#4F9DFF] via-[#6C63FF] to-[#9F6BFF] bg-clip-text text-transparent">Location</span>
+                                {selectedCollege ? "Choose Print Block" : "Select Your College"}
                             </h1>
                             <p className="text-[16px] text-slate-400 font-medium leading-relaxed max-w-lg">
-                                Select a smart printer location to retrieve your prints. Send documents securely to any node on campus and pick them up at your convenience.
+                                {selectedCollege 
+                                    ? `Showing active printing blocks located in ${selectedCollege}. Choose a printer node to route your papers.`
+                                    : "Pick your college campus. You will be redirected to choose block locations and spoolers within that campus."
+                                }
                             </p>
                         </div>
 
@@ -534,40 +539,7 @@ function BlockSelection() {
                     </motion.div>
                 </div>
 
-                {/* CAMPUS / COLLEGE SELECTION ROW (replaces stats row) */}
-                <motion.div 
-                    initial={{ opacity: 0, y: 15 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="glass-panel p-6 rounded-[22px] text-left space-y-4"
-                >
-                    <div className="flex items-center justify-between">
-                        <div>
-                            <p className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Campus Directory</p>
-                            <h3 className="text-xl font-extrabold text-white mt-1">Select College</h3>
-                        </div>
-                        <span className="text-xs font-semibold text-[#4F9DFF] bg-[#4F9DFF]/10 border border-[#4F9DFF]/20 px-3 py-1 rounded-full">
-                            {filteredBlocks.length} Blocks Available
-                        </span>
-                    </div>
-
-                    <div className="flex flex-wrap gap-3">
-                        {collegesList.map(college => (
-                            <button
-                                key={college}
-                                onClick={() => setSelectedCollege(college)}
-                                className={`px-6 py-3 rounded-xl font-black text-sm uppercase tracking-wider transition-all border ${
-                                    selectedCollege.toUpperCase() === college.toUpperCase()
-                                        ? "bg-gradient-to-r from-[#6C63FF] to-[#8B5CFF] text-white border-transparent shadow-lg shadow-indigo-500/25 scale-[1.02]"
-                                        : "bg-slate-900/60 text-slate-400 hover:text-white border-white/5 hover:border-white/10"
-                                }`}
-                            >
-                                🏫 {college}
-                            </button>
-                        ))}
-                    </div>
-                </motion.div>
-
-                {/* MAIN CONTENT SPLIT GRID - LEFT (30%) & RIGHT (70%) */}
+                {/* MAIN CONTENT GRID */}
                 <div className="grid grid-cols-1 lg:grid-cols-10 gap-8 items-start">
                     
                     {/* LEFT PANEL COLUMN (Occupies 3 columns) */}
@@ -625,99 +597,150 @@ function BlockSelection() {
                     {/* RIGHT PANEL COLUMN (Occupies 7 columns) */}
                     <div className="lg:col-span-7 space-y-6">
                         
-                        {/* Search and location filters header section */}
-                        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-white/5 pb-4">
-                            <div>
-                                <h2 className="text-2xl font-extrabold tracking-tight text-white">Available Print Locations</h2>
-                                <p className="text-xs text-slate-400 mt-1 font-semibold">Select a building block within {selectedCollege} to confirm selection</p>
-                            </div>
-                        </div>
+                        {/* CONDITIONAL VIEW 1: College Selection View (shown before college selection) */}
+                        {!selectedCollege ? (
+                            <motion.div 
+                                initial={{ opacity: 0, y: 15 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                className="space-y-6"
+                            >
+                                <div className="border-b border-white/5 pb-4">
+                                    <h2 className="text-2xl font-extrabold tracking-tight text-white">Select Campus / College</h2>
+                                    <p className="text-xs text-slate-400 mt-1 font-semibold">Choose a college campus to list its available blocks and printers</p>
+                                </div>
 
-                        {/* Location selection grid */}
-                        {loading ? (
-                            <div className="text-center py-20 text-slate-400 font-bold">Loading blocks list...</div>
-                        ) : filteredBlocks.length === 0 ? (
-                            <div className="text-center py-20 text-slate-400 font-semibold glass-panel rounded-2xl">
-                                No locations found for {selectedCollege}.
-                            </div>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                                    {collegesList.map((college, idx) => {
+                                        const accent = defaultAccents[idx % defaultAccents.length];
+                                        const count = blocks.filter(b => b.college.toUpperCase() === college.toUpperCase()).length;
+                                        return (
+                                            <motion.button
+                                                key={college}
+                                                onClick={() => setSelectedCollege(college)}
+                                                variants={cardHoverEffects}
+                                                whileHover="hover"
+                                                className="glass-panel p-8 rounded-[24px] text-left relative overflow-hidden transition-all duration-300 hover:shadow-2xl border-white/5 hover:border-white/15 w-full group flex flex-col justify-between min-h-[160px]"
+                                            >
+                                                <div className="absolute top-0 left-0 w-[4px] h-full" style={{backgroundColor: accent}} />
+                                                <div className="space-y-2">
+                                                    <span className="text-4xl">🏫</span>
+                                                    <h3 className="text-2xl font-black text-white tracking-tight mt-3">{college} College</h3>
+                                                    <p className="text-xs text-slate-400 font-semibold">Active campus printing grid counters</p>
+                                                </div>
+
+                                                <div className="mt-6 flex items-center justify-between border-t border-white/5 pt-4">
+                                                    <span className="text-[10px] font-black uppercase tracking-wider text-slate-400" style={{color: accent}}>
+                                                        {count} Blocks Configured
+                                                    </span>
+                                                    <span className="text-xs font-bold text-[#4F9DFF] flex items-center gap-1">
+                                                        Select Campus <ChevronRight className="w-4 h-4" />
+                                                    </span>
+                                                </div>
+                                            </motion.button>
+                                        );
+                                    })}
+                                </div>
+                            </motion.div>
                         ) : (
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                {filteredBlocks.map((block) => (
-                                    <motion.div
-                                        key={block.name}
-                                        variants={cardHoverEffects}
-                                        whileHover="hover"
-                                        className="glass-panel rounded-[24px] overflow-hidden flex flex-col justify-between text-left group transition-all duration-300 hover:shadow-[0_16px_35px_rgba(0,0,0,0.5)] border-white/5 hover:border-[#6C63FF]/30 relative"
-                                    >
-                                        {/* Colored Header banner strip */}
-                                        <div className="h-1.5 w-full" style={{backgroundColor: block.accent}} />
+                            /* CONDITIONAL VIEW 2: Block Location Selection View (shown after selecting a college) */
+                            <motion.div 
+                                initial={{ opacity: 0, y: 15 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                className="space-y-6"
+                            >
+                                <div className="flex items-center justify-between border-b border-white/5 pb-4">
+                                    <div>
+                                        <button 
+                                            onClick={() => setSelectedCollege("")}
+                                            className="text-xs font-bold text-[#4F9DFF] hover:underline flex items-center gap-1.5 mb-2 bg-slate-900/60 px-3 py-1.5 rounded-lg border border-white/5"
+                                        >
+                                            <ArrowLeft className="w-3.5 h-3.5" /> Back to Campus Directory
+                                        </button>
+                                        <h2 className="text-2xl font-extrabold tracking-tight text-white">Available Print Locations</h2>
+                                        <p className="text-xs text-slate-400 mt-1 font-semibold">Select a building block within {selectedCollege} College</p>
+                                    </div>
+                                </div>
 
-                                        {/* Under Maintenance Stamp if maintenance mode active */}
-                                        {block.maintenance && (
-                                            <div className="maintenance-stamp">
-                                                UNDER MAINTENANCE
-                                            </div>
-                                        )}
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    {filteredBlocks.map((block) => (
+                                        <motion.div
+                                            key={block.name}
+                                            variants={cardHoverEffects}
+                                            whileHover="hover"
+                                            className="glass-panel rounded-[24px] overflow-hidden flex flex-col justify-between text-left group transition-all duration-300 hover:shadow-[0_16px_35px_rgba(0,0,0,0.5)] border-white/5 hover:border-[#6C63FF]/30 relative"
+                                        >
+                                            {/* Colored Header banner strip */}
+                                            <div className="h-1.5 w-full" style={{backgroundColor: block.accent}} />
 
-                                        <div className="p-6 space-y-4">
-                                            {/* Header */}
-                                            <div className="flex items-start justify-between gap-4">
-                                                <div className="flex items-center gap-3">
-                                                    <span className="text-3xl p-2.5 rounded-xl bg-slate-900/80 border border-white/5">{block.icon}</span>
+                                            {/* Under Maintenance Stamp if maintenance mode active */}
+                                            {block.maintenance && (
+                                                <div className="maintenance-stamp">
+                                                    UNDER MAINTENANCE
+                                                </div>
+                                            )}
+
+                                            <div className="p-6 space-y-4">
+                                                {/* Header */}
+                                                <div className="flex items-start justify-between gap-4">
+                                                    <div className="flex items-center gap-3">
+                                                        <span className="text-3xl p-2.5 rounded-xl bg-slate-900/80 border border-white/5">{block.icon}</span>
+                                                        <div>
+                                                            <h4 className="text-lg font-bold text-white tracking-tight">{block.name}</h4>
+                                                            <p className="text-xs text-slate-400 font-semibold">{block.description}</p>
+                                                        </div>
+                                                    </div>
+
+                                                    <span className={`px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider ${
+                                                        block.maintenance 
+                                                            ? "bg-[#FF5C7A]/10 text-[#FF5C7A] border border-[#FF5C7A]/20"
+                                                            : block.isOnline 
+                                                                ? "bg-[#37E67D]/10 text-[#37E67D] border border-[#37E67D]/20" 
+                                                                : "bg-slate-500/10 text-slate-400 border border-slate-500/20"
+                                                    }`}>
+                                                        {block.maintenance ? "Maintenance" : block.isOnline ? "Online" : "Offline"}
+                                                    </span>
+                                                </div>
+
+                                                {/* Details Grid (Without Distance field) */}
+                                                <div className="grid grid-cols-2 gap-3 pt-3 border-t border-white/5 text-[12px] text-slate-400">
                                                     <div>
-                                                        <h4 className="text-lg font-bold text-white tracking-tight">{block.name}</h4>
-                                                        <p className="text-xs text-slate-400 font-semibold">{block.description}</p>
+                                                        <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Prints in Queue</p>
+                                                        <p className="font-extrabold text-slate-200 mt-0.5">⏳ {block.queueCount} prints waiting</p>
+                                                    </div>
+                                                    <div>
+                                                        <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Support Mode</p>
+                                                        <p className="font-extrabold text-slate-200 mt-0.5">
+                                                            {block.colorSupported ? "Color & BW Available" : "Only BW Available"}
+                                                        </p>
+                                                    </div>
+                                                    <div>
+                                                        <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Paper Count</p>
+                                                        <p className="font-extrabold text-[#37E67D] mt-0.5">
+                                                            📄 {block.paperCount != null ? block.paperCount : 0} Sheets
+                                                        </p>
+                                                    </div>
+                                                    <div>
+                                                        <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Printer Status</p>
+                                                        <p className="font-extrabold text-slate-200 mt-0.5">
+                                                            {block.isOnline ? "Ready to spool" : "Spooler offline"}
+                                                        </p>
                                                     </div>
                                                 </div>
 
-                                                <span className={`px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider ${
-                                                    block.maintenance 
-                                                        ? "bg-[#FF5C7A]/10 text-[#FF5C7A] border border-[#FF5C7A]/20"
-                                                        : block.isOnline 
-                                                            ? "bg-[#37E67D]/10 text-[#37E67D] border border-[#37E67D]/20" 
-                                                            : "bg-slate-500/10 text-slate-400 border border-slate-500/20"
-                                                }`}>
-                                                    {block.maintenance ? "Maintenance" : block.isOnline ? "Online" : "Offline"}
-                                                </span>
+                                                {/* Select button */}
+                                                <button
+                                                    onClick={() => selectBlock(block.name)}
+                                                    className="w-full h-11 rounded-xl bg-slate-900/80 hover:bg-gradient-to-r hover:from-[#6C63FF] hover:to-[#8B5CFF] text-white font-bold text-xs uppercase tracking-wider transition-all duration-300 border border-white/5 hover:border-transparent hover:shadow-lg hover:shadow-indigo-500/10 mt-4 flex items-center justify-center gap-2"
+                                                    disabled={block.maintenance}
+                                                    style={block.maintenance ? { opacity: 0.5, cursor: "not-allowed" } : {}}
+                                                >
+                                                    Select Print Counter <ChevronRight className="w-4 h-4" />
+                                                </button>
                                             </div>
-
-                                            {/* Details Grid */}
-                                            <div className="grid grid-cols-2 gap-3 pt-3 border-t border-white/5 text-[12px] text-slate-400">
-                                                <div>
-                                                    <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Distance</p>
-                                                    <p className="font-extrabold text-slate-200 mt-0.5">{block.distance}</p>
-                                                </div>
-                                                <div>
-                                                    <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Prints in Queue</p>
-                                                    <p className="font-extrabold text-slate-200 mt-0.5">⏳ {block.queueCount} prints waiting</p>
-                                                </div>
-                                                <div>
-                                                    <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Support Mode</p>
-                                                    <p className="font-extrabold text-slate-200 mt-0.5">
-                                                        {block.colorSupported ? "Color & BW Available" : "Only BW Available"}
-                                                    </p>
-                                                </div>
-                                                <div>
-                                                    <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Paper Count</p>
-                                                    <p className="font-extrabold text-[#37E67D] mt-0.5">
-                                                        📄 {block.paperCount != null ? block.paperCount : 0} Sheets
-                                                    </p>
-                                                </div>
-                                            </div>
-
-                                            {/* Select button */}
-                                            <button
-                                                onClick={() => selectBlock(block.name)}
-                                                className="w-full h-11 rounded-xl bg-slate-900/80 hover:bg-gradient-to-r hover:from-[#6C63FF] hover:to-[#8B5CFF] text-white font-bold text-xs uppercase tracking-wider transition-all duration-300 border border-white/5 hover:border-transparent hover:shadow-lg hover:shadow-indigo-500/10 mt-4 flex items-center justify-center gap-2"
-                                                disabled={block.maintenance}
-                                                style={block.maintenance ? { opacity: 0.5, cursor: "not-allowed" } : {}}
-                                            >
-                                                Select Print Counter <ChevronRight className="w-4 h-4" />
-                                            </button>
-                                        </div>
-                                    </motion.div>
-                                ))}
-                            </div>
+                                        </motion.div>
+                                    ))}
+                                </div>
+                            </motion.div>
                         )}
                     </div>
                 </div>
