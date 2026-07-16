@@ -1419,20 +1419,29 @@ function AdminDashboard() {
                                 </div>
 
                                 <div className="flex flex-wrap items-center gap-3">
-                                    {/* College Filter Selection Dropdown */}
-                                    <div className="flex items-center gap-2">
-                                        <span className="text-xs font-bold text-slate-500">Filter College:</span>
-                                        <select
-                                            value={selectedCollegeFilter}
-                                            onChange={(e) => setSelectedCollegeFilter(e.target.value)}
-                                            className="field !w-auto text-xs py-1 px-3 font-black bg-slate-100 border border-slate-200 rounded-lg text-slate-800 focus:outline-none cursor-pointer"
-                                        >
-                                            <option value="ALL">All Colleges</option>
-                                            {Array.from(new Set(blocks.map(b => b.college).filter(Boolean))).map(col => (
-                                                <option key={col} value={col}>{col} College</option>
-                                            ))}
-                                        </select>
-                                    </div>
+                                    {/* College Filter Selection Dropdown — hidden for sub-admins */}
+                                    {(loggedInAdminRole !== "SUB_ADMIN" || loggedInAdminUser === "admin") ? (
+                                        <div className="flex items-center gap-2">
+                                            <span className="text-xs font-bold text-slate-500">Filter College:</span>
+                                            <select
+                                                value={selectedCollegeFilter}
+                                                onChange={(e) => setSelectedCollegeFilter(e.target.value)}
+                                                className="field !w-auto text-xs py-1 px-3 font-black bg-slate-100 border border-slate-200 rounded-lg text-slate-800 focus:outline-none cursor-pointer"
+                                            >
+                                                <option value="ALL">All Colleges</option>
+                                                {Array.from(new Set(blocks.map(b => b.college).filter(Boolean))).map(col => (
+                                                    <option key={col} value={col}>{col} College</option>
+                                                ))}
+                                            </select>
+                                        </div>
+                                    ) : (
+                                        <div className="flex items-center gap-2">
+                                            <span className="text-xs font-bold text-slate-500">College:</span>
+                                            <span className="text-xs font-black px-3 py-1 rounded-lg bg-indigo-100 text-indigo-800 border border-indigo-200">
+                                                {loggedInAdminCollege}
+                                            </span>
+                                        </div>
+                                    )}
 
                                     <div className="revenue-filter">
                                         {revenueFilters.map(([value, label]) => (
@@ -1563,7 +1572,8 @@ function AdminDashboard() {
                                 </div>
                             </div>
 
-                            {/* Chart 3: Print Volume by College Campus */}
+                            {/* Chart 3: Print Volume by College Campus — Main Admin only */}
+                            {(loggedInAdminRole !== "SUB_ADMIN" || loggedInAdminUser === "admin") && (
                             <div className="panel p-6 bg-white rounded-2xl shadow-sm border border-slate-100">
                                 <p className="font-bold text-slate-500 mb-4 text-sm">Print Volume by College / Campus</p>
                                 <div className="h-64 flex items-end justify-around pb-4 border-b border-slate-200">
@@ -1597,6 +1607,7 @@ function AdminDashboard() {
                                     })()}
                                 </div>
                             </div>
+                            )}
                         </div>
 
                         <motion.section
