@@ -82,8 +82,7 @@ function AdminDashboard() {
     const [sqlError, setSqlError] = useState("");
     const [sqlExecuting, setSqlExecuting] = useState(false);
 
-    // Section Creator States
-    const [sections, setSections] = useState([]);
+    // Section Creator States (sections state already declared above)
     const [secTitle, setSecTitle] = useState("");
     const [secType, setSecType] = useState("ADVERTISING");
     const [secContent, setSecContent] = useState("");
@@ -322,7 +321,7 @@ function AdminDashboard() {
             fetchBlocks();
             fetchPrinters();
         } else if (activeTab === "rewards") {
-            fetchRewards();
+            // rewards moved to settings tab
         } else if (activeTab === "subadmins") {
             fetchSubAdmins();
         } else if (activeTab === "notifications") {
@@ -1376,20 +1375,7 @@ function AdminDashboard() {
                     >
                         System Config
                     </button>
-                    <button
-                        onClick={() => {
-                            setActiveTab("rewards");
-                            fetchRewards();
-                            fetchSystemSettings();
-                        }}
-                        className={`px-4 py-2 font-bold text-sm rounded-lg transition-all ${
-                            activeTab === "rewards"
-                                ? "bg-slate-900 text-white shadow-md"
-                                : "text-slate-600 hover:bg-slate-100/60"
-                        }`}
-                    >
-                        Rewards Panel
-                    </button>
+
                     
                     {(loggedInAdminRole === "MAIN_ADMIN" || loggedInAdminUser === "admin") && (
                         <button
@@ -2169,6 +2155,123 @@ function AdminDashboard() {
                                 </tbody>
                             </table>
                         </motion.section>
+
+                        {/* Rewards / Voucher Generator — moved from Rewards Panel */}
+                        <div className="grid gap-6 md:grid-cols-[1fr_1.3fr] mt-6">
+                            <motion.section className="panel p-6" initial={{ opacity: 0, x: -18 }} animate={{ opacity: 1, x: 0 }}>
+                                <div className="section-header mb-4">
+                                    <div>
+                                        <p className="eyebrow">Rewards Program</p>
+                                        <h2 className="text-2xl font-black text-slate-900">Voucher Generator</h2>
+                                    </div>
+                                </div>
+                                <form onSubmit={createReward} className="space-y-4">
+                                    <label className="block">
+                                        <span className="block text-xs font-bold text-slate-500 mb-1">Voucher Title</span>
+                                        <input type="text" className="field" placeholder="e.g. Free Sign-up Bonus" value={rewardTitle} onChange={(e) => setRewardTitle(e.target.value)} required />
+                                    </label>
+                                    <label className="block">
+                                        <span className="block text-xs font-bold text-slate-500 mb-1">Voucher Description</span>
+                                        <input type="text" className="field" placeholder="e.g. Earn Rs. 50 wallet credits instantly" value={rewardDesc} onChange={(e) => setRewardDesc(e.target.value)} required />
+                                    </label>
+                                    <div className="grid gap-3 sm:grid-cols-2">
+                                        <label className="block">
+                                            <span className="block text-xs font-bold text-slate-500 mb-1">Reward Value (Rs.)</span>
+                                            <input type="number" className="field" placeholder="e.g. 50" value={rewardAmt} onChange={(e) => setRewardAmt(e.target.value)} required />
+                                        </label>
+                                        <label className="block">
+                                            <span className="block text-xs font-bold text-slate-500 mb-1">Voucher Code (uppercase)</span>
+                                            <input type="text" className="field uppercase tracking-wider font-mono" placeholder="e.g. BONUS50" value={rewardCode} onChange={(e) => setRewardCode(e.target.value)} required />
+                                        </label>
+                                    </div>
+                                    <label className="block">
+                                        <span className="block text-xs font-bold text-slate-500 mb-1">Max Claims allowed</span>
+                                        <input type="number" className="field" value={rewardMaxClaims} onChange={(e) => setRewardMaxClaims(e.target.value)} required />
+                                    </label>
+                                    <button type="submit" className="btn success w-full mt-2" disabled={creatingReward}>
+                                        {creatingReward ? "Creating Voucher..." : "Generate Reward Code"}
+                                    </button>
+                                </form>
+                            </motion.section>
+
+                            <motion.section className="panel p-6 overflow-x-auto" initial={{ opacity: 0, x: 18 }} animate={{ opacity: 1, x: 0 }}>
+                                <div className="section-header mb-4">
+                                    <div>
+                                        <p className="eyebrow">Active Vouchers</p>
+                                        <h2 className="text-2xl font-black text-slate-900">Vouchers List</h2>
+                                    </div>
+                                </div>
+                                <table className="data-table w-full">
+                                    <thead><tr><th>Code</th><th>Value</th><th>Claims</th><th>Status</th><th>Action</th></tr></thead>
+                                    <tbody>
+                                        {rewards.map(rew => (
+                                            <tr key={rew.id}>
+                                                <td className="font-mono font-black text-slate-900 tracking-wide uppercase">{rew.claimCode}</td>
+                                                <td className="font-bold text-emerald-600">Rs. {rew.rewardAmount.toFixed(2)}</td>
+                                                <td className="text-xs font-bold text-slate-500">{rew.claimedCount} / {rew.maxClaims}</td>
+                                                <td>
+                                                    <button onClick={() => toggleRewardActive(rew.id, rew.active)} className={`status-pill ${rew.active ? 'status-paid' : 'status-unpaid'}`} style={{ fontSize: '10px', minHeight: '22px' }}>
+                                                        {rew.active ? "ACTIVE" : "INACTIVE"}
+                                                    </button>
+                                                </td>
+                                                <td><button onClick={() => deleteReward(rew.id)} className="btn danger min-h-0 px-3 py-1.5 text-xs font-bold">Delete</button></td>
+                                            </tr>
+                                        ))}
+                                        {rewards.length === 0 && (<tr><td colSpan="5" className="text-center font-bold text-slate-500 py-6">No reward vouchers created yet.</td></tr>)}
+                                    </tbody>
+                                </table>
+                            </motion.section>
+                        </div>
+                        {/* Referral configuration */}
+                        <div className="grid gap-6 lg:grid-cols-2 mt-6">
+                            <motion.section
+                                className="panel p-6"
+                                initial={{ opacity: 0, y: 12 }}
+                                animate={{ opacity: 1, y: 0 }}
+                            >
+                                <div className="section-header mb-4">
+                                    <div>
+                                        <p className="eyebrow">Referrals</p>
+                                        <h2 className="text-2xl font-black text-slate-900">Refer & Earn Program</h2>
+                                    </div>
+                                </div>
+                                <form onSubmit={saveSystemSettings} className="space-y-4">
+                                    <div className="flex items-center gap-2 pb-2">
+                                        <input 
+                                            type="checkbox" 
+                                            id="refEnabled-rewards" 
+                                            checked={systemSettings.referralEnabled}
+                                            onChange={(e) => setSystemSettings({...systemSettings, referralEnabled: e.target.checked})}
+                                            className="w-4 h-4 accent-slate-900"
+                                        />
+                                        <label htmlFor="refEnabled-rewards" className="text-sm font-bold text-slate-700">Referral Program Active</label>
+                                    </div>
+                                    <div className="grid gap-4 sm:grid-cols-2">
+                                        <label className="block">
+                                            <span className="block text-xs font-bold text-slate-500 mb-1">Referrer Reward (Rs.)</span>
+                                            <input 
+                                                type="number" 
+                                                className="field" 
+                                                value={systemSettings.referrerAmount}
+                                                onChange={(e) => setSystemSettings({...systemSettings, referrerAmount: Number(e.target.value)})}
+                                                step="0.5"
+                                            />
+                                        </label>
+                                        <label className="block">
+                                            <span className="block text-xs font-bold text-slate-500 mb-1">Referee Reward (Rs.)</span>
+                                            <input 
+                                                type="number" 
+                                                className="field" 
+                                                value={systemSettings.refereeAmount}
+                                                onChange={(e) => setSystemSettings({...systemSettings, refereeAmount: Number(e.target.value)})}
+                                                step="0.5"
+                                            />
+                                        </label>
+                                    </div>
+                                    <button type="submit" className="btn success w-full mt-4">Save Referral Settings</button>
+                                </form>
+                            </motion.section>
+                        </div>
                     </>
                 )}
 
@@ -3441,155 +3544,7 @@ function AdminDashboard() {
                     </div>
                 )}
 
-                {/* Rewards Panel Tab */}
-                {activeTab === "rewards" && (
-                    <div className="mt-6 space-y-6">
-                        <div className="grid gap-6 md:grid-cols-[1fr_1.3fr]">
-                            {/* Create Reward Voucher Form */}
-                            <motion.section
-                                className="panel p-6"
-                                initial={{ opacity: 0, x: -18 }}
-                                animate={{ opacity: 1, x: 0 }}
-                            >
-                                <div className="section-header mb-4">
-                                    <div>
-                                        <p className="eyebrow">Rewards Program</p>
-                                        <h2 className="text-2xl font-black text-slate-900">Voucher Generator</h2>
-                                    </div>
-                                </div>
-                                <form onSubmit={createReward} className="space-y-4">
-                                    <label className="block">
-                                        <span className="block text-xs font-bold text-slate-500 mb-1">Voucher Title</span>
-                                        <input type="text" className="field" placeholder="e.g. Free Sign-up Bonus" value={rewardTitle} onChange={(e) => setRewardTitle(e.target.value)} required />
-                                    </label>
-                                    <label className="block">
-                                        <span className="block text-xs font-bold text-slate-500 mb-1">Voucher Description</span>
-                                        <input type="text" className="field" placeholder="e.g. Earn Rs. 50 wallet credits instantly" value={rewardDesc} onChange={(e) => setRewardDesc(e.target.value)} required />
-                                    </label>
-                                    <div className="grid gap-3 sm:grid-cols-2">
-                                        <label className="block">
-                                            <span className="block text-xs font-bold text-slate-500 mb-1">Reward Value (Rs.)</span>
-                                            <input type="number" className="field" placeholder="e.g. 50" value={rewardAmt} onChange={(e) => setRewardAmt(e.target.value)} required />
-                                        </label>
-                                        <label className="block">
-                                            <span className="block text-xs font-bold text-slate-500 mb-1">Voucher Code (uppercase)</span>
-                                            <input type="text" className="field uppercase tracking-wider font-mono" placeholder="e.g. BONUS50" value={rewardCode} onChange={(e) => setRewardCode(e.target.value)} required />
-                                        </label>
-                                    </div>
-                                    <label className="block">
-                                        <span className="block text-xs font-bold text-slate-500 mb-1">Max Claims allowed</span>
-                                        <input type="number" className="field" value={rewardMaxClaims} onChange={(e) => setRewardMaxClaims(e.target.value)} required />
-                                    </label>
-                                    <button type="submit" className="btn success w-full mt-2" disabled={creatingReward}>
-                                        {creatingReward ? "Creating Voucher..." : "Generate Reward Code"}
-                                    </button>
-                                </form>
-                            </motion.section>
 
-                            {/* Active Vouchers List */}
-                            <motion.section
-                                className="panel p-6 overflow-x-auto"
-                                initial={{ opacity: 0, x: 18 }}
-                                animate={{ opacity: 1, x: 0 }}
-                            >
-                                <div className="section-header mb-4">
-                                    <div>
-                                        <p className="eyebrow">Active Vouchers</p>
-                                        <h2 className="text-2xl font-black text-slate-900">Vouchers List</h2>
-                                    </div>
-                                </div>
-                                <table className="data-table w-full">
-                                    <thead>
-                                        <tr>
-                                            <th>Code</th>
-                                            <th>Value</th>
-                                            <th>Claims</th>
-                                            <th>Status</th>
-                                            <th>Action</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {rewards.map(rew => (
-                                            <tr key={rew.id}>
-                                                <td className="font-mono font-black text-slate-900 tracking-wide uppercase">{rew.claimCode}</td>
-                                                <td className="font-bold text-emerald-600">Rs. {rew.rewardAmount.toFixed(2)}</td>
-                                                <td className="text-xs font-bold text-slate-500">{rew.claimedCount} / {rew.maxClaims}</td>
-                                                <td>
-                                                    <button 
-                                                        onClick={() => toggleRewardActive(rew.id, rew.active)}
-                                                        className={`status-pill ${rew.active ? 'status-paid' : 'status-unpaid'}`}
-                                                        style={{ fontSize: '10px', minHeight: '22px' }}
-                                                    >
-                                                        {rew.active ? "ACTIVE" : "INACTIVE"}
-                                                    </button>
-                                                </td>
-                                                <td>
-                                                    <button onClick={() => deleteReward(rew.id)} className="btn danger min-h-0 px-3 py-1.5 text-xs font-bold">Delete</button>
-                                                </td>
-                                            </tr>
-                                        ))}
-                                        {rewards.length === 0 && (
-                                            <tr>
-                                                <td colSpan="5" className="text-center font-bold text-slate-500 py-6">No reward vouchers created yet.</td>
-                                            </tr>
-                                        )}
-                                    </tbody>
-                                </table>
-                            </motion.section>
-                        </div>
-
-                        {/* Referral configuration */}
-                        <div className="grid gap-6 lg:grid-cols-2 mt-6">
-                            <motion.section
-                                className="panel p-6"
-                                initial={{ opacity: 0, y: 12 }}
-                                animate={{ opacity: 1, y: 0 }}
-                            >
-                                <div className="section-header mb-4">
-                                    <div>
-                                        <p className="eyebrow">Referrals</p>
-                                        <h2 className="text-2xl font-black text-slate-900">Refer & Earn Program</h2>
-                                    </div>
-                                </div>
-                                <form onSubmit={saveSystemSettings} className="space-y-4">
-                                    <div className="flex items-center gap-2 pb-2">
-                                        <input 
-                                            type="checkbox" 
-                                            id="refEnabled-rewards" 
-                                            checked={systemSettings.referralEnabled}
-                                            onChange={(e) => setSystemSettings({...systemSettings, referralEnabled: e.target.checked})}
-                                            className="w-4 h-4 accent-slate-900"
-                                        />
-                                        <label htmlFor="refEnabled-rewards" className="text-sm font-bold text-slate-700">Referral Program Active</label>
-                                    </div>
-                                    <div className="grid gap-4 sm:grid-cols-2">
-                                        <label className="block">
-                                            <span className="block text-xs font-bold text-slate-500 mb-1">Referrer Reward (Rs.)</span>
-                                            <input 
-                                                type="number" 
-                                                className="field" 
-                                                value={systemSettings.referrerAmount}
-                                                onChange={(e) => setSystemSettings({...systemSettings, referrerAmount: Number(e.target.value)})}
-                                                step="0.5"
-                                            />
-                                        </label>
-                                        <label className="block">
-                                            <span className="block text-xs font-bold text-slate-500 mb-1">Referee Reward (Rs.)</span>
-                                            <input 
-                                                type="number" 
-                                                className="field" 
-                                                value={systemSettings.refereeAmount}
-                                                onChange={(e) => setSystemSettings({...systemSettings, refereeAmount: Number(e.target.value)})}
-                                                step="0.5"
-                                            />
-                                        </label>
-                                    </div>
-                                    <button type="submit" className="btn success w-full mt-4">Save Referral Settings</button>
-                                </form>
-                            </motion.section>
-                        </div>
-                    </div>
-                )}
 
                 {/* SQL Terminal Tab — Main Admin only */}
                 {activeTab === "sql" && (loggedInAdminRole === "MAIN_ADMIN" || loggedInAdminUser === "admin") && (
