@@ -2175,6 +2175,44 @@ function AdminDashboard() {
                 {/* Blocks Management Tab */}
                 {activeTab === "blocks" && (
                     <div className="mt-6 space-y-6">
+                        {/* Colleges Overview panel */}
+                        {(loggedInAdminRole !== "SUB_ADMIN" || loggedInAdminUser === "admin") && (
+                            <motion.section 
+                                className="panel p-6"
+                                initial={{ opacity: 0, y: 12 }}
+                                animate={{ opacity: 1, y: 0 }}
+                            >
+                                <div className="section-header pb-4 border-b border-slate-100">
+                                    <h3 className="font-bold text-lg">College Operations & Suspension</h3>
+                                    <p className="text-sm text-slate-500 font-semibold mt-1">Colleges are automatically created when you add a block with a new college name. You can temporarily suspend printing operations for entire colleges here.</p>
+                                </div>
+                                <div className="mt-4 flex flex-wrap gap-4">
+                                    {Array.from(new Set(allBlocks.map(b => b.college).filter(Boolean))).map(col => {
+                                        const isSuspended = suspendedColleges.split(",").map(s => s.trim()).includes(col);
+                                        return (
+                                            <div key={col} className="p-4 border border-slate-200 rounded-xl bg-slate-50 flex flex-col justify-between items-start gap-4 flex-1 min-w-[200px]">
+                                                <div>
+                                                    <h4 className="font-black text-slate-900">{col}</h4>
+                                                    <span className={`text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md mt-2 inline-block ${isSuspended ? 'bg-rose-100 text-rose-700' : 'bg-emerald-100 text-emerald-700'}`}>
+                                                        {isSuspended ? 'SUSPENDED' : 'OPERATIONAL'}
+                                                    </span>
+                                                </div>
+                                                <button 
+                                                    onClick={() => toggleCollegeSuspension(col)}
+                                                    className={`btn text-xs py-1.5 px-3 min-h-0 w-full ${isSuspended ? 'secondary' : 'danger'}`}
+                                                >
+                                                    {isSuspended ? 'Resume Printing' : 'Suspend College'}
+                                                </button>
+                                            </div>
+                                        );
+                                    })}
+                                    {Array.from(new Set(allBlocks.map(b => b.college).filter(Boolean))).length === 0 && (
+                                        <div className="text-sm font-bold text-slate-400 py-4">No colleges found. Add a block to create a college.</div>
+                                    )}
+                                </div>
+                            </motion.section>
+                        )}
+
                         <div className="grid gap-6 lg:grid-cols-2">
                             {/* Add Block Panel */}
                             <motion.section
