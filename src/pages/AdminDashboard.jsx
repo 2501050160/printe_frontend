@@ -2154,7 +2154,6 @@ function AdminDashboard() {
                             )}
 
                             {(loggedInAdminRole !== "MANAGER" || couponUnlocked) ? (
-                                <>
                             <motion.section
                                 className="panel p-6"
                                 initial={{ opacity: 0, y: 18 }}
@@ -2211,7 +2210,30 @@ function AdminDashboard() {
                                     </button>
                                 </div>
                             </motion.section>
+                            ) : (
+                                <motion.section
+                                    className="panel p-6 flex flex-col items-center justify-center min-h-[300px]"
+                                    initial={{ opacity: 0, y: 18 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                >
+                                    <h2 className="text-2xl font-black text-slate-900 mb-2">Coupons & Rewards Locked</h2>
+                                    <p className="text-slate-500 mb-6">Please enter the secret key provided by your Sub-Admin.</p>
+                                    <div className="flex gap-2 max-w-sm w-full">
+                                        <input
+                                            type="password"
+                                            className="field flex-1"
+                                            placeholder="Secret Key"
+                                            value={managerCouponSecretInput}
+                                            onChange={(e) => setManagerCouponSecretInput(e.target.value)}
+                                        />
+                                        <button onClick={unlockManagerCoupons} className="btn primary">Unlock</button>
+                                    </div>
+                                </motion.section>
+                            )}
                         </div>
+
+                        {(loggedInAdminRole !== "MANAGER" || couponUnlocked) && (
+                            <>
 
                         <motion.section
                             className="panel mt-6 overflow-x-auto"
@@ -2389,29 +2411,6 @@ function AdminDashboard() {
                                 </table>
                             </motion.section>
                         </div>
-                        </>
-                            ) : (
-                                <motion.section
-                                    className="panel p-6 flex flex-col items-center justify-center min-h-[300px]"
-                                    initial={{ opacity: 0, y: 18 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                >
-                                    <h2 className="text-2xl font-black text-slate-900 mb-2">Coupons & Rewards Locked</h2>
-                                    <p className="text-slate-500 mb-6">Please enter the secret key provided by your Sub-Admin.</p>
-                                    <div className="flex gap-2 max-w-sm w-full">
-                                        <input
-                                            type="password"
-                                            className="field flex-1"
-                                            placeholder="Secret Key"
-                                            value={managerCouponSecretInput}
-                                            onChange={(e) => setManagerCouponSecretInput(e.target.value)}
-                                        />
-                                        <button onClick={unlockManagerCoupons} className="btn primary">Unlock</button>
-                                    </div>
-                                </motion.section>
-                            )}
-                            )}
-                            {(loggedInAdminRole !== "MANAGER" || couponUnlocked) && (
                                 {/* Referral configuration */}
                                 <div className="grid gap-6 lg:grid-cols-2 mt-6">
                                     <motion.section
@@ -2462,6 +2461,7 @@ function AdminDashboard() {
                                         </form>
                                     </motion.section>
                                 </div>
+                                </>
                             )}
                     </>
                 )}
