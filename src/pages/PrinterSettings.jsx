@@ -104,10 +104,70 @@ function PrinterSettings() {
             setPaused(false);
             setEditingId(null);
             fetchPrinters();
+            logManagerAction("PRINTER_UPDATE", `Updated printer details for ${printerName} in ${blockLocation}`);
             alert(editingId ? "Printer updated successfully" : "Printer saved successfully");
         } catch (error) {
             console.error(error);
             alert(editingId ? "Unable to update printer" : "Unable to save printer");
+        }
+    };
+
+    const logManagerAction = async (actionType, details) => {
+        try {
+            await api.post("/admin/logs/create", {
+                managerName: loggedInAdminUser,
+                college: loggedInAdminCollege,
+                actionType: actionType,
+                details: details
+            });
+        } catch (error) {
+            console.error("Failed to log manager action", error);
+        }
+    };
+
+    const toggleMaintenance = async (printer) => {
+        try {
+            await api.post("/printer/save", {
+                id: printer.id,
+                blockLocation: printer.blockLocation,
+                printerName: printer.printerName,
+                printerIp: printer.printerIp,
+                active: printer.active,
+                maintenance: !printer.maintenance,
+                qrScanToPrint: printer.qrScanToPrint,
+                otpEnabled: printer.otpEnabled,
+                colourSupported: printer.colourSupported,
+                paused: printer.paused
+            });
+            fetchPrinters();
+            logManagerAction("MAINTENANCE_TOGGLE", `Toggled maintenance for printer ${printer.printerName} in ${printer.blockLocation} to ${!printer.maintenance}`);
+        } catch (error) {
+            console.error("Failed to toggle maintenance", error);
+            alert("Failed to toggle maintenance status");
+        }
+    };
+
+    const updatePaperCount = async (printer) => {
+        const newCountStr = window.prompt(`Enter new paper count for ${printer.printerName}:`, printer.paperCount || 500);
+        if (newCountStr === null) return;
+        const newCount = parseInt(newCountStr, 10);
+        if (isNaN(newCount) || newCount < 0) {
+            alert("Invalid paper count");
+            return;
+        }
+
+        try {
+            await api.post("/printer/updatePaper", null, {
+                params: {
+                    blockLocation: printer.blockLocation,
+                    paperCount: newCount
+                }
+            });
+            fetchPrinters();
+            logManagerAction("PAPER_COUNT_UPDATE", `Updated paper count for block ${printer.blockLocation} to ${newCount}`);
+        } catch (error) {
+            console.error("Failed to update paper count", error);
+            alert("Failed to update paper count");
         }
     };
 
@@ -311,7 +371,9 @@ function PrinterSettings() {
                             key={printer.id}
                             printer={printer}
                             onEdit={handleEdit}
-                            onDelete={deletePrinter}
+                            onDelete={loggedInAdminUser === "admin" ? deletePrinter : null}
+                            onToggleMaintenance={(loggedInAdminRole === "MANAGER" || loggedInAdminRole === "SUB_ADMIN" || loggedInAdminUser === "admin") ? toggleMaintenance : null}
+                            onUpdatePaper={(loggedInAdminRole === "MANAGER" || loggedInAdminRole === "SUB_ADMIN" || loggedInAdminUser === "admin") ? updatePaperCount : null}
                         />
                     ))}
 

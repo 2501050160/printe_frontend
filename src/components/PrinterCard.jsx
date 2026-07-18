@@ -1,4 +1,4 @@
-function PrinterCard({ printer, onEdit, onDelete }) {
+function PrinterCard({ printer, onEdit, onDelete, onToggleMaintenance, onUpdatePaper }) {
     return (
         <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
             <div className="flex items-start justify-between gap-4">
@@ -53,13 +53,29 @@ function PrinterCard({ printer, onEdit, onDelete }) {
                 </span>
             </div>
 
-            <div className="flex gap-2 mt-4">
+            <div className="flex gap-2 mt-4 flex-wrap">
                 {onEdit && (
                     <button
                         onClick={() => onEdit(printer)}
                         className="btn secondary min-h-0 px-4 py-2 text-sm font-bold"
                     >
-                        ✏️ Edit
+                        📝 Edit
+                    </button>
+                )}
+                {onToggleMaintenance && (
+                    <button
+                        onClick={() => onToggleMaintenance(printer)}
+                        className={`btn min-h-0 px-4 py-2 text-sm font-bold ${printer.maintenance ? 'success' : 'danger'}`}
+                    >
+                        🛠 {printer.maintenance ? 'Set Online' : 'Set Maintenance'}
+                    </button>
+                )}
+                {onUpdatePaper && (
+                    <button
+                        onClick={() => onUpdatePaper(printer)}
+                        className="btn secondary min-h-0 px-4 py-2 text-sm font-bold"
+                    >
+                        📄 Update Paper
                     </button>
                 )}
                 {onDelete && (

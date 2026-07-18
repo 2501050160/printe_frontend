@@ -119,6 +119,7 @@ function AdminDashboard() {
     const [newAdminRole, setNewAdminRole] = useState(localStorage.getItem("adminRole") === "MAIN_ADMIN" ? "SUB_ADMIN" : "MANAGER");
     const [newManagerSecret, setNewManagerSecret] = useState("");
     const [isCreatingSubAdmin, setIsCreatingSubAdmin] = useState(false);
+    const [managerLogs, setManagerLogs] = useState([]);
 
     // Notifications management states
     const [notifications, setNotifications] = useState([]);
@@ -488,6 +489,13 @@ function AdminDashboard() {
                 }
             });
 
+            await api.post("/admin/logs/create", {
+                managerName: loggedInAdminUser,
+                college: loggedInAdminCollege,
+                actionType: "PRICING_UPDATE",
+                details: `Updated prices for ${selectedPricingBlock} to BW: ${bwPrice}, Color: ${colorPrice}`
+            });
+
             showAlert("Success", `Prices Updated Successfully for ${selectedPricingBlock}`, "success");
         } catch (error) {
             console.error(error);
@@ -690,6 +698,16 @@ function AdminDashboard() {
                 showAlert("Error", "Failed to delete reward voucher", "error");
             }
         });
+    };
+
+    const fetchManagerLogs = async () => {
+        try {
+            const college = (loggedInAdminRole === "SUB_ADMIN" && loggedInAdminUser !== "admin") ? loggedInAdminCollege : "ALL";
+            const response = await api.get("/admin/logs/all", { params: { college } });
+            setManagerLogs(response.data || []);
+        } catch (error) {
+            console.error("Error fetching manager logs:", error);
+        }
     };
 
     const fetchSubAdmins = async () => {
@@ -1552,6 +1570,7 @@ function AdminDashboard() {
                             onClick={() => {
                                 setActiveTab("subadmins");
                                 fetchSubAdmins();
+                                fetchManagerLogs();
                             }}
                             className={`px-4 py-2 font-bold text-sm rounded-lg transition-all ${
                                 activeTab === "subadmins"
@@ -4262,6 +4281,51 @@ function AdminDashboard() {
                                 </table>
                             </motion.section>
                         </div>
+
+                        {/* Manager Activity Logs Section */}
+                        {loggedInAdminRole === "SUB_ADMIN" && (
+                        <motion.section className="panel p-6 overflow-x-auto mt-6" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}>
+                            <div className="section-header mb-4">
+                                <div>
+                                    <p className="eyebrow">Audit Trail</p>
+                                    <h2 className="text-2xl font-black text-slate-900">Manager Activity Logs</h2>
+                                </div>
+                            </div>
+                            <table className="data-table w-full">
+                                <thead>
+                                    <tr>
+                                        <th>Date / Time</th>
+                                        <th>Manager</th>
+                                        <th>Action Type</th>
+                                        <th>Details</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {managerLogs.map((log) => (
+                                        <tr key={log.id}>
+                                            <td className="text-xs font-bold text-slate-500 whitespace-nowrap">
+                                                {new Date(log.timestamp).toLocaleString()}
+                                            </td>
+                                            <td className="font-bold text-slate-800">{log.managerName}</td>
+                                            <td>
+                                                <span className="status-pill status-paid" style={{ fontSize: '10px' }}>
+                                                    {log.actionType}
+                                                </span>
+                                            </td>
+                                            <td className="text-sm font-semibold text-slate-600">{log.details}</td>
+                                        </tr>
+                                    ))}
+                                    {managerLogs.length === 0 && (
+                                        <tr>
+                                            <td colSpan="4" className="text-center py-6 text-slate-500 font-bold">
+                                                No activity logs found.
+                                            </td>
+                                        </tr>
+                                    )}
+                                </tbody>
+                            </table>
+                        </motion.section>
+                        )}
                     </div>
                 )}
             </div>
