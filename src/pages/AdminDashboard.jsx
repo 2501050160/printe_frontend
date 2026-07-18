@@ -3963,16 +3963,25 @@ function AdminDashboard() {
                                                 >
                                                     🛠 {p.maintenance ? "SET ONLINE" : "SET MAINTENANCE"}
                                                 </button>
+                                                
+                                                <input 
+                                                    type="number" 
+                                                    className="field w-20 text-center font-bold px-1 py-1 text-xs min-h-0" 
+                                                    key={p.paperCount}
+                                                    defaultValue={p.paperCount}
+                                                    id={`manage-paper-${p.blockLocation}`}
+                                                />
                                                 <button 
                                                     onClick={() => {
-                                                        const count = window.prompt(`Enter new paper count for ${p.printerName}:`, p.paperCount || 500);
-                                                        if (count !== null && !isNaN(parseInt(count, 10))) {
-                                                            updatePrinterPaper(p.blockLocation, parseInt(count, 10));
+                                                        const inputEl = document.getElementById(`manage-paper-${p.blockLocation}`);
+                                                        if(inputEl) {
+                                                            const count = Number(inputEl.value || 0);
+                                                            updatePrinterPaper(p.blockLocation, count);
                                                         }
                                                     }}
                                                     className="btn secondary min-h-0 px-2 py-1 text-[10px] font-black"
                                                 >
-                                                    📄 UPDATE PAPER
+                                                    📄 REFILL
                                                 </button>
                                             </div>
                                         </li>
