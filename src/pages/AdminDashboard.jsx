@@ -1622,7 +1622,6 @@ function AdminDashboard() {
                         {/* Live Printer Stock & Status Map */}
                         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                             {printers.map((p) => {
-                                const paperPct = Math.min(100, Math.max(0, ((p.paperCount || 0) / 500) * 100));
                                 const isLowPaper = p.paperCount < 50;
                                 return (
                                     <motion.div
@@ -1649,16 +1648,8 @@ function AdminDashboard() {
                                             <div className="flex items-center justify-between text-xs font-bold text-slate-500 mb-1">
                                                 <span>Paper Stock</span>
                                                 <span className={isLowPaper ? "text-rose-500 font-black" : "text-slate-800"}>
-                                                    {p.paperCount} / 500 sheets {isLowPaper && "⚠️"}
+                                                    {p.paperCount} Sheets {isLowPaper && "🚨"}
                                                 </span>
-                                            </div>
-                                            <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
-                                                <div 
-                                                    className={`h-full rounded-full transition-all duration-300 ${
-                                                        isLowPaper ? "bg-rose-500" : "bg-sky-500"
-                                                    }`} 
-                                                    style={{ width: `${paperPct}%` }}
-                                                />
                                             </div>
                                         </div>
 
@@ -2668,7 +2659,6 @@ function AdminDashboard() {
                                 <tbody>
                                     {blocks.map((b, index) => {
                                         const printer = printers.find(p => p.blockLocation === b.name);
-                                        const paperPct = Math.min(100, ((printer?.paperCount || 0) / 500) * 100);
                                         const isLow = (printer?.paperCount || 0) < 50;
                                         return (
                                             <motion.tr
@@ -2694,15 +2684,7 @@ function AdminDashboard() {
                                                 </td>
                                                 <td>
                                                     {printer ? (
-                                                        <div className="flex items-center gap-2">
-                                                            <div className="h-2 w-20 bg-slate-100 rounded-full overflow-hidden">
-                                                                <div
-                                                                    className={`h-full rounded-full ${
-                                                                        isLow ? "bg-rose-500" : "bg-sky-500"
-                                                                    }`}
-                                                                    style={{ width: `${paperPct}%` }}
-                                                                />
-                                                            </div>
+                                                        <div className="flex items-center gap-3">
                                                             <span className={`text-xs font-bold ${
                                                                 isLow ? "text-rose-500" : "text-slate-700"
                                                             }`}>
