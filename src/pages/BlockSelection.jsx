@@ -428,6 +428,25 @@ function BlockSelection() {
                     pointer-events: none;
                     z-index: 20;
                 }
+                .offline-stamp {
+                    position: absolute;
+                    top: 50%;
+                    left: 50%;
+                    transform: translate(-50%, -50%) rotate(-12deg);
+                    border: 3px double #94a3b8;
+                    color: #94a3b8;
+                    background-color: rgba(148, 163, 184, 0.07);
+                    font-family: 'Impact', sans-serif;
+                    font-size: 22px;
+                    font-weight: 900;
+                    letter-spacing: 2px;
+                    padding: 8px 16px;
+                    text-transform: uppercase;
+                    border-radius: 4px;
+                    box-shadow: 0 0 15px rgba(148, 163, 184, 0.15);
+                    pointer-events: none;
+                    z-index: 20;
+                }
                 .notif-panel-enter { animation: slideInRight 0.28s cubic-bezier(0.16,1,0.3,1); }
                 @keyframes slideInRight { from { opacity:0; transform: translateX(24px); } to { opacity:1; transform: translateX(0); } }
             `}} />
@@ -820,12 +839,16 @@ function BlockSelection() {
                                             {/* Colored Header banner strip */}
                                             <div className="h-1.5 w-full" style={{backgroundColor: block.accent}} />
 
-                                            {/* Under Maintenance Stamp if maintenance mode active */}
-                                            {block.maintenance && (
+                                            {/* Stamp Overlays */}
+                                            {block.maintenance ? (
                                                 <div className="maintenance-stamp">
                                                     UNDER MAINTENANCE
                                                 </div>
-                                            )}
+                                            ) : !block.isOnline ? (
+                                                <div className="offline-stamp">
+                                                    OFFLINE
+                                                </div>
+                                            ) : null}
 
                                             <div className="p-6 space-y-4">
                                                 {/* Header */}
@@ -838,13 +861,9 @@ function BlockSelection() {
                                                         </div>
                                                     </div>
 
-                                                    {!block.maintenance && (
-                                                        <span className={`px-2.5 py-1 rounded-full text-xs font-black uppercase tracking-wider ${
-                                                            block.isOnline 
-                                                                ? "bg-[#37E67D]/10 text-[#37E67D] border border-[#37E67D]/20" 
-                                                                : "bg-slate-500/10 text-slate-400 border border-slate-500/20"
-                                                        }`}>
-                                                            {block.isOnline ? "Online" : "Offline"}
+                                                    {!block.maintenance && block.isOnline && (
+                                                        <span className="px-2.5 py-1 rounded-full text-xs font-black uppercase tracking-wider bg-[#37E67D]/10 text-[#37E67D] border border-[#37E67D]/20">
+                                                            Online
                                                         </span>
                                                     )}
                                                 </div>
@@ -879,8 +898,8 @@ function BlockSelection() {
                                                 <button
                                                     onClick={() => selectBlock(block.name)}
                                                     className="w-full h-11 rounded-xl bg-slate-900/80 hover:bg-gradient-to-r hover:from-[#6C63FF] hover:to-[#8B5CFF] text-white font-bold text-sm uppercase tracking-wider transition-all duration-300 border border-white/5 hover:border-transparent hover:shadow-lg hover:shadow-indigo-500/10 mt-4 flex items-center justify-center gap-2"
-                                                    disabled={block.maintenance}
-                                                    style={block.maintenance ? { opacity: 0.5, cursor: "not-allowed" } : {}}
+                                                    disabled={block.maintenance || !block.isOnline}
+                                                    style={(block.maintenance || !block.isOnline) ? { opacity: 0.5, cursor: "not-allowed" } : {}}
                                                 >
                                                     Select Print Counter <ChevronRight className="w-4 h-4" />
                                                 </button>
