@@ -691,7 +691,7 @@ function AdminDashboard() {
             await api.post("/admin/subadmins/create", {
                 username: newSubAdminUsername,
                 password: newSubAdminPassword,
-                college: newSubAdminCollege,
+                college: (localStorage.getItem("adminRole") === "SUB_ADMIN" && localStorage.getItem("adminUser") !== "admin") ? localStorage.getItem("adminCollege") || "KLU" : newSubAdminCollege,
                 role: newAdminRole,
                 managerSecret: newAdminRole === "MANAGER" ? newManagerSecret : null
             });
@@ -4127,17 +4127,27 @@ function AdminDashboard() {
                                     )}
                                     <label className="block">
                                         <span className="block text-xs font-bold text-slate-500 mb-1">Assign College / Campus</span>
-                                        <select
-                                            value={newSubAdminCollege}
-                                            onChange={(e) => setNewSubAdminCollege(e.target.value)}
-                                            className="field cursor-pointer"
-                                            required
-                                        >
-                                            <option value="KLU">KLU College</option>
-                                            <option value="UoH">UoH College</option>
-                                            <option value="VIT">VIT College</option>
-                                            <option value="SRM">SRM College</option>
-                                        </select>
+                                        {(loggedInAdminRole === "SUB_ADMIN" && loggedInAdminUser !== "admin") ? (
+                                            <input 
+                                                type="text" 
+                                                className="field bg-slate-100 cursor-not-allowed" 
+                                                value={loggedInAdminCollege} 
+                                                readOnly 
+                                                disabled 
+                                            />
+                                        ) : (
+                                            <select
+                                                value={newSubAdminCollege}
+                                                onChange={(e) => setNewSubAdminCollege(e.target.value)}
+                                                className="field cursor-pointer"
+                                                required
+                                            >
+                                                <option value="KLU">KLU College</option>
+                                                <option value="UoH">UoH College</option>
+                                                <option value="VIT">VIT College</option>
+                                                <option value="SRM">SRM College</option>
+                                            </select>
+                                        )}
                                     </label>
                                     <button type="submit" className="btn success w-full mt-2" disabled={isCreatingSubAdmin}>
                                         {isCreatingSubAdmin ? "Creating..." : "Save Account"}
