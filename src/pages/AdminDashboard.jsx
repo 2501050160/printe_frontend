@@ -1583,7 +1583,7 @@ function AdminDashboard() {
                                 </div>
                             </div>
 
-                            <div className="grid gap-4 md:grid-cols-4">
+                            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
                                 {revenueCards.map(([label, value, background, subtitle], index) => (
                                     <motion.div
                                         key={label}
@@ -1596,7 +1596,7 @@ function AdminDashboard() {
                                         <p className="relative z-10 text-sm font-bold text-white/80">
                                             {label}
                                         </p>
-                                        <p className="relative z-10 mt-3 text-4xl font-black">
+                                        <p className="relative z-10 mt-2 text-2xl font-black truncate" title={`Rs. ${Number(value).toFixed(2)}`}>
                                             Rs. {Number(value).toFixed(2)}
                                         </p>
                                         {subtitle && (
