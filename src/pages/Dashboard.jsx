@@ -1724,7 +1724,7 @@ function Dashboard() {
                     }
                     .invoice-stamp {
                         position: absolute;
-                        top: 60px;
+                        bottom: 40px;
                         right: 40px;
                         border: 4px solid #10b981;
                         color: #10b981;
