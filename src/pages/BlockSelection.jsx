@@ -430,9 +430,9 @@ function BlockSelection() {
                 }
                 .offline-stamp {
                     position: absolute;
-                    top: 50%;
-                    left: 50%;
-                    transform: translate(-50%, -50%) rotate(-12deg);
+                    top: 25px;
+                    right: 15px;
+                    transform: rotate(-12deg);
                     border: 3px double #94a3b8;
                     color: #94a3b8;
                     background-color: rgba(148, 163, 184, 0.07);
