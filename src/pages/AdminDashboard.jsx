@@ -2051,8 +2051,6 @@ function AdminDashboard() {
                 {activeTab === "settings" && (
                     <>
                         <div className="grid gap-6 md:grid-cols-2">
-                            {loggedInAdminRole !== "MANAGER" && (
-                                <>
                                     <motion.section
                                         className="panel p-6"
                                 initial={{ opacity: 0, y: 18 }}
@@ -2122,6 +2120,7 @@ function AdminDashboard() {
                             </motion.section>
 
                             {/* Block Management Section */}
+                            {loggedInAdminRole !== "MANAGER" && (
                             <motion.section
                                 className="panel p-6"
                                 initial={{ opacity: 0, y: 18 }}
@@ -2163,7 +2162,6 @@ function AdminDashboard() {
                                     ))}
                                 </ul>
                             </motion.section>
-                                </>
                             )}
 
                             {(loggedInAdminRole !== "MANAGER" || couponUnlocked) ? (
