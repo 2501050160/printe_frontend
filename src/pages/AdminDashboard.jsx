@@ -43,6 +43,10 @@ function AdminDashboard() {
     const [newPrinterIp, setNewPrinterIp] = useState("");
     const [newPrinterBlock, setNewPrinterBlock] = useState("");
     const [newPrinterColor, setNewPrinterColor] = useState(false);
+    const [newPrinterActive, setNewPrinterActive] = useState(true);
+    const [newPrinterMaintenance, setNewPrinterMaintenance] = useState(false);
+    const [newPrinterQrScan, setNewPrinterQrScan] = useState(false);
+    const [newPrinterOtp, setNewPrinterOtp] = useState(true);
     const [sections, setSections] = useState([]);
     const [systemSettings, setSystemSettings] = useState({
         referralEnabled: true,
@@ -819,7 +823,7 @@ function AdminDashboard() {
 
     const getRoleFilteredBlocks = () => {
         let filteredBlocks = allBlocks;
-        if (loggedInAdminRole === "SUB_ADMIN" && loggedInAdminUser !== "admin") {
+        if ((loggedInAdminRole === "SUB_ADMIN" || loggedInAdminRole === "MANAGER") && loggedInAdminUser !== "admin") {
             filteredBlocks = filteredBlocks.filter(b => b.college && b.college.toUpperCase() === loggedInAdminCollege.toUpperCase());
         } else if (blockCollegeFilter !== "ALL") {
             filteredBlocks = filteredBlocks.filter(b => b.college && b.college.toUpperCase() === blockCollegeFilter.toUpperCase());
@@ -1074,13 +1078,20 @@ function AdminDashboard() {
                 printerIp: newPrinterIp || "192.168.1.100",
                 blockLocation: newPrinterBlock,
                 colourSupported: newPrinterColor,
-                active: true,
+                active: newPrinterActive,
+                maintenance: newPrinterMaintenance,
+                qrScanToPrint: newPrinterQrScan,
+                otpEnabled: newPrinterOtp,
                 paperCount: 500
             });
             showAlert("Success", "Printer added successfully", "success");
             fetchPrinters();
             setNewPrinterName("");
             setNewPrinterIp("");
+            setNewPrinterActive(true);
+            setNewPrinterMaintenance(false);
+            setNewPrinterQrScan(false);
+            setNewPrinterOtp(true);
         } catch (error) {
             console.error("Error adding printer", error);
             showAlert("Error", "Failed to add printer", "error");
@@ -1372,9 +1383,11 @@ function AdminDashboard() {
                     badge="Stats refresh live every 3 seconds."
                     actions={[
                         { label: "📋 Queue Kanban", path: "/admin/queue", className: "btn secondary text-xs py-2 px-3 min-h-0 font-bold" },
-                        { label: "👥 Users", path: "/admin/users", className: "btn secondary text-xs py-2 px-3 min-h-0 font-bold" },
-                        { label: "📊 Analytics", path: "/admin/analytics", className: "btn secondary text-xs py-2 px-3 min-h-0 font-bold" },
-                        { label: "⚙️ Settings", path: "/admin/settings", className: "btn secondary text-xs py-2 px-3 min-h-0 font-bold" },
+                        ...(loggedInAdminRole !== "MANAGER" ? [
+                            { label: "👥 Users", path: "/admin/users", className: "btn secondary text-xs py-2 px-3 min-h-0 font-bold" },
+                            { label: "📊 Analytics", path: "/admin/analytics", className: "btn secondary text-xs py-2 px-3 min-h-0 font-bold" },
+                            { label: "⚙️ Settings", path: "/admin/settings", className: "btn secondary text-xs py-2 px-3 min-h-0 font-bold" },
+                        ] : []),
                         { label: "Printer Settings", path: "/printer-settings", className: "btn text-xs py-2 px-3 min-h-0 font-bold" },
                         { label: "Display Panel", path: "/display-panel", className: "btn secondary text-xs py-2 px-3 min-h-0 font-bold" }
                     ]}
@@ -3800,13 +3813,13 @@ function AdminDashboard() {
                                             required
                                         >
                                             <option value="" disabled>Select Block</option>
-                                            {blocks.map(b => (
+                                            {displayBlocks.map(b => (
                                                 <option key={b.id} value={b.name}>{b.name} ({b.college || "KLU"})</option>
                                             ))}
                                         </select>
                                     </label>
                                     <label className="block">
-                                        <span className="block text-sm font-black text-slate-700 mb-2">Printer Name/Model</span>
+                                        <span className="block text-sm font-black text-slate-700 mb-2">Printer Name (Windows printer name)</span>
                                         <input
                                             type="text"
                                             placeholder="e.g. Laser Jet Pro"
@@ -3817,24 +3830,56 @@ function AdminDashboard() {
                                         />
                                     </label>
                                     <label className="block">
-                                        <span className="block text-sm font-black text-slate-700 mb-2">IP Address</span>
+                                        <span className="block text-sm font-black text-slate-700 mb-2">Printer IP / USB</span>
                                         <input
                                             type="text"
-                                            placeholder="e.g. 192.168.1.100"
+                                            placeholder="Printer IP (optional)"
                                             className="field"
                                             value={newPrinterIp}
                                             onChange={(e) => setNewPrinterIp(e.target.value)}
                                         />
                                     </label>
-                                    <div className="flex items-center gap-2 pb-2">
-                                        <input
-                                            type="checkbox"
-                                            id="colorPrint"
-                                            checked={newPrinterColor}
-                                            onChange={(e) => setNewPrinterColor(e.target.checked)}
-                                            className="w-4 h-4 accent-slate-900"
-                                        />
-                                        <label htmlFor="colorPrint" className="text-sm font-bold text-slate-700">Supports Color Printing</label>
+                                    
+                                    <div className="grid gap-4 md:grid-cols-2">
+                                        <label className="block">
+                                            <span className="block text-sm font-black text-slate-700 mb-2">Operation Status</span>
+                                            <select className="field cursor-pointer" value={newPrinterActive} onChange={(e) => setNewPrinterActive(e.target.value === "true")}>
+                                                <option value="true">Active (Online & Ready)</option>
+                                                <option value="false">Offline</option>
+                                            </select>
+                                        </label>
+                                        <label className="block">
+                                            <span className="block text-sm font-black text-slate-700 mb-2">Maintenance Status</span>
+                                            <select className="field cursor-pointer" value={newPrinterMaintenance} onChange={(e) => setNewPrinterMaintenance(e.target.value === "true")}>
+                                                <option value="false">Normal Operation</option>
+                                                <option value="true">Under Maintenance</option>
+                                            </select>
+                                        </label>
+                                    </div>
+                                    
+                                    <label className="block">
+                                        <span className="block text-sm font-black text-slate-700 mb-2">Supported Output Type</span>
+                                        <select className="field cursor-pointer" value={newPrinterColor} onChange={(e) => setNewPrinterColor(e.target.value === "true")}>
+                                            <option value="false">Black & White Only 📄</option>
+                                            <option value="true">Color 🎨</option>
+                                        </select>
+                                    </label>
+                                    
+                                    <div className="grid gap-4 md:grid-cols-2">
+                                        <label className="block">
+                                            <span className="block text-sm font-black text-slate-700 mb-2">QR Scan Flow</span>
+                                            <select className="field cursor-pointer" value={newPrinterQrScan} onChange={(e) => setNewPrinterQrScan(e.target.value === "true")}>
+                                                <option value="false">Direct Printing</option>
+                                                <option value="true">QR Scan Required</option>
+                                            </select>
+                                        </label>
+                                        <label className="block">
+                                            <span className="block text-sm font-black text-slate-700 mb-2">OTP Release flow</span>
+                                            <select className="field cursor-pointer" value={newPrinterOtp} onChange={(e) => setNewPrinterOtp(e.target.value === "true")}>
+                                                <option value="true">OTP Required 🔑</option>
+                                                <option value="false">No OTP Required</option>
+                                            </select>
+                                        </label>
                                     </div>
                                     <button type="submit" className="btn success w-full">Create Printer</button>
                                 </form>
