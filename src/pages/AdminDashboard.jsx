@@ -1387,8 +1387,8 @@ function AdminDashboard() {
                             { label: "👥 Users", path: "/admin/users", className: "btn secondary text-xs py-2 px-3 min-h-0 font-bold" },
                             { label: "📊 Analytics", path: "/admin/analytics", className: "btn secondary text-xs py-2 px-3 min-h-0 font-bold" },
                             { label: "⚙️ Settings", path: "/admin/settings", className: "btn secondary text-xs py-2 px-3 min-h-0 font-bold" },
+                            { label: "Printer Settings", path: "/printer-settings", className: "btn text-xs py-2 px-3 min-h-0 font-bold" },
                         ] : []),
-                        { label: "Printer Settings", path: "/printer-settings", className: "btn text-xs py-2 px-3 min-h-0 font-bold" },
                         { label: "Display Panel", path: "/display-panel", className: "btn secondary text-xs py-2 px-3 min-h-0 font-bold" }
                     ]}
                 />
@@ -1651,8 +1651,8 @@ function AdminDashboard() {
                                 </div>
 
                                 <div className="flex flex-wrap items-center gap-3">
-                                    {/* College Filter Selection Dropdown — hidden for sub-admins */}
-                                    {(loggedInAdminRole !== "SUB_ADMIN" || loggedInAdminUser === "admin") ? (
+                                    {/* College Filter Selection Dropdown - hidden for sub-admins and managers */}
+                                    {((loggedInAdminRole !== "SUB_ADMIN" && loggedInAdminRole !== "MANAGER") || loggedInAdminUser === "admin") ? (
                                         <div className="flex items-center gap-2">
                                             <span className="text-xs font-bold text-slate-500">Filter College:</span>
                                             <select
@@ -2130,7 +2130,7 @@ function AdminDashboard() {
                             >
                                 <div className="section-header pb-4 flex flex-wrap justify-between items-center gap-4">
                                     <h3 className="font-bold text-lg">Manage Blocks</h3>
-                                    {(loggedInAdminRole !== "SUB_ADMIN" || loggedInAdminUser === "admin") && (
+                                    {((loggedInAdminRole !== "SUB_ADMIN" && loggedInAdminRole !== "MANAGER") || loggedInAdminUser === "admin") && (
                                         <div className="flex items-center gap-2">
                                             <span className="text-xs font-bold text-slate-500">Filter College:</span>
                                             <select
@@ -2860,7 +2860,7 @@ function AdminDashboard() {
                                     />
                                     <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400">🔍</span>
                                 </div>
-                                {(loggedInAdminRole !== "SUB_ADMIN" || loggedInAdminUser === "admin") && (
+                                {((loggedInAdminRole !== "SUB_ADMIN" && loggedInAdminRole !== "MANAGER") || loggedInAdminUser === "admin") && (
                                     <div className="flex items-center gap-2 mr-2">
                                         <span className="text-xs font-bold text-slate-500">College:</span>
                                         <select
