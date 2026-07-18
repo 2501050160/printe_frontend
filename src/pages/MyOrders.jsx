@@ -330,6 +330,9 @@ function MyOrders() {
             {selectedInvoiceOrder && (
                 <div id="printable-invoice">
                     <div className="invoice-box">
+                        <div className="invoice-watermark">{selectedInvoiceOrder.orderId}</div>
+                        <div className="invoice-stamp">VERIFIED</div>
+                        
                         <div className="invoice-header">
                             <div className="invoice-logo">🖨️ CLOUD PRINT</div>
                             <div className="invoice-title">PAYMENT RECEIPT</div>
@@ -452,6 +455,41 @@ function MyOrders() {
                         border: 1px solid #e2e8f0;
                         padding: 30px;
                         border-radius: 12px;
+                        position: relative;
+                        overflow: hidden;
+                    }
+                    .invoice-watermark {
+                        position: absolute;
+                        top: 50%;
+                        left: 50%;
+                        transform: translate(-50%, -50%) rotate(-45deg);
+                        font-size: 60px;
+                        font-weight: 900;
+                        color: rgba(0, 0, 0, 0.04);
+                        pointer-events: none;
+                        white-space: nowrap;
+                        z-index: 0;
+                    }
+                    .invoice-stamp {
+                        position: absolute;
+                        top: 60px;
+                        right: 40px;
+                        border: 4px solid #10b981;
+                        color: #10b981;
+                        font-size: 28px;
+                        font-weight: 900;
+                        font-family: 'Impact', sans-serif;
+                        letter-spacing: 4px;
+                        padding: 8px 16px;
+                        transform: rotate(15deg);
+                        border-radius: 8px;
+                        opacity: 0.8;
+                        pointer-events: none;
+                        z-index: 10;
+                    }
+                    .invoice-header, .invoice-section, .invoice-divider, .invoice-total-row {
+                        position: relative;
+                        z-index: 1;
                     }
                     .invoice-header {
                         display: flex;
