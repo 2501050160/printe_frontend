@@ -1824,7 +1824,7 @@ function AdminDashboard() {
                             </div>
 
                             {/* Chart 3: Print Volume by College Campus — Main Admin only */}
-                            {(loggedInAdminRole !== "SUB_ADMIN" || loggedInAdminUser === "admin") && (
+                            {((loggedInAdminRole !== "SUB_ADMIN" && loggedInAdminRole !== "MANAGER") || loggedInAdminUser === "admin") && (
                             <div className="panel p-6 bg-white rounded-2xl shadow-sm border border-slate-100">
                                 <p className="font-bold text-slate-500 mb-4 text-sm">Print Volume by College / Campus</p>
                                 <div className="h-64 flex items-end justify-around pb-4 border-b border-slate-200">

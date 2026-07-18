@@ -16,6 +16,7 @@ import api from "../services/api";
 
 function QueueManagement() {
   const [orders, setOrders] = useState([]);
+  const [blocks, setBlocks] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(true);
 
@@ -30,8 +31,18 @@ function QueueManagement() {
     }
   };
 
+  const fetchBlocks = async () => {
+    try {
+      const response = await api.get("/admin/blocks/all");
+      setBlocks(response.data || []);
+    } catch (err) {
+      console.error("Failed to fetch blocks:", err);
+    }
+  };
+
   useEffect(() => {
     fetchOrders();
+    fetchBlocks();
     const interval = setInterval(fetchOrders, 4000);
     return () => clearInterval(interval);
   }, []);
@@ -60,7 +71,20 @@ function QueueManagement() {
     }
   };
 
-  const filteredOrders = orders.filter(
+  const loggedInAdminRole = localStorage.getItem("adminRole") || "SUB_ADMIN";
+  const loggedInAdminCollege = localStorage.getItem("adminCollege") || "KLU";
+  const loggedInAdminUser = localStorage.getItem("adminUser") || "";
+
+  const roleFilteredOrders = orders.filter((o) => {
+    if ((loggedInAdminRole === "SUB_ADMIN" || loggedInAdminRole === "MANAGER") && loggedInAdminUser !== "admin") {
+       const b = blocks.find(x => x.name === o.blockLocation);
+       const col = b ? b.college : "KLU";
+       return col.toUpperCase() === loggedInAdminCollege.toUpperCase();
+    }
+    return true;
+  });
+
+  const filteredOrders = roleFilteredOrders.filter(
     (o) =>
       o.orderId.toLowerCase().includes(searchTerm.toLowerCase()) ||
       (o.customerName && o.customerName.toLowerCase().includes(searchTerm.toLowerCase()))
