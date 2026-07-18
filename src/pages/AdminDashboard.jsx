@@ -832,7 +832,7 @@ function AdminDashboard() {
     };
 
     const getRoleFilteredPrinters = () => {
-        if (loggedInAdminRole === "SUB_ADMIN" && loggedInAdminUser !== "admin") {
+        if ((loggedInAdminRole === "SUB_ADMIN" || loggedInAdminRole === "MANAGER") && loggedInAdminUser !== "admin") {
             return allPrinters.filter(p => {
                 const b = allBlocks.find(x => x.name === p.blockLocation);
                 const col = b ? b.college : "KLU";
@@ -843,7 +843,7 @@ function AdminDashboard() {
     };
 
     const getRoleFilteredOrders = () => {
-        if (loggedInAdminRole === "SUB_ADMIN" && loggedInAdminUser !== "admin") {
+        if ((loggedInAdminRole === "SUB_ADMIN" || loggedInAdminRole === "MANAGER") && loggedInAdminUser !== "admin") {
             return allOrders.filter(o => {
                 const b = allBlocks.find(x => x.name === o.blockLocation);
                 const col = b ? b.college : "KLU";
@@ -855,7 +855,7 @@ function AdminDashboard() {
 
     const getRoleFilteredUsers = () => {
         let filteredUsers = allUsers;
-        if (loggedInAdminRole === "SUB_ADMIN" && loggedInAdminUser !== "admin") {
+        if ((loggedInAdminRole === "SUB_ADMIN" || loggedInAdminRole === "MANAGER") && loggedInAdminUser !== "admin") {
             filteredUsers = filteredUsers.filter(u => u.college && u.college.toUpperCase() === loggedInAdminCollege.toUpperCase());
         } else if (userCollegeFilter !== "ALL") {
             filteredUsers = filteredUsers.filter(u => u.college && u.college.toUpperCase() === userCollegeFilter.toUpperCase());
@@ -874,7 +874,7 @@ function AdminDashboard() {
     };
 
     const getRoleFilteredSupportTickets = () => {
-        if (loggedInAdminRole === "SUB_ADMIN" && loggedInAdminUser !== "admin") {
+        if ((loggedInAdminRole === "SUB_ADMIN" || loggedInAdminRole === "MANAGER") && loggedInAdminUser !== "admin") {
             return allSupportTickets.filter(t => {
                 const u = allUsers.find(x => x.email === t.email);
                 const col = u ? u.college : "KLU";

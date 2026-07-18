@@ -9,7 +9,8 @@ function PrinterSettings() {
     const navigate = useNavigate();
 
     const [printers, setPrinters] = useState([]);
-    const [blockLocation, setBlockLocation] = useState("C Block");
+    const [allBlocks, setAllBlocks] = useState([]);
+    const [blockLocation, setBlockLocation] = useState("");
     const [printerName, setPrinterName] = useState("");
     const [printerIp, setPrinterIp] = useState("");
     const [active, setActive] = useState(true);
@@ -29,17 +30,49 @@ function PrinterSettings() {
         }
 
         fetchPrinters();
+        fetchBlocks();
     }, []);
+
+    const fetchBlocks = async () => {
+        try {
+            const response = await api.get("/admin/blocks/all");
+            setAllBlocks(response.data || []);
+            if (response.data && response.data.length > 0 && !blockLocation) {
+                setBlockLocation(response.data[0].name);
+            }
+        } catch (error) {
+            console.error("Error fetching blocks:", error);
+        }
+    };
 
     const fetchPrinters = async () => {
         try {
             const response = await api.get("/printer/all");
-
             setPrinters(response.data || []);
         } catch (error) {
             console.error(error);
         }
     };
+
+    const loggedInAdminRole = localStorage.getItem("adminRole") || "SUB_ADMIN";
+    const loggedInAdminCollege = localStorage.getItem("adminCollege") || "KLU";
+    const loggedInAdminUser = localStorage.getItem("adminUser") || "";
+
+    const displayBlocks = allBlocks.filter(b => {
+        if ((loggedInAdminRole === "SUB_ADMIN" || loggedInAdminRole === "MANAGER") && loggedInAdminUser !== "admin") {
+            return b.college && b.college.toUpperCase() === loggedInAdminCollege.toUpperCase();
+        }
+        return true;
+    });
+
+    const displayPrinters = printers.filter(p => {
+        if ((loggedInAdminRole === "SUB_ADMIN" || loggedInAdminRole === "MANAGER") && loggedInAdminUser !== "admin") {
+            const b = allBlocks.find(x => x.name === p.blockLocation);
+            const col = b ? b.college : "KLU";
+            return col.toUpperCase() === loggedInAdminCollege.toUpperCase();
+        }
+        return true;
+    });
 
     const savePrinter = async () => {
         if (!blockLocation || !printerName) {
@@ -157,12 +190,10 @@ function PrinterSettings() {
                                 onChange={(e) => setBlockLocation(e.target.value)}
                                 className="field"
                             >
-                                <option value="C Block">C Block</option>
-                                <option value="R Block">R Block</option>
-                                <option value="L Block">L Block</option>
-                                <option value="Library">Library</option>
-                                <option value="Hostel">Hostel</option>
-                                <option value="Administration Building">Administration Building</option>
+                                {displayBlocks.length === 0 && <option value="" disabled>Loading blocks...</option>}
+                                {displayBlocks.map(b => (
+                                    <option key={b.id} value={b.name}>{b.name} ({b.college || "KLU"})</option>
+                                ))}
                             </select>
                         </div>
 
@@ -275,7 +306,7 @@ function PrinterSettings() {
                 </motion.section>
 
                 <section className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-                    {printers.map((printer) => (
+                    {displayPrinters.map((printer) => (
                         <PrinterCard
                             key={printer.id}
                             printer={printer}
@@ -284,7 +315,7 @@ function PrinterSettings() {
                         />
                     ))}
 
-                    {printers.length === 0 && (
+                    {displayPrinters.length === 0 && (
                         <div className="panel p-6 text-center font-bold text-slate-500 md:col-span-2 xl:col-span-3">
                             No printers configured yet
                         </div>
