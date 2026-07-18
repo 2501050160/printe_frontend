@@ -1106,6 +1106,17 @@ function AdminDashboard() {
         }
     };
 
+    const deletePrinter = async (id) => {
+        try {
+            await api.delete("/printer/delete", { params: { id } });
+            showAlert("Success", "Printer deleted successfully", "success");
+            fetchPrinters();
+        } catch (error) {
+            console.error("Failed to delete printer:", error);
+            showAlert("Error", "Failed to delete printer", "error");
+        }
+    };
+
     const addPrinter = async (e) => {
         e.preventDefault();
         
@@ -3939,52 +3950,78 @@ function AdminDashboard() {
                                 </div>
                                 <ul className="space-y-3">
                                     {getRoleFilteredPrinters().map(p => (
-                                        <li key={p.id} className="p-3 border rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-slate-50 border-slate-200">
-                                            <div>
-                                                <div className="flex items-center gap-2">
-                                                    <span className="font-black text-slate-900">{p.printerName}</span>
-                                                    <span className="text-xs font-bold px-2 py-0.5 rounded bg-slate-200 text-slate-700">{p.blockLocation}</span>
-                                                    {p.colourSupported && (
-                                                        <span className="text-[10px] uppercase font-black tracking-wider px-2 py-0.5 rounded bg-purple-100 text-purple-700">Color</span>
-                                                    )}
-                                                </div>
-                                                <div className="text-xs font-bold text-slate-500 mt-1">{p.printerIp}</div>
-                                            </div>
-                                            <div className="flex items-center gap-2">
-                                                <span className={`status-pill ${p.active ? 'status-paid' : 'status-failed'}`}>
-                                                    {p.active ? 'ACTIVE' : 'INACTIVE'}
-                                                </span>
-                                                <span className={`status-pill ${p.maintenance ? 'status-failed' : 'status-paid'}`}>
-                                                    {p.maintenance ? 'MAINTENANCE' : 'ONLINE'}
-                                                </span>
-                                                <button 
-                                                    onClick={() => togglePrinterMaintenance(p)}
-                                                    className="btn secondary min-h-0 px-2 py-1 text-[10px] font-black"
-                                                >
-                                                    🛠 {p.maintenance ? "SET ONLINE" : "SET MAINTENANCE"}
-                                                </button>
-                                                
-                                                <input 
-                                                    type="number" 
-                                                    className="field w-20 text-center font-bold px-1 py-1 text-xs min-h-0" 
-                                                    key={p.paperCount}
-                                                    defaultValue={p.paperCount}
-                                                    id={`manage-paper-${p.blockLocation}`}
-                                                />
-                                                <button 
-                                                    onClick={() => {
-                                                        const inputEl = document.getElementById(`manage-paper-${p.blockLocation}`);
-                                                        if(inputEl) {
-                                                            const count = Number(inputEl.value || 0);
-                                                            updatePrinterPaper(p.blockLocation, count);
-                                                        }
-                                                    }}
-                                                    className="btn secondary min-h-0 px-2 py-1 text-[10px] font-black"
-                                                >
-                                                    📄 REFILL
-                                                </button>
-                                            </div>
-                                        </li>
+                                          <li key={p.id} className="p-4 border rounded-xl flex flex-col gap-4 bg-white shadow-sm hover:shadow-md transition-shadow border-slate-200">
+                                              <div className="flex items-start justify-between">
+                                                  <div>
+                                                      <div className="flex items-center gap-2 mb-1">
+                                                          <h4 className="font-black text-slate-900 text-lg leading-none">{p.printerName}</h4>
+                                                          <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-slate-100 text-slate-700 uppercase tracking-wider">{p.blockLocation}</span>
+                                                          {p.colourSupported && (
+                                                              <span className="text-[10px] uppercase font-black tracking-wider px-2 py-0.5 rounded bg-purple-100 text-purple-700">Color</span>
+                                                          )}
+                                                      </div>
+                                                      <p className="text-xs font-bold text-slate-500 font-mono mt-1">{p.printerIp || "No IP Configured"}</p>
+                                                  </div>
+                                                  <div className="flex flex-col items-end gap-1">
+                                                      <span className={`px-2 py-1 rounded text-[10px] font-black uppercase tracking-wider w-24 text-center ${p.active ? 'bg-emerald-100 text-emerald-700 border border-emerald-200' : 'bg-rose-100 text-rose-700 border border-rose-200'}`}>
+                                                          {p.active ? 'Active' : 'Inactive'}
+                                                      </span>
+                                                      <span className={`px-2 py-1 rounded text-[10px] font-black uppercase tracking-wider w-24 text-center ${p.maintenance ? 'bg-amber-100 text-amber-700 border border-amber-200' : 'bg-sky-100 text-sky-700 border border-sky-200'}`}>
+                                                          {p.maintenance ? 'Maintenance' : 'Online'}
+                                                      </span>
+                                                  </div>
+                                              </div>
+                                              
+                                              <div className="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-slate-100">
+                                                  <div>
+                                                      <button 
+                                                          onClick={() => togglePrinterMaintenance(p)}
+                                                          className={`btn min-h-0 px-3 py-1.5 text-xs font-bold ${p.maintenance ? 'success' : 'secondary'}`}
+                                                      >
+                                                          🛠 {p.maintenance ? "Set Online" : "Set Maintenance"}
+                                                      </button>
+                                                  </div>
+                                                  <div className="flex items-center gap-2">
+                                                      <div className="flex items-center bg-slate-50 border border-slate-200 rounded-lg overflow-hidden h-8">
+                                                          <div className="px-2 bg-slate-100 text-xs font-bold text-slate-500 border-r border-slate-200 h-full flex items-center">
+                                                              📄
+                                                          </div>
+                                                          <input 
+                                                              type="number" 
+                                                              className="w-16 text-center font-bold px-2 text-xs bg-transparent outline-none h-full" 
+                                                              key={p.paperCount}
+                                                              defaultValue={p.paperCount}
+                                                              id={`manage-paper-${p.blockLocation}`}
+                                                          />
+                                                      </div>
+                                                      <button 
+                                                          onClick={() => {
+                                                              const inputEl = document.getElementById(`manage-paper-${p.blockLocation}`);
+                                                              if(inputEl) {
+                                                                  const count = Number(inputEl.value || 0);
+                                                                  updatePrinterPaper(p.blockLocation, count);
+                                                              }
+                                                          }}
+                                                          className="btn secondary min-h-0 px-3 py-1.5 text-xs font-bold h-8"
+                                                      >
+                                                          Refill
+                                                      </button>
+                                                      
+                                                      <div className="w-px h-6 bg-slate-200 mx-1"></div>
+                                                      
+                                                      <button 
+                                                          onClick={() => {
+                                                              if (window.confirm(`Are you sure you want to delete ${p.printerName}?`)) {
+                                                                  deletePrinter(p.id);
+                                                              }
+                                                          }}
+                                                          className="btn danger min-h-0 px-3 py-1.5 text-xs font-bold h-8"
+                                                      >
+                                                          🗑️
+                                                      </button>
+                                                  </div>
+                                              </div>
+                                          </li>
                                     ))}
                                     {getRoleFilteredPrinters().length === 0 && (
                                         <li className="text-sm font-bold text-slate-500 text-center py-4">No printers found.</li>
