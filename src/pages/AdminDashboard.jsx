@@ -1074,9 +1074,35 @@ function AdminDashboard() {
             });
             showAlert("Success", `Paper count updated successfully for ${blockLoc}`, "success");
             fetchPrinters();
+            await api.post("/admin/logs/create", {
+                managerName: loggedInAdminUser,
+                college: loggedInAdminCollege,
+                actionType: "PAPER_COUNT_UPDATE",
+                details: `Updated paper count for block ${blockLoc} to ${count}`
+            });
         } catch (error) {
             console.error("Failed to update paper count:", error);
             showAlert("Error", "Failed to update paper count", "error");
+        }
+    };
+
+    const togglePrinterMaintenance = async (printer) => {
+        try {
+            await api.post("/printer/save", {
+                ...printer,
+                maintenance: !printer.maintenance
+            });
+            fetchPrinters();
+            await api.post("/admin/logs/create", {
+                managerName: loggedInAdminUser,
+                college: loggedInAdminCollege,
+                actionType: "MAINTENANCE_TOGGLE",
+                details: `Toggled maintenance for printer ${printer.printerName} in ${printer.blockLocation} to ${!printer.maintenance}`
+            });
+            showAlert("Success", `Maintenance status updated for ${printer.printerName}`, "success");
+        } catch (error) {
+            console.error("Failed to toggle maintenance", error);
+            showAlert("Error", "Failed to toggle maintenance status", "error");
         }
     };
 
@@ -3928,6 +3954,26 @@ function AdminDashboard() {
                                                 <span className={`status-pill ${p.active ? 'status-paid' : 'status-failed'}`}>
                                                     {p.active ? 'ACTIVE' : 'INACTIVE'}
                                                 </span>
+                                                <span className={`status-pill ${p.maintenance ? 'status-failed' : 'status-paid'}`}>
+                                                    {p.maintenance ? 'MAINTENANCE' : 'ONLINE'}
+                                                </span>
+                                                <button 
+                                                    onClick={() => togglePrinterMaintenance(p)}
+                                                    className="btn secondary min-h-0 px-2 py-1 text-[10px] font-black"
+                                                >
+                                                    🛠 {p.maintenance ? "SET ONLINE" : "SET MAINTENANCE"}
+                                                </button>
+                                                <button 
+                                                    onClick={() => {
+                                                        const count = window.prompt(`Enter new paper count for ${p.printerName}:`, p.paperCount || 500);
+                                                        if (count !== null && !isNaN(parseInt(count, 10))) {
+                                                            updatePrinterPaper(p.blockLocation, parseInt(count, 10));
+                                                        }
+                                                    }}
+                                                    className="btn secondary min-h-0 px-2 py-1 text-[10px] font-black"
+                                                >
+                                                    📄 UPDATE PAPER
+                                                </button>
                                             </div>
                                         </li>
                                     ))}
