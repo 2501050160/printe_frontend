@@ -411,20 +411,20 @@ function BlockSelection() {
                 }
                 .maintenance-stamp {
                     position: absolute;
-                    top: 25px;
-                    right: 15px;
+                    top: 50%;
+                    left: 50%;
+                    transform: translate(-50%, -50%) rotate(-12deg);
                     border: 3px double #FF5C7A;
                     color: #FF5C7A;
                     background-color: rgba(255, 92, 122, 0.07);
                     font-family: 'Impact', sans-serif;
-                    font-size: 14px;
+                    font-size: 22px;
                     font-weight: 900;
                     letter-spacing: 2px;
-                    padding: 4px 10px;
+                    padding: 8px 16px;
                     text-transform: uppercase;
-                    transform: rotate(-12deg);
                     border-radius: 4px;
-                    box-shadow: 0 0 10px rgba(255, 92, 122, 0.15);
+                    box-shadow: 0 0 15px rgba(255, 92, 122, 0.15);
                     pointer-events: none;
                     z-index: 20;
                 }
@@ -838,15 +838,15 @@ function BlockSelection() {
                                                         </div>
                                                     </div>
 
-                                                    <span className={`px-2.5 py-1 rounded-full text-xs font-black uppercase tracking-wider ${
-                                                        block.maintenance 
-                                                            ? "bg-[#FF5C7A]/10 text-[#FF5C7A] border border-[#FF5C7A]/20"
-                                                            : block.isOnline 
+                                                    {!block.maintenance && (
+                                                        <span className={`px-2.5 py-1 rounded-full text-xs font-black uppercase tracking-wider ${
+                                                            block.isOnline 
                                                                 ? "bg-[#37E67D]/10 text-[#37E67D] border border-[#37E67D]/20" 
                                                                 : "bg-slate-500/10 text-slate-400 border border-slate-500/20"
-                                                    }`}>
-                                                        {block.maintenance ? "Maintenance" : block.isOnline ? "Online" : "Offline"}
-                                                    </span>
+                                                        }`}>
+                                                            {block.isOnline ? "Online" : "Offline"}
+                                                        </span>
+                                                    )}
                                                 </div>
 
                                                 {/* Details Grid (Without Distance field) */}
