@@ -1583,7 +1583,7 @@ function AdminDashboard() {
                                 </div>
                             </div>
 
-                            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+                            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-6">
                                 {revenueCards.map(([label, value, background, subtitle], index) => (
                                     <motion.div
                                         key={label}
