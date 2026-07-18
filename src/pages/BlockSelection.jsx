@@ -447,6 +447,25 @@ function BlockSelection() {
                     pointer-events: none;
                     z-index: 20;
                 }
+                .online-stamp {
+                    position: absolute;
+                    top: 25px;
+                    right: 15px;
+                    transform: rotate(-12deg);
+                    border: 3px double #37E67D;
+                    color: #37E67D;
+                    background-color: rgba(55, 230, 125, 0.07);
+                    font-family: 'Impact', sans-serif;
+                    font-size: 22px;
+                    font-weight: 900;
+                    letter-spacing: 2px;
+                    padding: 8px 16px;
+                    text-transform: uppercase;
+                    border-radius: 4px;
+                    box-shadow: 0 0 15px rgba(55, 230, 125, 0.15);
+                    pointer-events: none;
+                    z-index: 20;
+                }
                 .notif-panel-enter { animation: slideInRight 0.28s cubic-bezier(0.16,1,0.3,1); }
                 @keyframes slideInRight { from { opacity:0; transform: translateX(24px); } to { opacity:1; transform: translateX(0); } }
             `}} />
@@ -848,7 +867,11 @@ function BlockSelection() {
                                                 <div className="offline-stamp">
                                                     OFFLINE
                                                 </div>
-                                            ) : null}
+                                            ) : (
+                                                <div className="online-stamp">
+                                                    ONLINE
+                                                </div>
+                                            )}
 
                                             <div className="p-6 space-y-4">
                                                 {/* Header */}
@@ -860,12 +883,6 @@ function BlockSelection() {
                                                             <p className="text-sm text-slate-400 font-semibold">{block.description}</p>
                                                         </div>
                                                     </div>
-
-                                                    {!block.maintenance && block.isOnline && (
-                                                        <span className="px-2.5 py-1 rounded-full text-xs font-black uppercase tracking-wider bg-[#37E67D]/10 text-[#37E67D] border border-[#37E67D]/20">
-                                                            Online
-                                                        </span>
-                                                    )}
                                                 </div>
 
                                                 {/* Details Grid (Without Distance field) */}
