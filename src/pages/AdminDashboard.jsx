@@ -20,7 +20,9 @@ function AdminDashboard() {
     const [couponCode, setCouponCode] = useState("");
     const [discountPercentage, setDiscountPercentage] = useState("");
     const [expiryDate, setExpiryDate] = useState("");
-    const [maxUses, setMaxUses] = useState("");
+    const [maxUses, setMaxUses] = useState(1);
+    const [couponUnlocked, setCouponUnlocked] = useState(false);
+    const [managerCouponSecretInput, setManagerCouponSecretInput] = useState("");
 
     const [allUsers, setUsers] = useState([]);
     const [selectedUsers, setSelectedUsers] = useState([]);
@@ -35,6 +37,12 @@ function AdminDashboard() {
     const [newBlockCollege, setNewBlockCollege] = useState("KLU");
     const [allPrinters, setPrinters] = useState([]);
     const [printerPapers, setPrinterPapers] = useState({});
+    
+    // New printer states
+    const [newPrinterName, setNewPrinterName] = useState("");
+    const [newPrinterIp, setNewPrinterIp] = useState("");
+    const [newPrinterBlock, setNewPrinterBlock] = useState("");
+    const [newPrinterColor, setNewPrinterColor] = useState(false);
     const [sections, setSections] = useState([]);
     const [systemSettings, setSystemSettings] = useState({
         referralEnabled: true,
@@ -103,6 +111,8 @@ function AdminDashboard() {
     const [newSubAdminUsername, setNewSubAdminUsername] = useState("");
     const [newSubAdminPassword, setNewSubAdminPassword] = useState("");
     const [newSubAdminCollege, setNewSubAdminCollege] = useState("KLU");
+    const [newAdminRole, setNewAdminRole] = useState(localStorage.getItem("adminRole") === "MAIN_ADMIN" ? "SUB_ADMIN" : "MANAGER");
+    const [newManagerSecret, setNewManagerSecret] = useState("");
     const [isCreatingSubAdmin, setIsCreatingSubAdmin] = useState(false);
 
     // Notifications management states
@@ -344,6 +354,26 @@ function AdminDashboard() {
         } catch (error) {
             console.error(error);
             showAlert("Error", "Failed to delete coupon", "error");
+        }
+    };
+
+    const unlockManagerCoupons = async () => {
+        try {
+            const adminId = localStorage.getItem("adminId");
+            const response = await api.post("/admin/verify-secret", null, {
+                params: {
+                    adminId,
+                    secret: managerCouponSecretInput
+                }
+            });
+            if (response.data.success) {
+                setCouponUnlocked(true);
+                showAlert("Unlocked", "Coupons section unlocked", "success");
+            } else {
+                showAlert("Error", "Incorrect secret key", "error");
+            }
+        } catch (err) {
+            showAlert("Error", "Incorrect secret key or error verifying", "error");
         }
     };
 
@@ -661,11 +691,13 @@ function AdminDashboard() {
                 username: newSubAdminUsername,
                 password: newSubAdminPassword,
                 college: newSubAdminCollege,
-                role: "SUB_ADMIN"
+                role: newAdminRole,
+                managerSecret: newAdminRole === "MANAGER" ? newManagerSecret : null
             });
-            showAlert("Success", "Sub-Admin created successfully!", "success");
+            showAlert("Success", "Account created successfully!", "success");
             setNewSubAdminUsername("");
             setNewSubAdminPassword("");
+            setNewManagerSecret("");
             fetchSubAdmins();
         } catch (err) {
             console.error("Error creating sub-admin:", err);
@@ -909,8 +941,9 @@ function AdminDashboard() {
             }
         });
 
-        // Razorpay: 2% transaction fee + 18% GST on that 2% = 2% * 1.18 = 2.36%
-        razorpayCharges = netRevenue * 0.0236;
+        // Razorpay charges only apply to UPI revenue
+        const chargePercent = systemSettings.razorpayChargePercentage != null ? systemSettings.razorpayChargePercentage : 2.36;
+        razorpayCharges = upiRevenue * (chargePercent / 100);
 
         const todayOrders = getPeriodFilteredOrders(collegeFilteredOrders, "today");
         let todayRevenue = 0;
@@ -952,7 +985,7 @@ function AdminDashboard() {
     const revenueCards = [
         ["Gross Revenue", localStats.grossRevenue || 0, "linear-gradient(135deg, #2563eb, #1d4ed8)"],
         ["Coupon Discounts", localStats.totalDiscounts || 0, "linear-gradient(135deg, #b45309, #c2410c)"],
-        ["Razorpay Charges", localStats.razorpayCharges || 0, "linear-gradient(135deg, #7c3aed, #4c1d95)", "2% + 18% GST"],
+        ["Razorpay Charges", localStats.razorpayCharges || 0, "linear-gradient(135deg, #7c3aed, #4c1d95)", `${systemSettings.razorpayChargePercentage || 2.36}% per UPI TXN`],
         ["Net Revenue", localStats.netRevenue - (localStats.razorpayCharges || 0), "linear-gradient(135deg, #16865b, #0f766e)"],
         ["Wallet Cash", localStats.walletRevenue || 0, "linear-gradient(135deg, #0f766e, #065f46)"],
         ["UPI Cash", localStats.upiRevenue || 0, "linear-gradient(135deg, #7c3aed, #6d28d9)"]
@@ -1007,6 +1040,53 @@ function AdminDashboard() {
         }
     };
 
+    const addPrinter = async (e) => {
+        e.preventDefault();
+        
+        if (!newPrinterBlock) {
+            showAlert("Error", "Please select a block", "error");
+            return;
+        }
+
+        // Limit checks for MANAGER
+        if (loggedInAdminRole === "MANAGER") {
+            const blockPrinters = allPrinters.filter(p => p.blockLocation === newPrinterBlock);
+            const colorPrintersCount = blockPrinters.filter(p => p.colourSupported).length;
+            const bwPrintersCount = blockPrinters.filter(p => !p.colourSupported).length;
+            
+            const maxColor = systemSettings.managerMaxColorPrinters || 1;
+            const maxBw = systemSettings.managerMaxBwPrinters || 1;
+            
+            if (newPrinterColor && colorPrintersCount >= maxColor) {
+                showAlert("Error", `Manager limit reached: Max ${maxColor} color printer(s) allowed per block`, "error");
+                return;
+            }
+            if (!newPrinterColor && bwPrintersCount >= maxBw) {
+                showAlert("Error", `Manager limit reached: Max ${maxBw} B&W printer(s) allowed per block`, "error");
+                return;
+            }
+        }
+        
+        try {
+            await api.post("/printer/save", {
+                printerName: newPrinterName,
+                printerIp: newPrinterIp || "192.168.1.100",
+                blockLocation: newPrinterBlock,
+                colourSupported: newPrinterColor,
+                active: true,
+                paperCount: 500
+            });
+            showAlert("Success", "Printer added successfully", "success");
+            fetchPrinters();
+            setNewPrinterName("");
+            setNewPrinterIp("");
+        } catch (error) {
+            console.error("Error adding printer", error);
+            showAlert("Error", "Failed to add printer", "error");
+        }
+    };
+
+    // User moderation helper
     const addBlock = async (e) => {
         e.preventDefault();
         if (!newBlockName.trim()) {
@@ -1329,19 +1409,35 @@ function AdminDashboard() {
                     >
                         Pricing & Coupons
                     </button>
+                    {loggedInAdminRole !== "MANAGER" && (
+                        <button
+                            onClick={() => {
+                                setActiveTab("blocks");
+                                fetchBlocks();
+                                fetchSuspendedColleges();
+                            }}
+                            className={`px-4 py-2 font-bold text-sm rounded-lg transition-all ${
+                                activeTab === "blocks"
+                                    ? "bg-slate-900 text-white shadow-md"
+                                    : "text-slate-600 hover:bg-slate-100/60"
+                            }`}
+                        >
+                            🏛️ Manage Blocks
+                        </button>
+                    )}
                     <button
                         onClick={() => {
-                            setActiveTab("blocks");
+                            setActiveTab("printers");
+                            fetchPrinters();
                             fetchBlocks();
-                            fetchSuspendedColleges();
                         }}
                         className={`px-4 py-2 font-bold text-sm rounded-lg transition-all ${
-                            activeTab === "blocks"
+                            activeTab === "printers"
                                 ? "bg-slate-900 text-white shadow-md"
                                 : "text-slate-600 hover:bg-slate-100/60"
                         }`}
                     >
-                        🏛️ Manage Blocks
+                        🖨️ Manage Printers
                     </button>
                     {(loggedInAdminRole === "MAIN_ADMIN" || loggedInAdminUser === "admin") && (
                         <button
@@ -1372,51 +1468,55 @@ function AdminDashboard() {
                     >
                         User Moderation
                     </button>
-                    <button
-                        onClick={() => {
-                            setActiveTab("support");
-                            fetchSupportTickets();
-                        }}
-                        className={`px-4 py-2 font-bold text-sm rounded-lg transition-all ${
-                            activeTab === "support"
-                                ? "bg-slate-900 text-white shadow-md"
-                                : "text-slate-600 hover:bg-slate-100/60"
-                        }`}
-                    >
-                        Support Tickets
-                    </button>
-                    <button
-                        onClick={() => {
-                            setActiveTab("frontend");
-                            fetchSystemSettings();
-                            fetchSections();
-                        }}
-                        className={`px-4 py-2 font-bold text-sm rounded-lg transition-all ${
-                            activeTab === "frontend"
-                                ? "bg-slate-900 text-white shadow-md"
-                                : "text-slate-600 hover:bg-slate-100/60"
-                        }`}
-                    >
-                        Frontend Manager
-                    </button>
-                    <button
-                        onClick={() => {
-                            setActiveTab("system");
-                            fetchSystemSettings();
-                            fetchBlocks();
-                            fetchPrinters();
-                        }}
-                        className={`px-4 py-2 font-bold text-sm rounded-lg transition-all ${
-                            activeTab === "system"
-                                ? "bg-slate-900 text-white shadow-md"
-                                : "text-slate-600 hover:bg-slate-100/60"
-                        }`}
-                    >
-                        System Config
-                    </button>
+                    {loggedInAdminRole !== "MANAGER" && (
+                        <>
+                            <button
+                                onClick={() => {
+                                    setActiveTab("support");
+                                    fetchSupportTickets();
+                                }}
+                                className={`px-4 py-2 font-bold text-sm rounded-lg transition-all ${
+                                    activeTab === "support"
+                                        ? "bg-slate-900 text-white shadow-md"
+                                        : "text-slate-600 hover:bg-slate-100/60"
+                                }`}
+                            >
+                                Support Tickets
+                            </button>
+                            <button
+                                onClick={() => {
+                                    setActiveTab("frontend");
+                                    fetchSystemSettings();
+                                    fetchSections();
+                                }}
+                                className={`px-4 py-2 font-bold text-sm rounded-lg transition-all ${
+                                    activeTab === "frontend"
+                                        ? "bg-slate-900 text-white shadow-md"
+                                        : "text-slate-600 hover:bg-slate-100/60"
+                                }`}
+                            >
+                                Frontend Manager
+                            </button>
+                            <button
+                                onClick={() => {
+                                    setActiveTab("system");
+                                    fetchSystemSettings();
+                                    fetchBlocks();
+                                    fetchPrinters();
+                                }}
+                                className={`px-4 py-2 font-bold text-sm rounded-lg transition-all ${
+                                    activeTab === "system"
+                                        ? "bg-slate-900 text-white shadow-md"
+                                        : "text-slate-600 hover:bg-slate-100/60"
+                                }`}
+                            >
+                                System Config
+                            </button>
+                        </>
+                    )}
 
                     
-                    {(loggedInAdminRole === "MAIN_ADMIN" || loggedInAdminUser === "admin") && (
+                    {loggedInAdminRole !== "MANAGER" && (
                         <button
                             onClick={() => {
                                 setActiveTab("subadmins");
@@ -1428,23 +1528,25 @@ function AdminDashboard() {
                                     : "text-slate-600 hover:bg-slate-100/60"
                             }`}
                         >
-                            🔑 Sub-Admins
+                            🔑 Manage Staff
                         </button>
                     )}
 
-                    <button
-                        onClick={() => {
-                            setActiveTab("notifications");
-                            fetchNotifications();
-                        }}
-                        className={`px-4 py-2 font-bold text-sm rounded-lg transition-all ${
-                            activeTab === "notifications"
-                                ? "bg-slate-900 text-white shadow-md"
-                                : "text-slate-600 hover:bg-slate-100/60"
-                        }`}
-                    >
-                        🔔 Notifications
-                    </button>
+                    {loggedInAdminRole !== "MANAGER" && (
+                        <button
+                            onClick={() => {
+                                setActiveTab("notifications");
+                                fetchNotifications();
+                            }}
+                            className={`px-4 py-2 font-bold text-sm rounded-lg transition-all ${
+                                activeTab === "notifications"
+                                    ? "bg-slate-900 text-white shadow-md"
+                                    : "text-slate-600 hover:bg-slate-100/60"
+                            }`}
+                        >
+                            🔔 Notifications
+                        </button>
+                    )}
 
                     {(loggedInAdminRole === "MAIN_ADMIN" || loggedInAdminUser === "admin") && (
                         <button
@@ -1530,7 +1632,7 @@ function AdminDashboard() {
                                         Gross vs Net After Coupons
                                     </h2>
                                     <p className="subtitle">
-                                        Net revenue = gross revenue − coupon discounts − Razorpay charges (2% + 18% GST)
+                                        Net revenue = gross revenue − coupon discounts − Razorpay charges ({systemSettings.razorpayChargePercentage || 2.36}%)
                                     </p>
                                 </div>
 
@@ -1935,8 +2037,10 @@ function AdminDashboard() {
                 {activeTab === "settings" && (
                     <>
                         <div className="grid gap-6 md:grid-cols-2">
-                            <motion.section
-                                className="panel p-6"
+                            {loggedInAdminRole !== "MANAGER" && (
+                                <>
+                                    <motion.section
+                                        className="panel p-6"
                                 initial={{ opacity: 0, y: 18 }}
                                 animate={{ opacity: 1, y: 0 }}
                             >
@@ -2045,7 +2149,11 @@ function AdminDashboard() {
                                     ))}
                                 </ul>
                             </motion.section>
+                                </>
+                            )}
 
+                            {(loggedInAdminRole !== "MANAGER" || couponUnlocked) ? (
+                                <>
                             <motion.section
                                 className="panel p-6"
                                 initial={{ opacity: 0, y: 18 }}
@@ -2280,56 +2388,80 @@ function AdminDashboard() {
                                 </table>
                             </motion.section>
                         </div>
-                        {/* Referral configuration */}
-                        <div className="grid gap-6 lg:grid-cols-2 mt-6">
-                            <motion.section
-                                className="panel p-6"
-                                initial={{ opacity: 0, y: 12 }}
-                                animate={{ opacity: 1, y: 0 }}
-                            >
-                                <div className="section-header mb-4">
-                                    <div>
-                                        <p className="eyebrow">Referrals</p>
-                                        <h2 className="text-2xl font-black text-slate-900">Refer & Earn Program</h2>
-                                    </div>
-                                </div>
-                                <form onSubmit={saveSystemSettings} className="space-y-4">
-                                    <div className="flex items-center gap-2 pb-2">
-                                        <input 
-                                            type="checkbox" 
-                                            id="refEnabled-rewards" 
-                                            checked={systemSettings.referralEnabled}
-                                            onChange={(e) => setSystemSettings({...systemSettings, referralEnabled: e.target.checked})}
-                                            className="w-4 h-4 accent-slate-900"
+                        </>
+                            ) : (
+                                <motion.section
+                                    className="panel p-6 flex flex-col items-center justify-center min-h-[300px]"
+                                    initial={{ opacity: 0, y: 18 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                >
+                                    <h2 className="text-2xl font-black text-slate-900 mb-2">Coupons & Rewards Locked</h2>
+                                    <p className="text-slate-500 mb-6">Please enter the secret key provided by your Sub-Admin.</p>
+                                    <div className="flex gap-2 max-w-sm w-full">
+                                        <input
+                                            type="password"
+                                            className="field flex-1"
+                                            placeholder="Secret Key"
+                                            value={managerCouponSecretInput}
+                                            onChange={(e) => setManagerCouponSecretInput(e.target.value)}
                                         />
-                                        <label htmlFor="refEnabled-rewards" className="text-sm font-bold text-slate-700">Referral Program Active</label>
+                                        <button onClick={unlockManagerCoupons} className="btn primary">Unlock</button>
                                     </div>
-                                    <div className="grid gap-4 sm:grid-cols-2">
-                                        <label className="block">
-                                            <span className="block text-xs font-bold text-slate-500 mb-1">Referrer Reward (Rs.)</span>
-                                            <input 
-                                                type="number" 
-                                                className="field" 
-                                                value={systemSettings.referrerAmount}
-                                                onChange={(e) => setSystemSettings({...systemSettings, referrerAmount: Number(e.target.value)})}
-                                                step="0.5"
-                                            />
-                                        </label>
-                                        <label className="block">
-                                            <span className="block text-xs font-bold text-slate-500 mb-1">Referee Reward (Rs.)</span>
-                                            <input 
-                                                type="number" 
-                                                className="field" 
-                                                value={systemSettings.refereeAmount}
-                                                onChange={(e) => setSystemSettings({...systemSettings, refereeAmount: Number(e.target.value)})}
-                                                step="0.5"
-                                            />
-                                        </label>
-                                    </div>
-                                    <button type="submit" className="btn success w-full mt-4">Save Referral Settings</button>
-                                </form>
-                            </motion.section>
-                        </div>
+                                </motion.section>
+                            )}
+                            )}
+                            {(loggedInAdminRole !== "MANAGER" || couponUnlocked) && (
+                                {/* Referral configuration */}
+                                <div className="grid gap-6 lg:grid-cols-2 mt-6">
+                                    <motion.section
+                                        className="panel p-6"
+                                        initial={{ opacity: 0, y: 12 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                    >
+                                        <div className="section-header mb-4">
+                                            <div>
+                                                <p className="eyebrow">Referrals</p>
+                                                <h2 className="text-2xl font-black text-slate-900">Refer & Earn Program</h2>
+                                            </div>
+                                        </div>
+                                        <form onSubmit={saveSystemSettings} className="space-y-4">
+                                            <div className="flex items-center gap-2 pb-2">
+                                                <input 
+                                                    type="checkbox" 
+                                                    id="refEnabled-rewards" 
+                                                    checked={systemSettings.referralEnabled}
+                                                    onChange={(e) => setSystemSettings({...systemSettings, referralEnabled: e.target.checked})}
+                                                    className="w-4 h-4 accent-slate-900"
+                                                />
+                                                <label htmlFor="refEnabled-rewards" className="text-sm font-bold text-slate-700">Referral Program Active</label>
+                                            </div>
+                                            <div className="grid gap-4 sm:grid-cols-2">
+                                                <label className="block">
+                                                    <span className="block text-xs font-bold text-slate-500 mb-1">Referrer Reward (Rs.)</span>
+                                                    <input 
+                                                        type="number" 
+                                                        className="field" 
+                                                        value={systemSettings.referrerAmount}
+                                                        onChange={(e) => setSystemSettings({...systemSettings, referrerAmount: Number(e.target.value)})}
+                                                        step="0.5"
+                                                    />
+                                                </label>
+                                                <label className="block">
+                                                    <span className="block text-xs font-bold text-slate-500 mb-1">Referee Reward (Rs.)</span>
+                                                    <input 
+                                                        type="number" 
+                                                        className="field" 
+                                                        value={systemSettings.refereeAmount}
+                                                        onChange={(e) => setSystemSettings({...systemSettings, refereeAmount: Number(e.target.value)})}
+                                                        step="0.5"
+                                                    />
+                                                </label>
+                                            </div>
+                                            <button type="submit" className="btn success w-full mt-4">Save Referral Settings</button>
+                                        </form>
+                                    </motion.section>
+                                </div>
+                            )}
                     </>
                 )}
 
@@ -3342,6 +3474,57 @@ function AdminDashboard() {
                                 </form>
                             </motion.section>
 
+                            {/* Global App Settings */}
+                            {(loggedInAdminRole === "MAIN_ADMIN" || loggedInAdminUser === "admin") && (
+                            <motion.section
+                                className="panel p-6"
+                                initial={{ opacity: 0, y: 12 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: 0.035 }}
+                            >
+                                <div className="section-header mb-4">
+                                    <div>
+                                        <p className="eyebrow">Platform Settings</p>
+                                        <h2 className="text-2xl font-black text-slate-900">Global Config</h2>
+                                    </div>
+                                </div>
+                                <form onSubmit={saveSystemSettings} className="space-y-4">
+                                    <div className="grid gap-4 sm:grid-cols-2">
+                                        <label className="block">
+                                            <span className="block text-xs font-bold text-slate-500 mb-1">Razorpay/UPI Charge (%)</span>
+                                            <input 
+                                                type="number" 
+                                                className="field" 
+                                                value={systemSettings.razorpayChargePercentage || 2.36}
+                                                onChange={(e) => setSystemSettings({...systemSettings, razorpayChargePercentage: Number(e.target.value)})}
+                                                step="0.01"
+                                            />
+                                        </label>
+                                        <label className="block">
+                                            <span className="block text-xs font-bold text-slate-500 mb-1">Manager Max B&W Printers</span>
+                                            <input 
+                                                type="number" 
+                                                className="field" 
+                                                value={systemSettings.managerMaxBwPrinters || 1}
+                                                onChange={(e) => setSystemSettings({...systemSettings, managerMaxBwPrinters: Number(e.target.value)})}
+                                            />
+                                        </label>
+                                        <label className="block">
+                                            <span className="block text-xs font-bold text-slate-500 mb-1">Manager Max Color Printers</span>
+                                            <input 
+                                                type="number" 
+                                                className="field" 
+                                                value={systemSettings.managerMaxColorPrinters || 1}
+                                                onChange={(e) => setSystemSettings({...systemSettings, managerMaxColorPrinters: Number(e.target.value)})}
+                                            />
+                                        </label>
+                                    </div>
+                                    <button type="submit" className="btn success w-full mt-4">Save Platform Settings</button>
+                                </form>
+                            </motion.section>
+                            )}
+
+
                             {/* Off-Peak Hour Settings */}
                             <motion.section
                                 className="panel p-6"
@@ -3590,6 +3773,111 @@ function AdminDashboard() {
                     </div>
                 )}
 
+                {/* Printers Management Tab */}
+                {activeTab === "printers" && (
+                    <div className="mt-6 space-y-6">
+                        <div className="grid gap-6 lg:grid-cols-2">
+                            {/* Add Printer Form */}
+                            <motion.section
+                                className="panel p-6"
+                                initial={{ opacity: 0, y: 18 }}
+                                animate={{ opacity: 1, y: 0 }}
+                            >
+                                <div className="section-header mb-4">
+                                    <div>
+                                        <p className="eyebrow">Printers</p>
+                                        <h2 className="text-2xl font-black text-slate-900">Add New Printer</h2>
+                                    </div>
+                                </div>
+                                <form onSubmit={addPrinter} className="space-y-4">
+                                    <label className="block">
+                                        <span className="block text-sm font-black text-slate-700 mb-2">Block Location</span>
+                                        <select
+                                            className="field"
+                                            value={newPrinterBlock}
+                                            onChange={(e) => setNewPrinterBlock(e.target.value)}
+                                            required
+                                        >
+                                            <option value="" disabled>Select Block</option>
+                                            {blocks.map(b => (
+                                                <option key={b.id} value={b.name}>{b.name} ({b.college || "KLU"})</option>
+                                            ))}
+                                        </select>
+                                    </label>
+                                    <label className="block">
+                                        <span className="block text-sm font-black text-slate-700 mb-2">Printer Name/Model</span>
+                                        <input
+                                            type="text"
+                                            placeholder="e.g. Laser Jet Pro"
+                                            className="field"
+                                            value={newPrinterName}
+                                            onChange={(e) => setNewPrinterName(e.target.value)}
+                                            required
+                                        />
+                                    </label>
+                                    <label className="block">
+                                        <span className="block text-sm font-black text-slate-700 mb-2">IP Address</span>
+                                        <input
+                                            type="text"
+                                            placeholder="e.g. 192.168.1.100"
+                                            className="field"
+                                            value={newPrinterIp}
+                                            onChange={(e) => setNewPrinterIp(e.target.value)}
+                                        />
+                                    </label>
+                                    <div className="flex items-center gap-2 pb-2">
+                                        <input
+                                            type="checkbox"
+                                            id="colorPrint"
+                                            checked={newPrinterColor}
+                                            onChange={(e) => setNewPrinterColor(e.target.checked)}
+                                            className="w-4 h-4 accent-slate-900"
+                                        />
+                                        <label htmlFor="colorPrint" className="text-sm font-bold text-slate-700">Supports Color Printing</label>
+                                    </div>
+                                    <button type="submit" className="btn success w-full">Create Printer</button>
+                                </form>
+                            </motion.section>
+
+                            {/* Printers List */}
+                            <motion.section
+                                className="panel p-6"
+                                initial={{ opacity: 0, y: 18 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: 0.05 }}
+                            >
+                                <div className="section-header mb-4 flex flex-wrap justify-between items-center gap-4">
+                                    <h3 className="font-bold text-lg">Active Printers</h3>
+                                </div>
+                                <ul className="space-y-3">
+                                    {getRoleFilteredPrinters().map(p => (
+                                        <li key={p.id} className="p-3 border rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-slate-50 border-slate-200">
+                                            <div>
+                                                <div className="flex items-center gap-2">
+                                                    <span className="font-black text-slate-900">{p.printerName}</span>
+                                                    <span className="text-xs font-bold px-2 py-0.5 rounded bg-slate-200 text-slate-700">{p.blockLocation}</span>
+                                                    {p.colourSupported && (
+                                                        <span className="text-[10px] uppercase font-black tracking-wider px-2 py-0.5 rounded bg-purple-100 text-purple-700">Color</span>
+                                                    )}
+                                                </div>
+                                                <div className="text-xs font-bold text-slate-500 mt-1">{p.printerIp}</div>
+                                            </div>
+                                            <div className="flex items-center gap-2">
+                                                <span className={`status-pill ${p.active ? 'status-paid' : 'status-failed'}`}>
+                                                    {p.active ? 'ACTIVE' : 'INACTIVE'}
+                                                </span>
+                                            </div>
+                                        </li>
+                                    ))}
+                                    {getRoleFilteredPrinters().length === 0 && (
+                                        <li className="text-sm font-bold text-slate-500 text-center py-4">No printers found.</li>
+                                    )}
+                                </ul>
+                            </motion.section>
+                        </div>
+                    </div>
+                )}
+
                 {/* Notifications Management Tab */}
                 {activeTab === "notifications" && (
                     <div className="mt-6 space-y-6">
@@ -3769,11 +4057,11 @@ function AdminDashboard() {
                     </motion.section>
                 )}
 
-                {/* Sub-Admins Tab (Only Main Admin) */}
-                {activeTab === "subadmins" && (loggedInAdminRole === "MAIN_ADMIN" || loggedInAdminUser === "admin") && (
+                {/* Manage Staff Tab */}
+                {activeTab === "subadmins" && loggedInAdminRole !== "MANAGER" && (
                     <div className="mt-6 space-y-6">
                         <div className="grid gap-6 md:grid-cols-[1fr_1.5fr]">
-                            {/* Create Sub-Admin Form */}
+                            {/* Create Staff Form */}
                             <motion.section
                                 className="panel p-6"
                                 initial={{ opacity: 0, x: -18 }}
@@ -3782,8 +4070,8 @@ function AdminDashboard() {
                                 <div className="section-header mb-4">
                                     <div>
                                         <p className="eyebrow">Access Management</p>
-                                        <h2 className="text-2xl font-black text-slate-900">Add Sub-Admin</h2>
-                                        <p className="subtitle">Provision a college-specific admin with dedicated credentials.</p>
+                                        <h2 className="text-2xl font-black text-slate-900">Add Staff Account</h2>
+                                        <p className="subtitle">Provision a sub-admin or manager with dedicated credentials.</p>
                                     </div>
                                 </div>
                                 <form onSubmit={createSubAdmin} className="space-y-4">
@@ -3810,6 +4098,31 @@ function AdminDashboard() {
                                         />
                                     </label>
                                     <label className="block">
+                                        <span className="block text-xs font-bold text-slate-500 mb-1">Role</span>
+                                        <select
+                                            value={newAdminRole}
+                                            onChange={(e) => setNewAdminRole(e.target.value)}
+                                            className="field cursor-pointer"
+                                            disabled={loggedInAdminRole !== "MAIN_ADMIN" && loggedInAdminUser !== "admin"}
+                                        >
+                                            <option value="SUB_ADMIN">Sub-Admin</option>
+                                            <option value="MANAGER">Manager</option>
+                                        </select>
+                                    </label>
+                                    {newAdminRole === "MANAGER" && (
+                                        <label className="block">
+                                            <span className="block text-xs font-bold text-slate-500 mb-1">Coupons Secret Key</span>
+                                            <input 
+                                                type="text" 
+                                                className="field" 
+                                                placeholder="e.g. SECRET123" 
+                                                value={newManagerSecret} 
+                                                onChange={(e) => setNewManagerSecret(e.target.value)} 
+                                                required 
+                                            />
+                                        </label>
+                                    )}
+                                    <label className="block">
                                         <span className="block text-xs font-bold text-slate-500 mb-1">Assign College / Campus</span>
                                         <select
                                             value={newSubAdminCollege}
@@ -3824,12 +4137,12 @@ function AdminDashboard() {
                                         </select>
                                     </label>
                                     <button type="submit" className="btn success w-full mt-2" disabled={isCreatingSubAdmin}>
-                                        {isCreatingSubAdmin ? "Creating..." : "Save Sub-Admin Account"}
+                                        {isCreatingSubAdmin ? "Creating..." : "Save Account"}
                                     </button>
                                 </form>
                             </motion.section>
 
-                            {/* Active Sub-Admins List */}
+                            {/* Active Staff List */}
                             <motion.section
                                 className="panel p-6 overflow-x-auto"
                                 initial={{ opacity: 0, x: 18 }}
@@ -3838,7 +4151,7 @@ function AdminDashboard() {
                                 <div className="section-header mb-4">
                                     <div>
                                         <p className="eyebrow">Active Accounts</p>
-                                        <h2 className="text-2xl font-black text-slate-900">Sub-Admins Directory</h2>
+                                        <h2 className="text-2xl font-black text-slate-900">Staff Directory</h2>
                                     </div>
                                 </div>
                                 <table className="data-table w-full">
@@ -3869,7 +4182,7 @@ function AdminDashboard() {
                                         ))}
                                         {subAdmins.length === 0 && (
                                             <tr>
-                                                <td colSpan="5" className="text-center font-bold text-slate-500 py-6">No sub-admins provisioned yet.</td>
+                                                <td colSpan="5" className="text-center font-bold text-slate-500 py-6">No staff provisioned yet.</td>
                                             </tr>
                                         )}
                                     </tbody>
