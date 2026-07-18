@@ -94,6 +94,7 @@ function AdminDashboard() {
     const [secTitle, setSecTitle] = useState("");
     const [secType, setSecType] = useState("ADVERTISING");
     const [secContent, setSecContent] = useState("");
+    const [secRedirect, setSecRedirect] = useState("");
     const [secOrder, setSecOrder] = useState(1);
     const [secActive, setSecActive] = useState(true);
 
@@ -4105,7 +4106,9 @@ function AdminDashboard() {
                                             className="field cursor-pointer"
                                             disabled={loggedInAdminRole !== "MAIN_ADMIN" && loggedInAdminUser !== "admin"}
                                         >
-                                            <option value="SUB_ADMIN">Sub-Admin</option>
+                                            {(loggedInAdminRole === "MAIN_ADMIN" || loggedInAdminUser === "admin") && (
+                                                <option value="SUB_ADMIN">Sub-Admin</option>
+                                            )}
                                             <option value="MANAGER">Manager</option>
                                         </select>
                                     </label>
