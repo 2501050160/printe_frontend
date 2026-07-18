@@ -539,7 +539,11 @@ function DisplayPanel() {
                 </footer>
             </section>
 
-            <div className="fixed bottom-24 left-8 z-40 flex items-center gap-6 p-6 rounded-2xl bg-slate-950/90 backdrop-blur-md border border-white/10 shadow-2xl max-w-md transition-all hover:scale-105">
+            <motion.div 
+                drag
+                dragMomentum={false}
+                className="fixed bottom-24 left-8 z-40 flex items-center gap-6 p-6 rounded-2xl bg-slate-950/90 backdrop-blur-md border border-white/10 shadow-2xl max-w-md transition-all hover:scale-105 cursor-grab active:cursor-grabbing"
+            >
                 <div className="p-2.5 bg-white rounded-xl shadow-md shrink-0">
                     <img 
                         src={`https://api.qrserver.com/v1/create-qr-code/?size=170x170&data=${encodeURIComponent(window.location.origin)}&color=0f172a`} 
@@ -561,7 +565,7 @@ function DisplayPanel() {
                         www.saipraveen.site
                     </code>
                 </div>
-            </div>
+            </motion.div>
 
             <AnimatePresence>
                 {showFullscreenAd && !activePickup && (
