@@ -1242,16 +1242,26 @@ function AdminDashboard() {
             return;
         }
 
-        const configObj = {
-            backendUrl: import.meta.env.VITE_API_URL || "https://printer-backend-34ih.onrender.com",
-            pollIntervalMs: 5000,
-            blocks: [
+        const blockPrinters = printers.filter(p => p.blockLocation === block.name);
+        
+        const blocksArray = blockPrinters.length > 0 
+            ? blockPrinters.map(p => ({
+                blockLocation: block.name,
+                printerName: p.printerName || "",
+                apiKey: block.serverApiKey
+            }))
+            : [
                 {
                     blockLocation: block.name,
                     printerName: "",
                     apiKey: block.serverApiKey
                 }
-            ]
+            ];
+
+        const configObj = {
+            backendUrl: import.meta.env.VITE_API_URL || "https://printer-backend-34ih.onrender.com",
+            pollIntervalMs: 5000,
+            blocks: blocksArray
         };
 
         const configStr = JSON.stringify(configObj, null, 2);
