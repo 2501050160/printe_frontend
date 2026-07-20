@@ -1222,6 +1222,20 @@ function AdminDashboard() {
         });
     };
 
+    // Regenerate server API key for a block
+    const regenerateBlockKey = async (id) => {
+        showConfirm("Regenerate Key", "Are you sure? The physical print server will need to be updated with the new key.", async () => {
+            try {
+                await api.post(`/blocks/generate-key/${id}`);
+                showAlert("Success", "Server API Key regenerated successfully", "success");
+                fetchBlocks();
+            } catch (error) {
+                console.error("Error regenerating key:", error);
+                showAlert("Error", error.response?.data || "Failed to regenerate key", "error");
+            }
+        });
+    };
+
 
     const fetchSystemSettings = async () => {
         try {
@@ -2218,7 +2232,16 @@ function AdminDashboard() {
                                                     {b.college || "KLU"}
                                                 </span>
                                             </div>
-                                            <div className="flex gap-2">
+                                            <div className="flex gap-2 items-center">
+                                                {b.serverApiKey ? (
+                                                    <div className="flex items-center gap-2 mr-4 bg-slate-50 px-3 py-1 rounded border border-slate-200">
+                                                        <span className="text-xs font-mono text-slate-500">Key: {b.serverApiKey}</span>
+                                                        <button onClick={() => {navigator.clipboard.writeText(b.serverApiKey); showAlert("Copied", "API Key copied to clipboard", "success");}} className="text-xs font-bold text-indigo-600 hover:text-indigo-800">Copy</button>
+                                                        <button onClick={() => regenerateBlockKey(b.id)} className="text-xs font-bold text-red-500 hover:text-red-700 ml-2">Revoke & Regenerate</button>
+                                                    </div>
+                                                ) : (
+                                                    <button onClick={() => regenerateBlockKey(b.id)} className="btn small !bg-indigo-50 !text-indigo-600 border border-indigo-200 mr-4 hover:!bg-indigo-100">Generate API Key</button>
+                                                )}
                                                 <button onClick={() => renameBlock(b.id, b.name)} className="btn small">Rename</button>
                                                 <button onClick={() => deleteBlock(b.id)} className="btn danger small">Delete</button>
                                             </div>
