@@ -1236,6 +1236,39 @@ function AdminDashboard() {
         });
     };
 
+    const downloadServerConfig = (block) => {
+        if (!block.serverApiKey) {
+            showAlert("Error", "Please generate an API Key for this block first.", "error");
+            return;
+        }
+
+        const configObj = {
+            backendUrl: import.meta.env.VITE_API_URL || "https://printer-backend-34ih.onrender.com",
+            pollIntervalMs: 5000,
+            blocks: [
+                {
+                    blockLocation: block.name,
+                    printerName: "",
+                    apiKey: block.serverApiKey
+                }
+            ]
+        };
+
+        const configStr = JSON.stringify(configObj, null, 2);
+        
+        const blob = new Blob([configStr], { type: "application/json" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `config_${block.name.replace(/\s+/g, '_')}.json`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        
+        showAlert("Downloaded", `config.json for ${block.name} downloaded!`, "success");
+    };
+
 
     const fetchSystemSettings = async () => {
         try {
@@ -2237,6 +2270,7 @@ function AdminDashboard() {
                                                     <div className="flex items-center gap-2 mr-4 bg-slate-50 px-3 py-1 rounded border border-slate-200">
                                                         <span className="text-xs font-mono text-slate-500">Key: {b.serverApiKey}</span>
                                                         <button onClick={() => {navigator.clipboard.writeText(b.serverApiKey); showAlert("Copied", "API Key copied to clipboard", "success");}} className="text-xs font-bold text-indigo-600 hover:text-indigo-800">Copy</button>
+                                                        <button onClick={() => downloadServerConfig(b)} className="text-xs font-bold text-emerald-600 hover:text-emerald-800 ml-2">Download config.json</button>
                                                         <button onClick={() => regenerateBlockKey(b.id)} className="text-xs font-bold text-red-500 hover:text-red-700 ml-2">Revoke & Regenerate</button>
                                                     </div>
                                                 ) : (
