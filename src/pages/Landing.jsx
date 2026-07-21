@@ -71,7 +71,8 @@ function Landing() {
   // Load and refresh stats from database every 5 seconds
   useEffect(() => {
     const fetchStats = () => {
-      fetch("/api/dashboard/live-stats")
+      const apiUrl = import.meta.env.VITE_API_URL || "https://printer-backend-34ih.onrender.com";
+      fetch(`${apiUrl}/api/public/stats`)
         .then(res => res.json())
         .then(data => {
           setStats({
