@@ -9,7 +9,8 @@ function CustomModal({
     type = "info", // "success" | "error" | "warning" | "info" | "confirm"
     onConfirm,
     confirmText = "OK",
-    cancelText = "Cancel"
+    cancelText = "Cancel",
+    children
 }) {
     const iconMap = {
         success: "✓",
@@ -89,9 +90,18 @@ function CustomModal({
                             </h3>
 
                             {/* Message */}
-                            <p className="text-sm font-semibold text-slate-500 mb-6 whitespace-pre-wrap leading-relaxed">
-                                {message}
-                            </p>
+                            {message && (
+                                <p className="text-sm font-semibold text-slate-500 mb-6 whitespace-pre-wrap leading-relaxed">
+                                    {message}
+                                </p>
+                            )}
+
+                            {/* Children */}
+                            {children && (
+                                <div className="w-full mb-6 text-left">
+                                    {children}
+                                </div>
+                            )}
 
                             {/* Buttons Footer */}
                             <div className="flex flex-col sm:flex-row w-full gap-3">
