@@ -1277,7 +1277,7 @@ function AdminDashboard() {
         const url = URL.createObjectURL(blob);
         const a = document.createElement("a");
         a.href = url;
-        a.download = `config_${block.name.replace(/\s+/g, '_')}.json`;
+        a.download = `config.json`;
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
