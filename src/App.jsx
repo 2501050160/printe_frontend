@@ -1,37 +1,39 @@
-import { BrowserRouter, Routes, Route }
-from "react-router-dom";
+import { Suspense, lazy, useEffect } from "react";
+import { BrowserRouter, Routes, Route, Navigate, useLocation, useNavigate } from "react-router-dom";
+import { clearUserSession } from "./services/auth";
 
-import Landing from "./pages/Landing";
-import Login from "./pages/Login";
-import { Navigate } from "react-router-dom";
-import Dashboard from "./pages/Dashboard";
-import AdminLogin
-from "./pages/AdminLogin";
-import AdminDashboard from "./pages/AdminDashboard";
-import DisplayPanel from "./pages/DisplayPanel";
-import BlockSelection from "./pages/BlockSelection";
-import VerifyToken from "./pages/VerifyToken";
-import VerifyOtp from "./pages/VerifyOtp";
-import ForgotPassword from "./pages/ForgotPassword";
-import ResetPassword from "./pages/ResetPassword";
-
-
-import MyOrders from "./pages/MyOrders";
-import Checkout from "./pages/Checkout";
-import PaymentSuccess from "./pages/PaymentSuccess";
-import PrinterSettings from "./pages/PrinterSettings";
-import ScanToPrint from "./pages/ScanToPrint";
-import Referrals from "./pages/Referrals";
+// Lazy loaded page components
+const Landing = lazy(() => import("./pages/Landing"));
+const Login = lazy(() => import("./pages/Login"));
+const Dashboard = lazy(() => import("./pages/Dashboard"));
+const AdminLogin = lazy(() => import("./pages/AdminLogin"));
+const AdminDashboard = lazy(() => import("./pages/AdminDashboard"));
+const DisplayPanel = lazy(() => import("./pages/DisplayPanel"));
+const BlockSelection = lazy(() => import("./pages/BlockSelection"));
+const VerifyToken = lazy(() => import("./pages/VerifyToken"));
+const VerifyOtp = lazy(() => import("./pages/VerifyOtp"));
+const ForgotPassword = lazy(() => import("./pages/ForgotPassword"));
+const ResetPassword = lazy(() => import("./pages/ResetPassword"));
+const MyOrders = lazy(() => import("./pages/MyOrders"));
+const Checkout = lazy(() => import("./pages/Checkout"));
+const PaymentSuccess = lazy(() => import("./pages/PaymentSuccess"));
+const PrinterSettings = lazy(() => import("./pages/PrinterSettings"));
+const ScanToPrint = lazy(() => import("./pages/ScanToPrint"));
+const Referrals = lazy(() => import("./pages/Referrals"));
 
 // New Admin Screens
-import QueueManagement from "./pages/QueueManagement";
-import UserManagement from "./pages/UserManagement";
-import Analytics from "./pages/Analytics";
-import Settings from "./pages/Settings";
+const QueueManagement = lazy(() => import("./pages/QueueManagement"));
+const UserManagement = lazy(() => import("./pages/UserManagement"));
+const Analytics = lazy(() => import("./pages/Analytics"));
+const Settings = lazy(() => import("./pages/Settings"));
 
-import { clearUserSession } from "./services/auth";
-import { useEffect } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+// A clean loading fallback for the lazy loaded components
+const PageLoader = () => (
+    <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center">
+        <div className="w-12 h-12 border-4 border-white/10 border-t-sky-500 rounded-full animate-spin shadow-2xl"></div>
+        <p className="mt-4 text-sky-500/80 font-bold uppercase tracking-widest text-xs">Loading</p>
+    </div>
+);
 
 function SessionManager() {
     const navigate = useNavigate();
@@ -40,8 +42,6 @@ function SessionManager() {
     useEffect(() => {
         const userId = localStorage.getItem("userId");
         const adminId = localStorage.getItem("adminId");
-
-
 
         // 2. Set up 5-minute inactivity timeout for normal users
         if (userId && !adminId) {
@@ -79,118 +79,38 @@ function SessionManager() {
 }
 
 function App() {
-
   return (
-
     <BrowserRouter>
       <SessionManager />
+      <Suspense fallback={<PageLoader />}>
+        <Routes>
+          <Route path="/" element={<Landing />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Navigate to="/login" replace />} />
+          <Route path="/verify" element={<VerifyToken />} />
+          <Route path="/verify-otp" element={<VerifyOtp />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
+          <Route path="/checkout" element={<Checkout />} />
+          <Route path="/payment-success" element={<PaymentSuccess />} />
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/admin-login" element={<AdminLogin />} />
+          <Route path="/my-orders" element={<MyOrders />} />
+          <Route path="/referrals" element={<Referrals />} />
+          <Route path="/admin" element={<AdminDashboard />} />
 
-      <Routes>
+          {/* New Admin Operations Subroutes */}
+          <Route path="/admin/queue" element={<QueueManagement />} />
+          <Route path="/admin/users" element={<UserManagement />} />
+          <Route path="/admin/analytics" element={<Analytics />} />
+          <Route path="/admin/settings" element={<Settings />} />
 
-        <Route
-          path="/"
-          element={<Landing />}
-        />
-
-        <Route
-          path="/login"
-          element={<Login />}
-        />
-
-        <Route
-          path="/register"
-          element={<Navigate to="/login" replace />}
-        />
-        <Route
-          path="/verify"
-          element={<VerifyToken />}
-        />
-        <Route
-          path="/verify-otp"
-          element={<VerifyOtp />}
-        />
-        <Route
-          path="/forgot-password"
-          element={<ForgotPassword />}
-        />
-        <Route
-          path="/reset-password"
-          element={<ResetPassword />}
-        />
-        <Route
-          path="/checkout"
-          element={<Checkout />}
-        />
-
-        <Route
-          path="/payment-success"
-          element={<PaymentSuccess />}
-        />
-
-
-        <Route
-          path="/dashboard"
-          element={<Dashboard />}
-        />
-        <Route
-          path="/admin-login"
-          element={<AdminLogin />}
-        />
-
-        <Route
-            path="/my-orders"
-            element={<MyOrders />}
-        />
-
-        <Route
-            path="/referrals"
-            element={<Referrals />}
-        />
-
-        <Route
-          path="/admin"
-          element={<AdminDashboard />}
-        />
-
-        {/* New Admin Operations Subroutes */}
-        <Route
-          path="/admin/queue"
-          element={<QueueManagement />}
-        />
-        <Route
-          path="/admin/users"
-          element={<UserManagement />}
-        />
-        <Route
-          path="/admin/analytics"
-          element={<Analytics />}
-        />
-        <Route
-          path="/admin/settings"
-          element={<Settings />}
-        />
-
-        <Route
-          path="/printer-settings"
-          element={<PrinterSettings />}
-        />
-
-        <Route
-          path="/display-panel"
-          element={<DisplayPanel />}
-        />
-      <Route
-          path="/blocks"
-          element={<BlockSelection />}
-      />
-
-      <Route
-          path="/scan-to-print"
-          element={<ScanToPrint />}
-      />
-
-      </Routes>
-
+          <Route path="/printer-settings" element={<PrinterSettings />} />
+          <Route path="/display-panel" element={<DisplayPanel />} />
+          <Route path="/blocks" element={<BlockSelection />} />
+          <Route path="/scan-to-print" element={<ScanToPrint />} />
+        </Routes>
+      </Suspense>
     </BrowserRouter>
   );
 }
