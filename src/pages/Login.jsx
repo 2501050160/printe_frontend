@@ -16,13 +16,11 @@ function Login() {
     const [resending, setResending] = useState(false);
     const [oauthRedirecting, setOauthRedirecting] = useState(null);
     
-    // States for setting OAuth passwords
+    // States for setting OAuth college
     const [oauthNewUser, setOauthNewUser] = useState(null);
-    const [oauthPassword, setOauthPassword] = useState("");
-    const [oauthPasswordConfirm, setOauthPasswordConfirm] = useState("");
     const [oauthCollege, setOauthCollege] = useState("");
     const [collegesList, setCollegesList] = useState([]);
-    const [settingPasswordLoading, setSettingPasswordLoading] = useState(false);
+    const [settingCollegeLoading, setSettingCollegeLoading] = useState(false);
     const [errorMessage, setErrorMessage] = useState("");
 
     useEffect(() => {
@@ -72,25 +70,23 @@ function Login() {
         }
     }, [location, navigate]);
 
-    const handleSetOauthPassword = async (e) => {
+    const handleSetOauthCollege = async (e) => {
         e.preventDefault();
-        if (!oauthPassword || oauthPassword.length < 6) {
-            setErrorMessage("Password must be at least 6 characters long.");
+        
+        if (!oauthCollege) {
+            setErrorMessage("Please select a college.");
             return;
         }
-        if (oauthPassword !== oauthPasswordConfirm) {
-            setErrorMessage("Passwords do not match.");
-            return;
-        }
-        setSettingPasswordLoading(true);
+
+        setSettingCollegeLoading(true);
         setErrorMessage("");
+        
         try {
             const formData = new URLSearchParams();
             formData.append("email", oauthNewUser.email);
-            formData.append("newPassword", oauthPassword);
             formData.append("college", oauthCollege);
 
-            await api.post("/oauth/set-password", formData, {
+            await api.post("/oauth/set-college", formData, {
                 headers: {
                     "Content-Type": "application/x-www-form-urlencoded"
                 }
@@ -100,9 +96,9 @@ function Login() {
             navigate("/blocks");
         } catch (err) {
             console.error(err);
-            setErrorMessage(err.response?.data || "Failed to set password.");
+            setErrorMessage(err.response?.data || "Failed to set college.");
         } finally {
-            setSettingPasswordLoading(false);
+            setSettingCollegeLoading(false);
         }
     };
 
@@ -408,7 +404,7 @@ function Login() {
             </motion.section>
 
 
-            {/* New OAuth User Set Password Modal */}
+            {/* New OAuth User Set College Modal */}
             <AnimatePresence>
                 {oauthNewUser && (
                     <motion.div 
@@ -424,38 +420,13 @@ function Login() {
                             exit={{ scale: 0.9, y: 20 }}
                         >
                             <h2 className="text-2xl font-black tracking-tight text-slate-900">
-                                Complete Registration 🔑
+                                Welcome to Cloud Print 🎉
                             </h2>
                             <p className="mt-2.5 text-xs text-slate-500 font-bold leading-relaxed">
-                                Welcome, <span className="text-blue-600 font-black">{oauthNewUser.name}</span>! Since this is your first time logging in with Google, please set a password. 
-                            </p>
-                            <p className="mt-1 text-[11px] text-slate-400 font-bold">
-                                You can log in in the future using either Google Sign-In or this email & password.
+                                Hi <span className="text-blue-600 font-black">{oauthNewUser.name}</span>! Since this is your first time logging in, please select your college campus to continue. 
                             </p>
 
-                            <form onSubmit={handleSetOauthPassword} className="mt-6 flex flex-col gap-4">
-                                <div className="flex flex-col gap-1.5">
-                                    <label className="text-[10px] font-black uppercase tracking-wider text-slate-400">Choose Password</label>
-                                    <input 
-                                        type="password" 
-                                        required 
-                                        className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl font-bold text-sm focus:outline-none focus:border-blue-600 transition-colors" 
-                                        placeholder="Min 6 characters"
-                                        value={oauthPassword}
-                                        onChange={(e) => setOauthPassword(e.target.value)}
-                                    />
-                                </div>
-                                <div className="flex flex-col gap-1.5">
-                                    <label className="text-[10px] font-black uppercase tracking-wider text-slate-400">Confirm Password</label>
-                                    <input 
-                                        type="password" 
-                                        required 
-                                        className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl font-bold text-sm focus:outline-none focus:border-blue-600 transition-colors" 
-                                        placeholder="Repeat password"
-                                        value={oauthPasswordConfirm}
-                                        onChange={(e) => setOauthPasswordConfirm(e.target.value)}
-                                    />
-                                </div>
+                            <form onSubmit={handleSetOauthCollege} className="mt-6 flex flex-col gap-4">
                                 <div className="flex flex-col gap-1.5">
                                     <label className="text-[10px] font-black uppercase tracking-wider text-slate-400">Select College / Campus</label>
                                     <select
@@ -464,7 +435,7 @@ function Login() {
                                         className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl font-bold text-sm focus:outline-none focus:border-blue-600 transition-colors cursor-pointer"
                                         required
                                     >
-                                        {collegesList.length === 0 && <option value="">Loading Colleges...</option>}
+                                        <option value="" disabled>-- Select your College --</option>
                                         {collegesList.map((col, idx) => (
                                             <option key={idx} value={col}>{col} College</option>
                                         ))}
@@ -480,9 +451,9 @@ function Login() {
                                 <button 
                                     type="submit" 
                                     className="btn w-full mt-2"
-                                    disabled={settingPasswordLoading}
+                                    disabled={settingCollegeLoading}
                                 >
-                                    {settingPasswordLoading ? "Setting Password..." : "Complete & Log In"}
+                                    {settingCollegeLoading ? "Saving..." : "Continue to Dashboard"}
                                 </button>
                             </form>
                         </motion.div>
