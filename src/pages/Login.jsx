@@ -12,6 +12,7 @@ function Login() {
     const [error, setError] = useState("");
     const [successMessage, setSuccessMessage] = useState("");
     const [dbOffline, setDbOffline] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
     const [resending, setResending] = useState(false);
     const [oauthRedirecting, setOauthRedirecting] = useState(null);
     
@@ -134,9 +135,9 @@ function Login() {
 
     const handleLogin = async (e) => {
         e.preventDefault();
-        if (dbOffline) return;
         setError("");
         setSuccessMessage("");
+        setIsLoading(true);
 
         try {
             const response = await loginUser(email, password);
@@ -151,8 +152,10 @@ function Login() {
         } catch (error) {
             console.error(error);
             setError(
-                error.response?.data || "Invalid email or password"
+                error.response?.data || "Login failed. If the server is waking up, please wait 40 seconds and try again."
             );
+        } finally {
+            setIsLoading(false);
         }
     };
 
@@ -298,7 +301,7 @@ function Login() {
                                 onChange={(e) =>
                                     setEmail(e.target.value)
                                 }
-                                disabled={dbOffline}
+                                disabled={isLoading}
                             />
 
                             <input
@@ -309,7 +312,7 @@ function Login() {
                                 onChange={(e) =>
                                     setPassword(e.target.value)
                                 }
-                                disabled={dbOffline}
+                                disabled={isLoading}
                             />
 
                             <div className="flex justify-end text-xs font-bold -mt-2 mb-2">
@@ -360,10 +363,10 @@ function Login() {
                             <button
                                 type="submit"
                                 className="btn w-full"
-                                disabled={dbOffline}
-                                style={dbOffline ? { opacity: 0.5, cursor: "not-allowed", background: "#64748b" } : {}}
+                                disabled={isLoading}
+                                style={isLoading ? { opacity: 0.7, cursor: "wait" } : {}}
                             >
-                                Login
+                                {isLoading ? "Logging in..." : "Login"}
                             </button>
 
                         </form>
