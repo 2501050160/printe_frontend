@@ -103,6 +103,12 @@ function AdminDashboard() {
     const [secActive, setSecActive] = useState(true);
 
     const [suspendedColleges, setSuspendedColleges] = useState("");
+    
+    // College Config State
+    const [collegeConfigs, setCollegeConfigs] = useState([]);
+    const [paymentConfigModal, setPaymentConfigModal] = useState(null);
+    const [configKeyId, setConfigKeyId] = useState("");
+    const [configKeySecret, setConfigKeySecret] = useState("");
 
     // Custom Popups States
     const [popups, setPopups] = useState([]);
@@ -324,6 +330,7 @@ function AdminDashboard() {
         } else if (activeTab === "colleges") {
             fetchBlocks();
             fetchSuspendedColleges();
+            fetchCollegeConfigs();
         } else if (activeTab === "frontend") {
             fetchSystemSettings();
             fetchSections();
@@ -1407,6 +1414,15 @@ function AdminDashboard() {
         }
     };
 
+    const fetchCollegeConfigs = async () => {
+        try {
+            const response = await api.get("/college-config");
+            setCollegeConfigs(response.data);
+        } catch (err) {
+            console.error(err);
+        }
+    };
+
     const toggleCollegeSuspension = async (college) => {
         try {
             let currentSuspended = suspendedColleges ? suspendedColleges.split(",").map(s => s.trim()).filter(Boolean) : [];
@@ -1588,6 +1604,7 @@ function AdminDashboard() {
                                 setActiveTab("colleges");
                                 fetchBlocks();
                                 fetchSuspendedColleges();
+                                fetchCollegeConfigs();
                             }}
                             className={`px-4 py-2 font-bold text-sm rounded-lg transition-all ${
                                 activeTab === "colleges"
@@ -2907,6 +2924,17 @@ function AdminDashboard() {
                                                     Delete College
                                                 </button>
                                             </div>
+                                            <button 
+                                                onClick={() => {
+                                                    const existing = collegeConfigs.find(c => c.collegeName === col);
+                                                    setConfigKeyId(existing?.razorpayKeyId || "");
+                                                    setConfigKeySecret(existing?.razorpayKeySecret || "");
+                                                    setPaymentConfigModal(col);
+                                                }}
+                                                className="btn primary text-xs py-2 w-full mt-2"
+                                            >
+                                                Configure Payment Gateway
+                                            </button>
                                         </div>
                                     );
                                 })}
@@ -4470,6 +4498,62 @@ function AdminDashboard() {
                     </div>
                 )}
             </div>
+
+            {/* Payment Config Modal */}
+            <AnimatePresence>
+                {paymentConfigModal && (
+                    <CustomModal
+                        isOpen={!!paymentConfigModal}
+                        onClose={() => setPaymentConfigModal(null)}
+                        title={`Payment Gateway: ${paymentConfigModal}`}
+                    >
+                        <div className="space-y-4">
+                            <p className="text-sm text-slate-500 font-semibold mb-4">
+                                Route payments dynamically for this specific college. If left empty, payments will fall back to the system default Razorpay account.
+                            </p>
+                            <div>
+                                <label className="block text-sm font-bold text-slate-700 mb-1">Razorpay Key ID</label>
+                                <input 
+                                    type="text" 
+                                    value={configKeyId}
+                                    onChange={(e) => setConfigKeyId(e.target.value)}
+                                    className="input-field" 
+                                    placeholder="rzp_live_..."
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-bold text-slate-700 mb-1">Razorpay Key Secret</label>
+                                <input 
+                                    type="password" 
+                                    value={configKeySecret}
+                                    onChange={(e) => setConfigKeySecret(e.target.value)}
+                                    className="input-field" 
+                                    placeholder="Secret Key"
+                                />
+                            </div>
+                            <button 
+                                onClick={async () => {
+                                    try {
+                                        await api.post("/college-config", {
+                                            collegeName: paymentConfigModal,
+                                            razorpayKeyId: configKeyId,
+                                            razorpayKeySecret: configKeySecret
+                                        });
+                                        showAlert("Success", "Keys saved for " + paymentConfigModal, "success");
+                                        setPaymentConfigModal(null);
+                                        fetchCollegeConfigs();
+                                    } catch (err) {
+                                        showAlert("Error", "Failed to save keys", "error");
+                                    }
+                                }}
+                                className="btn primary w-full mt-2"
+                            >
+                                Save Configuration
+                            </button>
+                        </div>
+                    </CustomModal>
+                )}
+            </AnimatePresence>
 
             {/* Custom Premium Modal */}
             <CustomModal
