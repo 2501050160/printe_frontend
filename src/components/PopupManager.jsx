@@ -50,7 +50,7 @@ function PopupManager({ page }) {
     return (
         <AnimatePresence>
             {currentPopup && (
-                <div className="fixed inset-0 z-[9999] overflow-y-auto flex items-start justify-center p-4">
+                <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 overflow-hidden">
                     {/* Dark Glassmorphic Backdrop */}
                     <motion.div 
                         className="absolute inset-0 bg-slate-950/60 backdrop-blur-md"
@@ -62,7 +62,7 @@ function PopupManager({ page }) {
 
                     {/* Popup Card */}
                     <motion.div 
-                        className="relative my-auto w-full max-w-md rounded-2xl border border-white/20 bg-white/80 p-6 text-center shadow-2xl backdrop-blur-xl"
+                        className="relative w-full max-w-md rounded-2xl border border-white/20 bg-white/80 p-6 text-center shadow-2xl backdrop-blur-xl"
                         initial={{ opacity: 0, scale: 0.9, y: 20 }}
                         animate={{ opacity: 1, scale: 1, y: 0 }}
                         exit={{ opacity: 0, scale: 0.95, y: 10 }}

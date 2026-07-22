@@ -267,21 +267,24 @@ function Dashboard() {
 
     const handleFileSelect = (e) => {
         const files = Array.from(e.target.files);
-        setSelectedFiles(files);
-        setUploaded(false); // Reset if new files selected
+        if (files.length > 0) {
+            setSelectedFiles(files);
+            setUploaded(false); 
+            uploadPdf(files);
+        }
     };
 
-    const uploadPdf = async () => {
-        if (selectedFiles.length === 0) {
+    const uploadPdf = async (filesToUpload = selectedFiles) => {
+        if (filesToUpload.length === 0) {
             showAlert("No Files Selected", "Please select PDF or image files to upload.", "warning");
             return;
         }
 
         const formData = new FormData();
-        if (selectedFiles.length === 1) {
-            formData.append("file", selectedFiles[0]);
+        if (filesToUpload.length === 1) {
+            formData.append("file", filesToUpload[0]);
         } else {
-            selectedFiles.forEach((file) => {
+            filesToUpload.forEach((file) => {
                 formData.append("files", file);
             });
         }
@@ -466,7 +469,11 @@ function Dashboard() {
 
     const rate = printType === "COLOR" ? Number(colorPrice) : Number(bwPrice);
     const selectedPageCount = pageOption === "ALL" ? totalPages : (startPage && endPage ? Math.max(0, Number(endPage) - Number(startPage) + 1) : 0);
-    const divisor = nupLayout === "2-up" ? 2 : nupLayout === "4-up" ? 4 : 1;
+    const divisor = nupLayout === "2-up" ? 2 : 
+                    nupLayout === "4-up" ? 4 : 
+                    nupLayout === "6-up" ? 6 : 
+                    nupLayout === "8-up" ? 8 : 
+                    nupLayout === "9-up" ? 9 : 1;
     const sheetsToPrint = Math.ceil(selectedPageCount / divisor);
     const estimatedTotalPages = sheetsToPrint * Number(copies || 1);
     const isLowPaper = uploaded && estimatedTotalPages > paperCount;
@@ -678,32 +685,11 @@ function Dashboard() {
                                         <span className="text-sm font-black text-slate-900 leading-tight">
                                             {selectedFiles.length > 0 
                                                 ? `${selectedFiles.length} file(s) selected`
-                                                : "Choose files (PDF, PNG, JPG)"
-                                            }
-                                        </span>
-                                        <span className="text-xs font-semibold text-slate-500 leading-normal">
-                                            Click here to select multiple files.
+                                                : "Choose files (PDF, PNG, JPG)"}
                                         </span>
                                     </div>
                                 </label>
                             </div>
-
-                            <button
-                                onClick={uploadPdf}
-                                className="btn mt-5 w-full"
-                                disabled={!systemStatus.databaseConnected || uploading || selectedFiles.length === 0}
-                                style={(!systemStatus.databaseConnected || uploading || selectedFiles.length === 0) ? { opacity: 0.5, cursor: "not-allowed", background: "#64748b" } : {}}
-                            >
-                                {uploading ? (
-                                    <div className="flex items-center justify-center gap-3">
-                                        <svg className="animate-spin h-5 w-5 text-white" fill="none" viewBox="0 0 24 24">
-                                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                                        </svg>
-                                        <span>Processing and merging files, please wait...</span>
-                                    </div>
-                                ) : "Upload & Merge Files"}
-                            </button>
 
                             <AnimatePresence>
                                 {uploaded && (
@@ -921,6 +907,9 @@ function Dashboard() {
                                                 <option value="1-up">1-up (Normal)</option>
                                                 <option value="2-up">2-up (Saver)</option>
                                                 <option value="4-up">4-up (Compact)</option>
+                                                <option value="6-up">6-up (Micro)</option>
+                                                <option value="8-up">8-up (Mini)</option>
+                                                <option value="9-up">9-up (Nano)</option>
                                             </select>
                                         </label>
                                     </div>

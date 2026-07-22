@@ -754,7 +754,7 @@ button:disabled {
 
 @media (max-width: 640px) {
   .page-shell {
-    padding: 12px;
+    padding: 0px;
   }
 
   .auth-visual {

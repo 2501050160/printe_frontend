@@ -385,7 +385,7 @@ function BlockSelection() {
     });
 
     return (
-        <main className="min-h-screen bg-[#060B17] py-8 px-4 md:px-8 xl:px-12 relative overflow-hidden font-sans text-white flex flex-col justify-between">
+        <main className="min-h-screen bg-[#060B17] py-8 px-0 sm:px-4 md:px-8 xl:px-12 relative overflow-hidden font-sans text-white flex flex-col justify-between">
             {/* Styles for glassmorphism, background, and maintenance stamp */}
             <style dangerouslySetInnerHTML={{__html: `
                 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
