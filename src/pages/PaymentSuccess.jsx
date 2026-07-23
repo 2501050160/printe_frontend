@@ -302,6 +302,10 @@ function PaymentSuccess() {
                                 <span className="invoice-val">{orderDetails.printType}</span>
                             </div>
                             <div className="invoice-row">
+                                <span className="invoice-label">Sides:</span>
+                                <span className="invoice-val">{orderDetails.doubleSided ? "Double Sided" : "Single Sided"}</span>
+                            </div>
+                            <div className="invoice-row">
                                 <span className="invoice-label">Total Pages:</span>
                                 <span className="invoice-val">{orderDetails.totalPages} pages</span>
                             </div>

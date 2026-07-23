@@ -35,6 +35,7 @@ function Dashboard() {
     const [startPage, setStartPage] = useState("");
     const [endPage, setEndPage] = useState("");
     const [nupLayout, setNupLayout] = useState("1-up");
+    const [doubleSided, setDoubleSided] = useState(false);
 
     // Active Navigation Tab
     const [activeTab, setActiveTab] = useState("print");
@@ -370,7 +371,8 @@ function Dashboard() {
                             pageOption === "ALL"
                                 ? "ALL"
                                 : `${startPage}-${endPage}`,
-                        nupLayout
+                        nupLayout,
+                        doubleSided
                     }
                 }
             );
@@ -851,7 +853,7 @@ function Dashboard() {
                                         </div>
                                     )}
 
-                                    <div className="grid gap-4 md:grid-cols-4">
+                                    <div className="grid gap-4 md:grid-cols-5">
                                         <label className="block">
                                             <span className="mb-2 block text-sm font-black text-slate-700">
                                                 Copies
@@ -910,6 +912,20 @@ function Dashboard() {
                                                 <option value="6-up">6-up (Micro)</option>
                                                 <option value="8-up">8-up (Mini)</option>
                                                 <option value="9-up">9-up (Nano)</option>
+                                            </select>
+                                        </label>
+
+                                        <label className="block">
+                                            <span className="mb-2 block text-sm font-black text-slate-700">
+                                                Print Sides
+                                            </span>
+                                            <select
+                                                value={doubleSided ? "double" : "single"}
+                                                onChange={(e) => setDoubleSided(e.target.value === "double")}
+                                                className="field"
+                                            >
+                                                <option value="single">Single Sided</option>
+                                                <option value="double">Double Sided (Duplex)</option>
                                             </select>
                                         </label>
                                     </div>
@@ -1625,6 +1641,10 @@ function Dashboard() {
                             <div className="invoice-row">
                                 <span className="invoice-label">Print Option:</span>
                                 <span className="invoice-val">{selectedInvoiceOrder.printType}</span>
+                            </div>
+                            <div className="invoice-row">
+                                <span className="invoice-label">Sides:</span>
+                                <span className="invoice-val">{selectedInvoiceOrder.doubleSided ? "Double Sided" : "Single Sided"}</span>
                             </div>
                             <div className="invoice-row">
                                 <span className="invoice-label">Print Papers (Pages):</span>
