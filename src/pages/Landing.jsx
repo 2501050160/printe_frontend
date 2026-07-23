@@ -332,12 +332,12 @@ function Landing() {
                 <Sparkles className="w-3.5 h-3.5" /> Next-Gen Kiosk Printing
               </span>
               
-              <h1 className="mt-6 text-5xl md:text-7xl font-black tracking-tight leading-[1.05] text-white">
+              <h1 className="mt-6 text-4xl md:text-5xl font-black tracking-tight leading-[1.05] text-white">
                 Print Anywhere.<br />
                 <span className="bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">Collect Instantly.</span>
               </h1>
               
-              <p className="mt-6 text-lg font-bold text-slate-300 leading-relaxed max-w-xl">
+              <p className="mt-6 text-sm md:text-base font-bold text-slate-300 leading-relaxed max-w-xl">
                 Upload your PDF documents from anywhere on campus, pay securely online, and collect your prints instantly using secure OTP codes or QR verification from any CloudPrint-enabled printer.
               </p>
 
