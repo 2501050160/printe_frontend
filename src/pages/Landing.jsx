@@ -332,7 +332,7 @@ function Landing() {
                 <Sparkles className="w-3.5 h-3.5" /> Next-Gen Kiosk Printing
               </span>
               
-              <h1 className="mt-6 text-4xl md:text-5xl font-black tracking-tight leading-[1.05] text-white">
+              <h1 className="mt-6 text-5xl md:text-6xl font-black tracking-tight leading-[1.05] text-white">
                 Print Anywhere.<br />
                 <span className="bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">Collect Instantly.</span>
               </h1>
