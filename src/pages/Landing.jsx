@@ -487,6 +487,25 @@ function Landing() {
               className="w-full aspect-video bg-black"
             />
           </div>
+
+          {/* How It Works Steps Grid */}
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 mt-16">
+            {[
+              { title: "Upload PDF", desc: "Select and process files", icon: "📄" },
+              { title: "Choose Printer", desc: "Pick nearest pickup counter", icon: "🖨️" },
+              { title: "Verify OTP", desc: "Input code at counter", icon: "🔑" },
+              { title: "Collect Print", desc: "Grab pages from output tray", icon: "⚡" }
+            ].map((step, idx) => (
+              <div key={idx} className="p-6 bg-slate-900/40 border border-white/10 rounded-2xl relative text-left">
+                <span className="absolute top-4 right-4 text-[10px] font-black bg-blue-500/20 text-blue-400 w-5 h-5 rounded-full flex items-center justify-center border border-blue-500/30">
+                  {idx + 1}
+                </span>
+                <div className="text-2xl mb-3">{step.icon}</div>
+                <h4 className="text-base font-black text-white">{step.title}</h4>
+                <p className="text-xs text-slate-400 mt-2 font-bold leading-relaxed">{step.desc}</p>
+              </div>
+            ))}
+          </div>
         </div>
       </section>
 

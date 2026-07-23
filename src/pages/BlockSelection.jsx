@@ -753,29 +753,7 @@ function BlockSelection() {
                             </button>
                         </motion.div>
 
-                        {/* How it Works Vertical Timeline Card */}
-                        <div className="glass-panel p-6 rounded-[24px] text-left space-y-6">
-                            <h3 className="text-base font-black text-slate-200 uppercase tracking-widest">How It Works</h3>
-                            
-                            <div className="space-y-8 relative pl-4 border-l border-white/10 ml-3 pt-2">
-                                {[
-                                    { title: "Upload PDF", desc: "Select and process files" },
-                                    { title: "Choose Printer", desc: "Pick nearest pickup counter" },
-                                    { title: "Verify OTP", desc: "Input code at counter" },
-                                    { title: "Collect Print", desc: "Grab pages from output tray" }
-                                ].map((step, idx) => (
-                                    <div key={idx} className="relative group">
-                                        <span className="absolute left-[-28px] top-0.5 inline-grid place-items-center w-6 h-6 rounded-full bg-slate-950 text-xs font-bold text-slate-300 border border-white/10 group-hover:border-[#6C63FF] transition-colors">
-                                            {idx + 1}
-                                        </span>
-                                        <div className="pl-4">
-                                            <p className="text-base font-black text-white">{step.title}</p>
-                                            <p className="text-sm text-slate-400 font-semibold">{step.desc}</p>
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
+
                     </div>
 
                     {/* RIGHT PANEL COLUMN (Occupies 7 columns) */}
