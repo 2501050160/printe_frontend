@@ -50,6 +50,7 @@ function Landing() {
     let index2 = 0;
     let timer1;
     let timer2;
+    let loopTimer;
 
     const type1 = () => {
       if (index1 <= title1.length) {
@@ -66,6 +67,15 @@ function Landing() {
         setTypedTitle2(title2.substring(0, index2));
         index2++;
         timer2 = setTimeout(type2, 80);
+      } else {
+        // Wait 3 seconds, then clear and restart the loop
+        loopTimer = setTimeout(() => {
+          setTypedTitle1("");
+          setTypedTitle2("");
+          index1 = 0;
+          index2 = 0;
+          type1();
+        }, 3000);
       }
     };
 
@@ -74,6 +84,7 @@ function Landing() {
     return () => {
       clearTimeout(timer1);
       clearTimeout(timer2);
+      clearTimeout(loopTimer);
     };
   }, []);
 
@@ -374,7 +385,6 @@ function Landing() {
                 <span className="bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
                   {typedTitle2}
                 </span>
-                <span className="animate-pulse text-blue-400 ml-1">|</span>
               </h1>
               
               <p className="mt-6 text-sm md:text-base font-bold text-slate-300 leading-relaxed max-w-xl">
