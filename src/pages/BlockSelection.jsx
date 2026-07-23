@@ -285,6 +285,7 @@ function BlockSelection() {
                     navigate("/my-orders");
                 } else {
                     setOtpError("");
+                    setShowOtpModal(true);
                     
                     if (redirectOtp) {
                         setPendingOrders([
@@ -1017,7 +1018,7 @@ function BlockSelection() {
                                     }}
                                     className="h-11 rounded-xl border border-white/5 bg-slate-900 hover:bg-slate-800 text-xs font-bold text-white transition-colors"
                                 >
-                                    Cancel
+                                    Add New Print / Close
                                 </button>
                                 <button
                                     onClick={handleDirectRelease}
