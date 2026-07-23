@@ -376,12 +376,18 @@ function BlockSelection() {
     // Get unique list of colleges
     const collegesList = ["KLU", ...Array.from(new Set(blocks.map(b => b.college))).filter(c => c !== "KLU" && c)];
 
-    // Filtered blocks based on selected college and search query
+    // Filtered blocks based on selected college and search query, sorted with online printers at the top
     const filteredBlocks = blocks.filter(b => {
         const matchesCollege = b.college.toUpperCase() === selectedCollege.toUpperCase();
         const matchesSearch = b.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
                               b.description.toLowerCase().includes(searchQuery.toLowerCase());
         return matchesCollege && matchesSearch;
+    }).sort((a, b) => {
+        const aReady = a.isOnline && !a.maintenance;
+        const bReady = b.isOnline && !b.maintenance;
+        if (aReady && !bReady) return -1;
+        if (!aReady && bReady) return 1;
+        return 0;
     });
 
     return (
