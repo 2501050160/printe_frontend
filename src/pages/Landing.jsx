@@ -40,6 +40,42 @@ function Landing() {
   const demoVideoRef = useRef(null);
 
   const [isMobile, setIsMobile] = useState(false);
+  const [typedTitle1, setTypedTitle1] = useState("");
+  const [typedTitle2, setTypedTitle2] = useState("");
+
+  useEffect(() => {
+    const title1 = "Print Anywhere.";
+    const title2 = "Collect Instantly.";
+    let index1 = 0;
+    let index2 = 0;
+    let timer1;
+    let timer2;
+
+    const type1 = () => {
+      if (index1 <= title1.length) {
+        setTypedTitle1(title1.substring(0, index1));
+        index1++;
+        timer1 = setTimeout(type1, 80);
+      } else {
+        type2();
+      }
+    };
+
+    const type2 = () => {
+      if (index2 <= title2.length) {
+        setTypedTitle2(title2.substring(0, index2));
+        index2++;
+        timer2 = setTimeout(type2, 80);
+      }
+    };
+
+    type1();
+
+    return () => {
+      clearTimeout(timer1);
+      clearTimeout(timer2);
+    };
+  }, []);
 
   useEffect(() => {
     const checkMobile = () => setIsMobile(window.innerWidth < 1024);
@@ -333,8 +369,12 @@ function Landing() {
               </span>
               
               <h1 className="mt-6 text-5xl md:text-6xl font-black tracking-tight leading-[1.05] text-white">
-                Print Anywhere.<br />
-                <span className="bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">Collect Instantly.</span>
+                {typedTitle1}
+                {typedTitle1 && <br />}
+                <span className="bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+                  {typedTitle2}
+                </span>
+                <span className="animate-pulse text-blue-400 ml-1">|</span>
               </h1>
               
               <p className="mt-6 text-sm md:text-base font-bold text-slate-300 leading-relaxed max-w-xl">
