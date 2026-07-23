@@ -64,13 +64,13 @@ function QueueCard({ order, index = 0 }) {
             <div className="flex justify-between items-start z-10">
                 <div>
                     <p className="text-sm font-bold tracking-widest text-white/50 uppercase">Order</p>
-                    <p className="text-3xl font-black text-white leading-none mt-1">
+                    <p className="text-2xl sm:text-3xl font-black text-white leading-none mt-1 break-all">
                         {order.orderId}
                     </p>
                 </div>
-                <div className="flex flex-col items-end">
+                <div className="flex flex-col items-end text-right">
                     <p className="text-sm font-bold tracking-widest text-white/50 uppercase">Customer</p>
-                    <p className="text-xl font-bold text-sky-200 mt-1 truncate max-w-[120px]">
+                    <p className="text-lg sm:text-xl font-bold text-sky-200 mt-1 break-words">
                         {order.customerName || "Customer"}
                     </p>
                 </div>

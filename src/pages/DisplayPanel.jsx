@@ -7,7 +7,7 @@ import studentAd from "../assets/cloud_print_student_offers_ad.png";
 
 function DisplayPanel() {
     const [orders, setOrders] = useState([]);
-    const [displayBlock, setDisplayBlock] = useState("");
+    const [displayBlock, setDisplayBlock] = useState(localStorage.getItem("selectedDisplayBlock") || "");
     const [blocks, setBlocks] = useState([]);
     const [slideIndex, setSlideIndex] = useState(0);
     const [pickupQueue, setPickupQueue] = useState([]);
@@ -88,8 +88,12 @@ function DisplayPanel() {
                 setBlocks(fetchedBlocks);
                 if (fetchedBlocks.length > 0) {
                     const names = fetchedBlocks.map(b => b.name);
-                    if (!names.includes(displayBlock)) {
+                    const saved = localStorage.getItem("selectedDisplayBlock");
+                    if (saved && names.includes(saved)) {
+                        setDisplayBlock(saved);
+                    } else if (!names.includes(displayBlock)) {
                         setDisplayBlock(names[0]);
+                        localStorage.setItem("selectedDisplayBlock", names[0]);
                     }
                 }
             } catch (err) {
@@ -100,6 +104,12 @@ function DisplayPanel() {
 
         return cleanup;
     }, []);
+
+    useEffect(() => {
+        if (displayBlock) {
+            localStorage.setItem("selectedDisplayBlock", displayBlock);
+        }
+    }, [displayBlock]);
 
     useEffect(() => {
         setSlideIndex(0);
@@ -430,7 +440,12 @@ function DisplayPanel() {
                                             </span>
                                         </div>
 
-                                        <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                                        <div className={`mt-6 grid gap-6 ${
+                                            waitingOrders.length === 1 ? "grid-cols-1" :
+                                            waitingOrders.length === 2 ? "grid-cols-2" :
+                                            waitingOrders.length === 3 ? "grid-cols-3" :
+                                            "grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4"
+                                        }`}>
                                             {waitingOrders.map((order, index) => (
                                                 <QueueCard
                                                     key={order.id}
