@@ -24,7 +24,9 @@ function Settings() {
     generalPopupEnabled: false,
     generalPopupMessage: "",
     thesisDiscountPages: 50.0,
-    thesisDiscountPercent: 15.0
+    thesisDiscountPercent: 15.0,
+    cancelWindowEnabled: true,
+    displayAdPhotoEnabled: true
   });
 
   const [pricing, setPricing] = useState({
@@ -189,6 +191,39 @@ function Settings() {
                     disabled={!settings.referralEnabled}
                   />
                 </div>
+              </div>
+            </div>
+
+            {/* Panel 4: Operations & Kiosk Configs */}
+            <div className="panel p-8 bg-white rounded-3xl border border-slate-200/80 flex flex-col gap-6">
+              <h3 className="text-lg font-black text-slate-900 flex items-center gap-1.5 border-b border-slate-100 pb-3">
+                <Clock className="w-5 h-5 text-blue-600" /> Kiosk & Queue Settings
+              </h3>
+
+              <div className="flex items-center justify-between bg-slate-50 p-4 rounded-2xl border border-slate-100">
+                <div>
+                  <h4 className="text-sm font-black">Enable Cancel Window</h4>
+                  <p className="text-xs text-slate-400 font-bold">Give students 30s after checkout to cancel printing.</p>
+                </div>
+                <input
+                  type="checkbox"
+                  checked={settings.cancelWindowEnabled}
+                  onChange={(e) => setSettings({ ...settings, cancelWindowEnabled: e.target.checked })}
+                  className="w-5 h-5 accent-blue-600 cursor-pointer"
+                />
+              </div>
+
+              <div className="flex items-center justify-between bg-slate-50 p-4 rounded-2xl border border-slate-100">
+                <div>
+                  <h4 className="text-sm font-black">Show Display Panel Ads</h4>
+                  <p className="text-xs text-slate-400 font-bold">Auto-rotate promotional fullscreen offer photos on TVs.</p>
+                </div>
+                <input
+                  type="checkbox"
+                  checked={settings.displayAdPhotoEnabled}
+                  onChange={(e) => setSettings({ ...settings, displayAdPhotoEnabled: e.target.checked })}
+                  className="w-5 h-5 accent-blue-600 cursor-pointer"
+                />
               </div>
             </div>
 

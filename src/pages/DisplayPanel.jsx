@@ -12,6 +12,7 @@ function DisplayPanel() {
     const [slideIndex, setSlideIndex] = useState(0);
     const [pickupQueue, setPickupQueue] = useState([]);
     const [activePickup, setActivePickup] = useState(null);
+    const [displayAdPhotoEnabled, setDisplayAdPhotoEnabled] = useState(true);
     const [queuePageIndex, setQueuePageIndex] = useState(0);
     const [isFullscreen, setIsFullscreen] = useState(false);
     const [showFullscreenAd, setShowFullscreenAd] = useState(false);
@@ -49,13 +50,15 @@ function DisplayPanel() {
 
     useEffect(() => {
         const interval = setInterval(() => {
-            setShowFullscreenAd(true);
-            setTimeout(() => {
-                setShowFullscreenAd(false);
-            }, 4000); // show ad for 4 seconds
+            if (displayAdPhotoEnabled) {
+                setShowFullscreenAd(true);
+                setTimeout(() => {
+                    setShowFullscreenAd(false);
+                }, 4000); // show ad for 4 seconds
+            }
         }, 14000); // 10 seconds showing queue + 4 seconds showing ad
         return () => clearInterval(interval);
-    }, []);
+    }, [displayAdPhotoEnabled]);
 
     const theme = getBlockTheme(displayBlock);
     const welcomeSlides = theme.slides;
@@ -166,6 +169,13 @@ function DisplayPanel() {
 
             detectCompletedOrders(incomingOrders);
             setOrders(incomingOrders);
+
+            // Fetch public settings for ad photo status
+            api.get("/system/settings").then(res => {
+                if (res.data && res.data.displayAdPhotoEnabled !== undefined) {
+                    setDisplayAdPhotoEnabled(res.data.displayAdPhotoEnabled);
+                }
+            }).catch(() => {});
         } catch (error) {
             console.error(error);
         }
@@ -227,15 +237,15 @@ function DisplayPanel() {
 
     useEffect(() => {
         setQueuePageIndex(0);
-        if (waitingOrders.length <= 8) {
+        if (waitingOrders.length <= 6) {
             return;
         }
         const interval = setInterval(() => {
             setQueuePageIndex((prev) => {
-                const totalPages = Math.ceil(waitingOrders.length / 8);
+                const totalPages = Math.ceil(waitingOrders.length / 6);
                 return (prev + 1) % totalPages;
             });
-        }, 3000);
+        }, 5000);
         return () => clearInterval(interval);
     }, [waitingOrders.length, displayBlock]);
 
@@ -260,7 +270,7 @@ function DisplayPanel() {
             />
             <div className="display-grid-overlay" />
 
-            <section className="relative z-10 flex min-h-screen flex-col p-6 md:p-8">
+            <section className="relative z-10 flex min-h-screen flex-col p-3 md:p-4">
                 <motion.header
                     className="flex flex-wrap items-center justify-between gap-4"
                     initial={{ opacity: 0, y: -20 }}
@@ -312,7 +322,7 @@ function DisplayPanel() {
                             {activePickup ? (
                                 <motion.div
                                     key={`pickup-${activePickup.id}`}
-                                    className="display-glass w-full max-w-5xl p-10 text-center mx-auto"
+                                    className="display-glass w-full max-w-none p-10 text-center mx-auto"
                                     initial={{ opacity: 0, scale: 0.92 }}
                                     animate={{ opacity: 1, scale: 1 }}
                                     exit={{ opacity: 0, scale: 0.96 }}
@@ -348,7 +358,7 @@ function DisplayPanel() {
                             ) : hasActiveOrPendingOrders ? (
                                 <motion.div
                                     key={`queue-${displayBlock}`}
-                                    className="grid gap-6 w-full max-w-7xl mx-auto"
+                                    className="grid gap-6 w-full max-w-none mx-auto"
                                     initial={{ opacity: 0, y: 16 }}
                                     animate={{ opacity: 1, y: 0 }}
                                     exit={{ opacity: 0, y: -16 }}
@@ -446,7 +456,7 @@ function DisplayPanel() {
                                             waitingOrders.length === 3 ? "grid-cols-3" :
                                             "grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4"
                                         }`}>
-                                            {waitingOrders.map((order, index) => (
+                                            {waitingOrders.slice(queuePageIndex * 6, (queuePageIndex + 1) * 6).map((order, index) => (
                                                 <QueueCard
                                                     key={order.id}
                                                     order={order}
